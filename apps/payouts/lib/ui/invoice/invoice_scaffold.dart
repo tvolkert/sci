@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
-import 'package:sci/model/invoice.dart';
-import 'package:sci/ui/invoice/invoice_binding.dart';
+import 'package:payouts/model/invoice.dart';
+import 'package:payouts/ui/invoice/invoice_binding.dart';
 
 class InvoiceScaffold extends StatelessWidget {
   const InvoiceScaffold({

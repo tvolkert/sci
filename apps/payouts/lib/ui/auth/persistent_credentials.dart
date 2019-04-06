@@ -4,7 +4,7 @@ import 'dart:io';
 import 'package:flutter/widgets.dart';
 import 'package:path_provider/path_provider.dart' as path;
 
-import 'package:sci/ui/loading.dart';
+import 'package:payouts/ui/loading.dart';
 
 const String _usernameKey = 'username';
 const String _passwordKey = 'password';

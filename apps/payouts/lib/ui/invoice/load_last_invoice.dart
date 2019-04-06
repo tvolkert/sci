@@ -3,10 +3,10 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 
-import 'package:sci/model/user.dart';
-import 'package:sci/ui/loading.dart';
-import 'package:sci/ui/auth/user_binding.dart';
-import 'package:sci/ui/invoice/invoice_binding.dart';
+import 'package:payouts/model/user.dart';
+import 'package:payouts/ui/loading.dart';
+import 'package:payouts/ui/auth/user_binding.dart';
+import 'package:payouts/ui/invoice/invoice_binding.dart';
 
 class LoadLastInvoice extends StatefulWidget {
   LoadLastInvoice({Key key, this.child}) : super(key: key);

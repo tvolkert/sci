@@ -1,6 +1,6 @@
 import 'package:flutter/widgets.dart';
 
-import 'package:sci/model/invoice.dart';
+import 'package:payouts/model/invoice.dart';
 
 class InvoiceBinding extends StatefulWidget {
   const InvoiceBinding({

@@ -3,9 +3,9 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 
-import 'package:sci/ui/loading.dart';
-import 'package:sci/ui/auth/persistent_credentials.dart';
-import 'package:sci/ui/auth/user_binding.dart';
+import 'package:payouts/ui/loading.dart';
+import 'package:payouts/ui/auth/persistent_credentials.dart';
+import 'package:payouts/ui/auth/user_binding.dart';
 
 const String _authUrl = 'https://www.satelliteconsulting.com/payoutsLogin';
 

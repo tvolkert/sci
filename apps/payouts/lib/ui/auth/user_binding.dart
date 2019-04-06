@@ -1,6 +1,6 @@
 import 'package:flutter/widgets.dart';
 
-import 'package:sci/model/user.dart';
+import 'package:payouts/model/user.dart';
 
 class UserBinding extends StatefulWidget {
   const UserBinding({
