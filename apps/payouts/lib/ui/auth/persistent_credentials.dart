@@ -17,7 +17,7 @@ abstract class CredentialsProvider {
 }
 
 class PersistentCredentials extends StatefulWidget {
-  PersistentCredentials({Key key, this.child}) : super(key: key);
+  const PersistentCredentials({Key key, this.child}) : super(key: key);
 
   final Widget child;
 
@@ -34,6 +34,11 @@ class PersistentCredentials extends StatefulWidget {
   static void update(BuildContext context, String username, String password) {
     _CredentialsScope scope = context.inheritFromWidgetOfExactType(_CredentialsScope);
     scope.credentialsState._update(username, password);
+  }
+
+  static void clear(BuildContext context) {
+    _CredentialsScope scope = context.inheritFromWidgetOfExactType(_CredentialsScope);
+    scope.credentialsState._clear();
   }
 }
 
@@ -58,6 +63,18 @@ class _CredentialsState extends State<PersistentCredentials> implements Credenti
 
       File credentials = File('${directory.path}/$_filename');
       await credentials.writeAsString(content);
+    });
+  }
+
+  void _clear() {
+    setState(() {
+      username = null;
+      password = null;
+    });
+
+    path.getApplicationDocumentsDirectory().then((Directory directory) async {
+      File credentials = File('${directory.path}/$_filename');
+      await credentials.delete();
     });
   }
 

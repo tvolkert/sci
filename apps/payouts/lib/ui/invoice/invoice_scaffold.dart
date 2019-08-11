@@ -1,68 +1,42 @@
 import 'package:flutter/material.dart';
 
 import 'package:payouts/model/invoice.dart';
+import 'package:payouts/ui/common/payouts_drawer.dart';
 import 'package:payouts/ui/invoice/invoice_binding.dart';
+import 'package:payouts/ui/invoice/invoice_home.dart';
+import 'package:payouts/ui/invoice/open_invoice.dart';
 
-class InvoiceScaffold extends StatelessWidget {
-  const InvoiceScaffold({
+class InvoiceScaffold extends StatefulWidget {
+  InvoiceScaffold({
     Key key,
-  }) : super(key: key);
+    @required this.body,
+    this.floatingActionButton,
+    this.includeDrawer = false,
+  })  : assert(body != null),
+        assert(includeDrawer != null),
+        super(key: key);
+
+  final Widget body;
+  final Widget floatingActionButton;
+  final bool includeDrawer;
 
   @override
-  Widget build(BuildContext context) {
-    Invoice invoice = InvoiceBinding.of(context);
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Invoice ${invoice.id}'),
-        actions: <Widget>[
-          IconButton(
-            icon: Icon(Icons.save),
-            tooltip: 'Save',
-            onPressed: () {},
-          ),
-        ],
-      ),
-      drawer: PayoutsDrawer(),
-      body: SafeArea(
-        child: Container(),
-      ),
-    );
+  State<StatefulWidget> createState() {
+    return _InvoiceScaffoldState();
   }
 }
 
-class PayoutsDrawer extends StatelessWidget {
+class _InvoiceScaffoldState extends State<InvoiceScaffold> {
   @override
   Widget build(BuildContext context) {
-    return Drawer(
-      child: new ListView(children: <Widget>[
-        // Drawer header.
-        new DrawerHeader(
-          child: new Center(
-            child: new Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: new Column(
-                children: <Widget>[
-                  new Text('Payouts'),
-                  new Text(" "),
-                  new Text('link'),
-                ],
-              ),
-            ),
-          ),
-        ),
-
-        // Performance overlay toggle.
-        new ListTile(
-          leading: new Icon(Icons.assessment),
-          title: new Text('Performance Overlay'),
-          onTap: () {},
-          selected: false,
-          trailing: new Checkbox(
-            value: false,
-            onChanged: (bool value) {},
-          ),
-        ),
-      ]),
+    Invoice invoice = InvoiceBinding.of(context).invoice;
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(invoice.data['invoice_number']),
+      ),
+      drawer: widget.includeDrawer ? PayoutsDrawer() : null,
+      body: SafeArea(child: widget.body),
+      floatingActionButton: widget.floatingActionButton,
     );
   }
 }

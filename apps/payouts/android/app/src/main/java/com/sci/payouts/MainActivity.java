@@ -1,4 +1,4 @@
-package com.example.sci;
+package com.sci.payouts;
 
 import android.os.Bundle;
 import io.flutter.app.FlutterActivity;

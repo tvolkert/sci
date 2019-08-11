@@ -14,14 +14,16 @@ description: SCI consultant billing app.
 version: 1.0.0+1
 
 environment:
-  sdk: ">=2.1.0 <3.0.0"
+  sdk: ">=2.2.2 <3.0.0"
 
 dependencies:
   flutter:
     sdk: flutter
 
   http: any
+  intl: any
   meta: any
+  numberpicker: any
   path_provider: any
 
 dev_dependencies:

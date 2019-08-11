@@ -17,6 +17,7 @@ class UserBinding extends StatefulWidget {
 
   static User of(BuildContext context) {
     _UserBindingScope scope = context.inheritFromWidgetOfExactType(_UserBindingScope);
+    assert(scope != null, 'UserBinding not found in ancestry');
     return scope.userBindingState.user;
   }
 
@@ -28,12 +29,19 @@ class UserBinding extends StatefulWidget {
     bool passwordRequiresReset = false,
   }) {
     _UserBindingScope scope = context.inheritFromWidgetOfExactType(_UserBindingScope);
+    assert(scope != null, 'UserBinding not found in ancestry');
     scope.userBindingState._updateUser(User(
       username,
       password,
       lastInvoiceId,
       passwordRequiresReset,
     ));
+  }
+
+  static void clear(BuildContext context) {
+    _UserBindingScope scope = context.inheritFromWidgetOfExactType(_UserBindingScope);
+    assert(scope != null, 'UserBinding not found in ancestry');
+    scope.userBindingState._updateUser(null);
   }
 }
 
