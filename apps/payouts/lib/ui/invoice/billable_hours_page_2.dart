@@ -342,7 +342,7 @@ class HoursBoxHero extends StatelessWidget {
       createRectTween: (Rect begin, Rect end) {
         return MaterialRectCenterArcTween(begin: begin, end: end);
       },
-      placeholderBuilder: leaveChildInPlace ? (BuildContext context, Widget child) => child : null,
+      placeholderBuilder: leaveChildInPlace ? (BuildContext context, Size heroSize, Widget child) => child : null,
       child: Material(
         type: MaterialType.transparency,
         child: child,
