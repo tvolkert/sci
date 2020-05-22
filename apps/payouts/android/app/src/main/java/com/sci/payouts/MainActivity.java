@@ -1,4 +1,4 @@
-package com.sci.payouts;
+package com.satelliteconsulting.payouts;
 
 import android.os.Bundle;
 import io.flutter.app.FlutterActivity;
