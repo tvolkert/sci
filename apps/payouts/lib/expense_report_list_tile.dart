@@ -81,26 +81,28 @@ class ExpenseReportListTile extends StatelessWidget {
       },
     );
 
-    return InkWell(
-      customBorder: ListTileTheme.of(context).shape,
-      onTap: enabled ? onTap : null,
-      mouseCursor: effectiveMouseCursor,
-      canRequestFocus: enabled,
-      focusColor: focusColor,
-      hoverColor: hoverColor,
-      autofocus: autofocus,
-      child: Semantics(
-        selected: selected,
-        enabled: enabled,
-        child: SafeArea(
-          top: false,
-          bottom: false,
-          minimum: EdgeInsets.symmetric(horizontal: 16.0),
-          child: _ListTile(
-            title: Text(title),
-            trailing: Text('(\$$amount)'),
-            textDirection: Directionality.of(context),
-            titleBaselineType: TextBaseline.alphabetic,
+    return Material(
+      child: InkWell(
+        customBorder: ListTileTheme.of(context).shape,
+        onTap: enabled ? onTap : null,
+        mouseCursor: effectiveMouseCursor,
+        canRequestFocus: enabled,
+        focusColor: focusColor,
+        hoverColor: hoverColor,
+        autofocus: autofocus,
+        child: Semantics(
+          selected: selected,
+          enabled: enabled,
+          child: SafeArea(
+            top: false,
+            bottom: false,
+            minimum: EdgeInsets.symmetric(horizontal: 3),
+            child: _ListTile(
+              title: Text(title),
+              trailing: Text('(\$$amount)'),
+              textDirection: Directionality.of(context),
+              titleBaselineType: TextBaseline.alphabetic,
+            ),
           ),
         ),
       ),
@@ -262,15 +264,17 @@ class _RenderListTile extends RenderBox {
         _textDirection = textDirection,
         _titleBaselineType = titleBaselineType;
 
-  // The horizontal gap between the titles and the leading/trailing widgets
-  double get _horizontalTitleGap => 32;
-  // The minimum padding on the top and bottom of the title and subtitle widgets.
-  static const double _minVerticalPadding = 4.0;
+  // The horizontal gap between the titles and the trailing widget.
+  double get _horizontalTitleGap => 2;
+
+  // The minimum padding on the top and bottom of the title widget.
+  static const double _minVerticalPadding = 3.0;
 
   final Map<_ListTileSlot, RenderBox> slotToChild = <_ListTileSlot, RenderBox>{};
   final Map<RenderBox, _ListTileSlot> childToSlot = <RenderBox, _ListTileSlot>{};
 
   RenderBox _updateChild(RenderBox oldChild, RenderBox newChild, _ListTileSlot slot) {
+    assert(oldChild != newChild);
     if (oldChild != null) {
       dropChild(oldChild);
       childToSlot.remove(oldChild);
@@ -375,16 +379,9 @@ class _RenderListTile extends RenderBox {
     return _maxWidth(title, height) + _maxWidth(trailing, height);
   }
 
-  double get _defaultTileHeight {
-    return 80;
-  }
-
   @override
   double computeMinIntrinsicHeight(double width) {
-    return math.max(
-      _defaultTileHeight,
-      title.getMinIntrinsicHeight(width),
-    );
+    return title.getMinIntrinsicHeight(width);
   }
 
   @override
@@ -417,47 +414,23 @@ class _RenderListTile extends RenderBox {
     final BoxConstraints constraints = this.constraints;
     final bool hasTrailing = trailing != null;
 
-    final BoxConstraints maxIconHeightConstraint = BoxConstraints(
-      // One-line trailing and leading widget heights do not follow
-      // Material specifications, but this sizing is required to adhere
-      // to accessibility requirements for smallest tappable widget.
-      // Two- and three-line trailing widget heights are constrained
-      // properly according to the Material spec.
-      maxHeight: 56.0,
-    );
     final BoxConstraints looseConstraints = constraints.loosen();
-    final BoxConstraints iconConstraints = looseConstraints.enforce(maxIconHeightConstraint);
 
     final double tileWidth = looseConstraints.maxWidth;
-    final Size trailingSize = _layoutBox(trailing, iconConstraints);
+    final Size trailingSize = _layoutBox(trailing, looseConstraints);
     assert(tileWidth != trailingSize.width, 'Trailing widget consumes entire tile width. Please use a sized widget.');
 
-    final double adjustedTrailingWidth = hasTrailing ? math.max(trailingSize.width + _horizontalTitleGap, 32.0) : 0.0;
-    final BoxConstraints textConstraints = looseConstraints.tighten(
+    title.getMinIntrinsicWidth(looseConstraints.maxHeight);
+
+    final double adjustedTrailingWidth = trailingSize.width > 0 ? trailingSize.width + _horizontalTitleGap : 0.0;
+    final BoxConstraints titleConstraints = looseConstraints.tighten(
       width: tileWidth - adjustedTrailingWidth,
     );
-    final Size titleSize = _layoutBox(title, textConstraints);
+    final Size titleSize = _layoutBox(title, titleConstraints);
 
-    final double defaultTileHeight = _defaultTileHeight;
-
-    double tileHeight = math.max(defaultTileHeight, titleSize.height + 2.0 * _minVerticalPadding);
+    double tileHeight = titleSize.height + 2.0 * _minVerticalPadding;
     double titleY = (tileHeight - titleSize.height) / 2.0;
-
-    // This attempts to implement the redlines for the vertical position of the
-    // leading and trailing icons on the spec page:
-    //   https://material.io/design/components/lists.html#specs
-    // The interpretation for these redlines is as follows:
-    //  - For large tiles (> 72dp), both leading and trailing controls should be
-    //    a fixed distance from top. As per guidelines this is set to 16dp.
-    //  - For smaller tiles, trailing should always be centered. Leading can be
-    //    centered or closer to the top. It should never be further than 16dp
-    //    to the top.
-    double trailingY;
-    if (tileHeight > 72.0) {
-      trailingY = 16.0;
-    } else {
-      trailingY = (tileHeight - trailingSize.height) / 2.0;
-    }
+    double trailingY = (tileHeight - trailingSize.height) / 2.0;
 
     switch (textDirection) {
       case TextDirection.rtl:

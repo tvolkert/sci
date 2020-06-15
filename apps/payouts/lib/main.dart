@@ -13,7 +13,8 @@ import 'package:payouts/ui/invoice/invoice_binding.dart';
 import 'package:payouts/ui/invoice/invoice_home.dart';
 
 void main() {
-  FlutterError.onError = (FlutterErrorDetails details, {bool forceReport = false}) =>
+  FlutterError.onError = (FlutterErrorDetails details,
+          {bool forceReport = false}) =>
       FlutterError.dumpErrorToConsole(details, forceReport: true);
   runApp(
 //    Directionality(
@@ -31,7 +32,42 @@ void main() {
 //        ],
 //      ),
 //    ),
-      PayoutsApp());
+//    Tmp(),
+
+    PayoutsApp(),
+  );
+}
+
+class Tmp extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Directionality(
+      textDirection: TextDirection.ltr,
+      child: Material(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Expanded(
+              child: ColoredBox(
+                color: Color(0x2200ff00),
+                child: InkWell(
+                  hoverColor: Colors.red,
+                  child: Text('Hover'),
+                  onTap: () {},
+                ),
+              ),
+            ),
+            Expanded(
+              child: ColoredBox(
+                color: Color(0x220000ff),
+                child: Text('No hover'),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 }
 
 bool relicatedUi = true;
@@ -215,7 +251,8 @@ class _FooState extends State<Foo> with SingleTickerProviderStateMixin {
                       child: Padding(
                         padding: EdgeInsets.only(left: 32, right: 32),
                         child: Table(
-                          defaultVerticalAlignment: TableCellVerticalAlignment.baseline,
+                          defaultVerticalAlignment:
+                              TableCellVerticalAlignment.baseline,
                           textBaseline: TextBaseline.alphabetic,
                           columnWidths: {
                             0: IntrinsicColumnWidth(),
@@ -258,13 +295,21 @@ class _FooState extends State<Foo> with SingleTickerProviderStateMixin {
                                 Container(),
                               ],
                             ),
-                            _buildRow('SCI - Overhead', r'47 hrs @$0.00/hr ($0.00)'),
-                            _buildRow('BSS, NNV8-913197 (COSC) (123)', r'1.21 hrs @$95.00/hr ($114.95)'),
-                            _buildRow('Orbital Sciences (abc)', r'5 hrs @$110.00/hr ($550.00)'),
-                            _buildRow('Loral - T14R', r'0 hrs @$110.00/hr ($0.00)'),
-                            _buildRow('Sirius FM 6', r'5 hrs @$120.00/hr ($600.00)'),
+                            _buildRow(
+                                'SCI - Overhead', r'47 hrs @$0.00/hr ($0.00)'),
+                            _buildRow('BSS, NNV8-913197 (COSC) (123)',
+                                r'1.21 hrs @$95.00/hr ($114.95)'),
+                            _buildRow('Orbital Sciences (abc)',
+                                r'5 hrs @$110.00/hr ($550.00)'),
+                            _buildRow(
+                                'Loral - T14R', r'0 hrs @$110.00/hr ($0.00)'),
+                            _buildRow(
+                                'Sirius FM 6', r'5 hrs @$120.00/hr ($600.00)'),
                             TableRow(
-                              decoration: BoxDecoration(border: Border(bottom: BorderSide(color: Color(0xff999999)))),
+                              decoration: BoxDecoration(
+                                  border: Border(
+                                      bottom: BorderSide(
+                                          color: Color(0xff999999)))),
                               children: [
                                 SizedBox(height: 5),
                                 Container(),
@@ -287,38 +332,57 @@ class _FooState extends State<Foo> with SingleTickerProviderStateMixin {
                             ),
                             TableRow(
                               children: [
-                                Text('Daily Totals', maxLines: 1, style: TextStyle(fontStyle: FontStyle.italic)),
+                                Text('Daily Totals',
+                                    maxLines: 1,
+                                    style:
+                                        TextStyle(fontStyle: FontStyle.italic)),
                                 Padding(
                                   padding: EdgeInsets.only(top: 5, left: 2),
-                                  child: Text('6', style: TextStyle(fontStyle: FontStyle.italic)),
+                                  child: Text('6',
+                                      style: TextStyle(
+                                          fontStyle: FontStyle.italic)),
                                 ),
                                 Padding(
                                   padding: EdgeInsets.only(top: 5, left: 2),
-                                  child: Text('6', style: TextStyle(fontStyle: FontStyle.italic)),
+                                  child: Text('6',
+                                      style: TextStyle(
+                                          fontStyle: FontStyle.italic)),
                                 ),
                                 Padding(
                                   padding: EdgeInsets.only(top: 5, left: 2),
-                                  child: Text('6', style: TextStyle(fontStyle: FontStyle.italic)),
+                                  child: Text('6',
+                                      style: TextStyle(
+                                          fontStyle: FontStyle.italic)),
                                 ),
                                 Padding(
                                   padding: EdgeInsets.only(top: 5, left: 2),
-                                  child: Text('9.21', style: TextStyle(fontStyle: FontStyle.italic)),
+                                  child: Text('9.21',
+                                      style: TextStyle(
+                                          fontStyle: FontStyle.italic)),
                                 ),
                                 Padding(
                                   padding: EdgeInsets.only(top: 5, left: 2),
-                                  child: Text('11', style: TextStyle(fontStyle: FontStyle.italic)),
+                                  child: Text('11',
+                                      style: TextStyle(
+                                          fontStyle: FontStyle.italic)),
                                 ),
                                 Padding(
                                   padding: EdgeInsets.only(top: 5, left: 2),
-                                  child: Text('7', style: TextStyle(fontStyle: FontStyle.italic)),
+                                  child: Text('7',
+                                      style: TextStyle(
+                                          fontStyle: FontStyle.italic)),
                                 ),
                                 Padding(
                                   padding: EdgeInsets.only(top: 5, left: 2),
-                                  child: Text('6', style: TextStyle(fontStyle: FontStyle.italic)),
+                                  child: Text('6',
+                                      style: TextStyle(
+                                          fontStyle: FontStyle.italic)),
                                 ),
                                 Padding(
                                   padding: EdgeInsets.only(top: 5, left: 2),
-                                  child: Text('7', style: TextStyle(fontStyle: FontStyle.italic)),
+                                  child: Text('7',
+                                      style: TextStyle(
+                                          fontStyle: FontStyle.italic)),
                                 ),
                                 Text(''),
                                 Text(''),
@@ -366,14 +430,29 @@ class _FooState extends State<Foo> with SingleTickerProviderStateMixin {
                             border: Border.all(color: Color(0xFF999999)),
                           ),
                           child: ListView(
-                            itemExtent: 17,
+//                            itemExtent: 17,
                             shrinkWrap: true,
-                            padding: EdgeInsets.symmetric(vertical: 2, horizontal: 4),
+                            //padding: EdgeInsets.symmetric(vertical: 2, horizontal: 4),
                             children: [
+                              ListTile(
+                                title: Text('Foo'),
+                                hoverColor: Colors.red,
+                                selected: true,
+                                enabled: true,
+                                onTap: () {},
+                              ),
+                              ListTile(
+                                title: Text('Bar'),
+                                hoverColor: Colors.red,
+                                selected: false,
+                                enabled: true,
+                                onTap: () {},
+                              ),
                               ExpenseReportListTile(
                                 title: 'SCI - Overhead',
                                 amount: 0,
                                 hoverColor: Colors.red,
+                                selected: true,
                                 onTap: () {},
                               ),
                               ExpenseReportListTile(
@@ -398,7 +477,8 @@ class _FooState extends State<Foo> with SingleTickerProviderStateMixin {
                           ),
                         ),
                         after: DecoratedBox(
-                          decoration: BoxDecoration(border: Border.all(color: Color(0xFF999999))),
+                          decoration: BoxDecoration(
+                              border: Border.all(color: Color(0xFF999999))),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.stretch,
                             children: [
@@ -512,7 +592,8 @@ class _FooState extends State<Foo> with SingleTickerProviderStateMixin {
                               child: Padding(
                                 padding: EdgeInsets.symmetric(horizontal: 10),
                                 child: TextField(
-                                  decoration: InputDecoration(border: InputBorder.none),
+                                  decoration:
+                                      InputDecoration(border: InputBorder.none),
                                   minLines: 10,
                                   maxLines: 20,
                                 ),
@@ -537,7 +618,8 @@ class _FooState extends State<Foo> with SingleTickerProviderStateMixin {
                       mainAxisAlignment: MainAxisAlignment.start,
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: <Widget>[
-                        Text('Volkert, Todd', style: TextStyle(fontWeight: FontWeight.bold)),
+                        Text('Volkert, Todd',
+                            style: TextStyle(fontWeight: FontWeight.bold)),
                         Text('Invoice #FOO'),
                         Text('10/12/2015 - 10/25/2015'),
                         Text(r'$4,401.58'),
@@ -795,7 +877,8 @@ class _LinkButtonState extends State<LinkButton> {
               widget.text,
               style: TextStyle(
                 color: Color(0xff2b5580),
-                decoration: hover ? TextDecoration.underline : TextDecoration.none,
+                decoration:
+                    hover ? TextDecoration.underline : TextDecoration.none,
               ),
             ),
           ],
@@ -860,13 +943,14 @@ class _SplitterState extends State<Splitter> {
               children: [
                 SizedBox(width: split, child: widget.before),
                 MouseRegion(
-                  cursor: SystemMouseCursors.grab,
+                  cursor: SystemMouseCursors.horizontalDoubleArrow,
                   child: GestureDetector(
                     behavior: HitTestBehavior.opaque,
                     dragStartBehavior: DragStartBehavior.down,
                     onHorizontalDragUpdate: (DragUpdateDetails details) {
                       final double newSplit = split + details.delta.dx;
-                      final double newSplitRatio = newSplit / context.size.width;
+                      final double newSplitRatio =
+                          newSplit / context.size.width;
                       setState(() {
                         splitRatio = newSplitRatio;
                       });
