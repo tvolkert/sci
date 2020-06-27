@@ -1,10 +1,17 @@
 import 'dart:math' as math;
+import 'dart:ui' show window;
 
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/painting.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
+import 'package:intl/intl.dart' as intl;
+
+import 'package:payouts/bug_report.dart';
 import 'package:payouts/expense_report_list_tile.dart';
+import 'package:payouts/splitter.dart';
+import 'package:payouts/terra_tab_pane.dart' as pivot;
 
 import 'package:payouts/ui/auth/persistent_credentials.dart';
 import 'package:payouts/ui/auth/require_user.dart';
@@ -12,9 +19,10 @@ import 'package:payouts/ui/auth/user_binding.dart';
 import 'package:payouts/ui/invoice/invoice_binding.dart';
 import 'package:payouts/ui/invoice/invoice_home.dart';
 
+import 'expense_report_list_view.dart';
+
 void main() {
-  FlutterError.onError = (FlutterErrorDetails details,
-          {bool forceReport = false}) =>
+  FlutterError.onError = (FlutterErrorDetails details, {bool forceReport = false}) =>
       FlutterError.dumpErrorToConsole(details, forceReport: true);
   runApp(
 //    Directionality(
@@ -32,42 +40,10 @@ void main() {
 //        ],
 //      ),
 //    ),
-//    Tmp(),
 
+//    BugReport(),
     PayoutsApp(),
   );
-}
-
-class Tmp extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Directionality(
-      textDirection: TextDirection.ltr,
-      child: Material(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Expanded(
-              child: ColoredBox(
-                color: Color(0x2200ff00),
-                child: InkWell(
-                  hoverColor: Colors.red,
-                  child: Text('Hover'),
-                  onTap: () {},
-                ),
-              ),
-            ),
-            Expanded(
-              child: ColoredBox(
-                color: Color(0x220000ff),
-                child: Text('No hover'),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
 }
 
 bool relicatedUi = true;
@@ -89,6 +65,7 @@ class PayoutsApp extends StatelessWidget {
             headline1: TextStyle(fontSize: 72.0, fontWeight: FontWeight.bold),
             headline6: TextStyle(fontSize: 36.0, fontStyle: FontStyle.italic),
             bodyText2: TextStyle(fontSize: 11.0, fontFamily: 'Verdana'),
+            subtitle1: TextStyle(fontSize: 11.0, fontFamily: 'Verdana'),
           ),
         ),
         home: Foo(),
@@ -141,464 +118,153 @@ class _FooState extends State<Foo> with SingleTickerProviderStateMixin {
     super.dispose();
   }
 
-  TableRow _buildRow(String assignment, String footer) {
-    return TableRow(
-      children: <Widget>[
-        TimesheetHeaderRow(assignment: assignment),
-        HoursTextInput(),
-        HoursTextInput(),
-        HoursTextInput(),
-        HoursTextInput(),
-        HoursTextInput(),
-        HoursTextInput(isWeekend: true),
-        HoursTextInput(isWeekend: true),
-        HoursTextInput(),
-        HoursTextInput(),
-        HoursTextInput(),
-        HoursTextInput(),
-        HoursTextInput(),
-        HoursTextInput(isWeekend: true),
-        HoursTextInput(isWeekend: true),
-        Padding(
-          padding: EdgeInsets.only(left: 10),
-          child: Text(footer, maxLines: 1),
-        ),
-        Container(),
-      ],
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        automaticallyImplyLeading: false,
-        title: Row(
-          children: <Widget>[
-            FlatButton(
-              onPressed: () {},
-              child: Column(
-                children: [
-                  Image(image: AssetImage('assets/document-new.png')),
-                  Text('New Invoice'),
-                ],
+    return Material(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          DecoratedBox(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.bottomCenter,
+                end: Alignment.topCenter,
+                colors: <Color>[Color(0xffc8c8bb), Color(0xffdddcd5)],
               ),
             ),
-            FlatButton(
-              onPressed: () {},
-              child: Column(
-                children: [
-                  Image(image: AssetImage('assets/document-open.png')),
-                  Text('Open Invoice'),
-                ],
-              ),
-            ),
-            FlatButton(
-              onPressed: () {},
-              child: Column(
-                children: [
-                  Image(image: AssetImage('assets/media-floppy.png')),
-                  Text('Save to Server'),
-                ],
-              ),
-            ),
-            FlatButton(
-              onPressed: () {},
-              child: Column(
-                children: [
-                  Image(image: AssetImage('assets/dialog-cancel.png')),
-                  Text('Delete Invoice'),
-                ],
-              ),
-            ),
-            FlatButton(
-              onPressed: null,
-              child: Column(
-                children: [
-                  Image(image: AssetImage('assets/x-office-presentation.png')),
-                  Text('Export to PDF'),
-                ],
-              ),
-            ),
-          ],
-        ),
-        bottom: TabBar(
-          controller: _controller,
-          tabs: tabs,
-        ),
-      ),
-      body: TabBarView(
-        controller: _controller,
-        physics: NeverScrollableScrollPhysics(),
-        children: tabs.map((Tab tab) {
-          if (tab.text == 'Billable Hours') {
-            return Column(
-              mainAxisAlignment: MainAxisAlignment.start,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: <Widget>[
-                Padding(
-                  padding: EdgeInsets.all(7),
-                  child: LinkButton(
-                    image: AssetImage('assets/table_add.png'),
-                    text: 'Add hours line item',
-                    onPressed: () {},
-                  ),
-                ),
-                Expanded(
-                  child: Scrollbar(
-                    child: SingleChildScrollView(
-                      scrollDirection: Axis.vertical,
-                      child: Padding(
-                        padding: EdgeInsets.only(left: 32, right: 32),
-                        child: Table(
-                          defaultVerticalAlignment:
-                              TableCellVerticalAlignment.baseline,
-                          textBaseline: TextBaseline.alphabetic,
-                          columnWidths: {
-                            0: IntrinsicColumnWidth(),
-                            1: FixedColumnWidth(33),
-                            2: FixedColumnWidth(33),
-                            3: FixedColumnWidth(33),
-                            4: FixedColumnWidth(33),
-                            5: FixedColumnWidth(33),
-                            6: FixedColumnWidth(33),
-                            7: FixedColumnWidth(33),
-                            8: FixedColumnWidth(33),
-                            9: FixedColumnWidth(33),
-                            10: FixedColumnWidth(33),
-                            11: FixedColumnWidth(33),
-                            12: FixedColumnWidth(33),
-                            13: FixedColumnWidth(33),
-                            14: FixedColumnWidth(33),
-                            15: IntrinsicColumnWidth(),
-                            16: FlexColumnWidth(),
-                          },
-                          children: <TableRow>[
-                            TableRow(
-                              children: <Widget>[
-                                Container(),
-                                Heading('10/12'),
-                                Heading('10/13'),
-                                Heading('10/14'),
-                                Heading('10/15'),
-                                Heading('10/16'),
-                                Heading('10/17'),
-                                Heading('10/18'),
-                                Heading('10/19'),
-                                Heading('10/20'),
-                                Heading('10/21'),
-                                Heading('10/22'),
-                                Heading('10/23'),
-                                Heading('10/24'),
-                                Heading('10/25'),
-                                Container(),
-                                Container(),
-                              ],
-                            ),
-                            _buildRow(
-                                'SCI - Overhead', r'47 hrs @$0.00/hr ($0.00)'),
-                            _buildRow('BSS, NNV8-913197 (COSC) (123)',
-                                r'1.21 hrs @$95.00/hr ($114.95)'),
-                            _buildRow('Orbital Sciences (abc)',
-                                r'5 hrs @$110.00/hr ($550.00)'),
-                            _buildRow(
-                                'Loral - T14R', r'0 hrs @$110.00/hr ($0.00)'),
-                            _buildRow(
-                                'Sirius FM 6', r'5 hrs @$120.00/hr ($600.00)'),
-                            TableRow(
-                              decoration: BoxDecoration(
-                                  border: Border(
-                                      bottom: BorderSide(
-                                          color: Color(0xff999999)))),
-                              children: [
-                                SizedBox(height: 5),
-                                Container(),
-                                Container(),
-                                Container(),
-                                Container(),
-                                Container(),
-                                Container(),
-                                Container(),
-                                Container(),
-                                Container(),
-                                Container(),
-                                Container(),
-                                Container(),
-                                Container(),
-                                Container(),
-                                Container(),
-                                Container(),
-                              ],
-                            ),
-                            TableRow(
-                              children: [
-                                Text('Daily Totals',
-                                    maxLines: 1,
-                                    style:
-                                        TextStyle(fontStyle: FontStyle.italic)),
-                                Padding(
-                                  padding: EdgeInsets.only(top: 5, left: 2),
-                                  child: Text('6',
-                                      style: TextStyle(
-                                          fontStyle: FontStyle.italic)),
-                                ),
-                                Padding(
-                                  padding: EdgeInsets.only(top: 5, left: 2),
-                                  child: Text('6',
-                                      style: TextStyle(
-                                          fontStyle: FontStyle.italic)),
-                                ),
-                                Padding(
-                                  padding: EdgeInsets.only(top: 5, left: 2),
-                                  child: Text('6',
-                                      style: TextStyle(
-                                          fontStyle: FontStyle.italic)),
-                                ),
-                                Padding(
-                                  padding: EdgeInsets.only(top: 5, left: 2),
-                                  child: Text('9.21',
-                                      style: TextStyle(
-                                          fontStyle: FontStyle.italic)),
-                                ),
-                                Padding(
-                                  padding: EdgeInsets.only(top: 5, left: 2),
-                                  child: Text('11',
-                                      style: TextStyle(
-                                          fontStyle: FontStyle.italic)),
-                                ),
-                                Padding(
-                                  padding: EdgeInsets.only(top: 5, left: 2),
-                                  child: Text('7',
-                                      style: TextStyle(
-                                          fontStyle: FontStyle.italic)),
-                                ),
-                                Padding(
-                                  padding: EdgeInsets.only(top: 5, left: 2),
-                                  child: Text('6',
-                                      style: TextStyle(
-                                          fontStyle: FontStyle.italic)),
-                                ),
-                                Padding(
-                                  padding: EdgeInsets.only(top: 5, left: 2),
-                                  child: Text('7',
-                                      style: TextStyle(
-                                          fontStyle: FontStyle.italic)),
-                                ),
-                                Text(''),
-                                Text(''),
-                                Text(''),
-                                Text(''),
-                                Text(''),
-                                Text(''),
-                                Container(),
-                                Container(),
-                              ],
-                            ),
-                          ],
-                        ),
-                      ),
+            child: Padding(
+              padding: EdgeInsets.fromLTRB(5, 2, 8, 3),
+              child: SizedBox(
+                height: 57,
+                child: Row(
+                  children: <Widget>[
+                    ToolbarButton(
+                      onPressed: () {
+                        print('TODO: new invoice');
+                      },
+                      icon: 'assets/document-new.png',
+                      label: 'New Invoice',
                     ),
-                  ),
-                ),
-              ],
-            );
-          } else if (tab.text == 'Expense Reports') {
-            return Padding(
-              padding: EdgeInsets.all(6),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.start,
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: <Widget>[
-                  Padding(
-                    padding: EdgeInsets.all(7),
-                    child: LinkButton(
-                      image: AssetImage('assets/money_add.png'),
-                      text: 'Add expense report',
-                      onPressed: () {},
+                    SizedBox(width: 5),
+                    ToolbarButton(
+                      onPressed: () {
+                        print('TODO: open invoice');
+                      },
+                      icon: 'assets/document-open.png',
+                      label: 'Open Invoice',
                     ),
-                  ),
-                  Expanded(
-                    child: Padding(
-                      padding: EdgeInsets.only(top: 5),
-                      child: Splitter(
-                        axis: Axis.horizontal,
-                        initialSplitRatio: 0.25,
-                        primaryRegion: null,
-                        before: DecoratedBox(
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            border: Border.all(color: Color(0xFF999999)),
-                          ),
-                          child: ListView(
-//                            itemExtent: 17,
-                            shrinkWrap: true,
-                            //padding: EdgeInsets.symmetric(vertical: 2, horizontal: 4),
-                            children: [
-                              ListTile(
-                                title: Text('Foo'),
-                                hoverColor: Colors.red,
-                                selected: true,
-                                enabled: true,
-                                onTap: () {},
-                              ),
-                              ListTile(
-                                title: Text('Bar'),
-                                hoverColor: Colors.red,
-                                selected: false,
-                                enabled: true,
-                                onTap: () {},
-                              ),
-                              ExpenseReportListTile(
-                                title: 'SCI - Overhead',
-                                amount: 0,
-                                hoverColor: Colors.red,
-                                selected: true,
-                                onTap: () {},
-                              ),
-                              ExpenseReportListTile(
-                                title: 'Orbital Sciences (123)',
-                                amount: 3136.63,
-                                selected: true,
-                                onTap: () {},
-                              ),
-//                              Row(
-//                                children: [
-//                                  Text('SCI - Overhead', maxLines: 1),
-//                                  Expanded(child: Text(r'($0.00)', textAlign: TextAlign.right, maxLines: 1)),
-//                                ],
-//                              ),
-//                              Row(
-//                                children: [
-//                                  Text('Orbital Sciences (123)', maxLines: 1),
-//                                  Expanded(child: Text(r'($3,136.63)', textAlign: TextAlign.right, maxLines: 1)),
-//                                ],
-//                              ),
-                            ],
-                          ),
-                        ),
-                        after: DecoratedBox(
-                          decoration: BoxDecoration(
-                              border: Border.all(color: Color(0xFF999999))),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.stretch,
-                            children: [
-                              Table(
-                                columnWidths: {
-                                  0: IntrinsicColumnWidth(),
-                                  1: FlexColumnWidth(),
-                                },
-                                children: [
-                                  TableRow(
-                                    children: [
-                                      Text('Program:'),
-                                      Text('Orbital Sciences'),
-                                    ],
-                                  ),
-                                  TableRow(
-                                    children: [
-                                      Text('Charge number:'),
-                                      Text('123'),
-                                    ],
-                                  ),
-                                  TableRow(
-                                    children: [
-                                      Text('Dates:'),
-                                      Text('2015-10-12 to 2015-10-25'),
-                                    ],
-                                  ),
-                                  TableRow(
-                                    children: [
-                                      Text('Purpose of travel:'),
-                                      Text('None of your business'),
-                                    ],
-                                  ),
-                                  TableRow(
-                                    children: [
-                                      Text('Destination (city):'),
-                                      Text('Vancouver'),
-                                    ],
-                                  ),
-                                  TableRow(
-                                    children: [
-                                      Text('Party or parties visited:'),
-                                      Text('Jimbo'),
-                                    ],
-                                  ),
-                                ],
-                              ),
-                              Row(
-                                children: [
-                                  LinkButton(
-                                    image: AssetImage('assets/money_add.png'),
-                                    text: 'Add expense line item',
-                                    onPressed: () {},
-                                  ),
-                                ],
-                              ),
-                              DataTable(
-                                sortColumnIndex: 0,
-                                columns: [
-                                  DataColumn(label: Text('Date')),
-                                  DataColumn(label: Text('Type')),
-                                  DataColumn(label: Text('Amount')),
-                                  DataColumn(label: Text('Description')),
-                                ],
-                                rows: [
-                                  DataRow(
-                                    cells: [
-                                      DataCell(Text('2015-10-12')),
-                                      DataCell(Text('Lodging')),
-                                      DataCell(Text(r'$219.05')),
-                                      DataCell(Text('Hotel')),
-                                    ],
-                                  ),
-                                ],
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
+                    SizedBox(width: 5),
+                    ToolbarButton(
+                      icon: 'assets/media-floppy.png',
+                      label: 'Save to Server',
                     ),
-                  ),
-                ],
-              ),
-            );
-          } else if (tab.text == 'Accomplishments') {
-            return Padding(
-              padding: EdgeInsets.all(6),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.start,
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: <Widget>[
-                  Row(
-                    children: [
-                      LinkButton(
-                        image: AssetImage('assets/note_add.png'),
-                        text: 'Add accomplishment',
+                    SizedBox(width: 5),
+                    ToolbarButton(
+                      onPressed: () {
+                        print('TODO: delete invoice');
+                      },
+                      icon: 'assets/dialog-cancel.png',
+                      label: 'Delete Invoice',
+                    ),
+                    SizedBox(width: 5),
+                    ToolbarButton(
+                      onPressed: () {
+                        print('TODO: export to PDF');
+                      },
+                      icon: 'assets/x-office-presentation.png',
+                      label: 'Export to PDF',
+                    ),
+                    Spacer(),
+                    SizedBox(
+                      width: 64,
+                      child: ToolbarButton(
                         onPressed: () {},
+                        icon: 'assets/help-browser.png',
+                        label: 'Help',
+                        menuItems: <PopupMenuEntry<String>>[
+                          PopupMenuItem<String>(
+                            value: 'about',
+                            height: 22,
+                            child: Text('About'),
+                          ),
+                          PopupMenuItem<String>(
+                            value: 'feedback',
+                            height: 22,
+                            child: Text('Provide feedback'),
+                          ),
+                        ],
                       ),
-                    ],
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+          Divider(
+            height: 1,
+            thickness: 1,
+            color: Color(0xff999999),
+          ),
+          Expanded(
+            child: Ink(
+              decoration: BoxDecoration(color: Color(0xffc8c8bb)),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Padding(
+                    padding: EdgeInsets.fromLTRB(5, 5, 5.5, 5),
+                    child: SizedBox(
+                      height: 22,
+                      child: Row(
+                        children: [
+                          Transform.translate(
+                            offset: Offset(0, -1),
+                            child: Text(
+                              'FOO',
+                              style: Theme.of(context).textTheme.bodyText2.copyWith(fontWeight: FontWeight.bold),
+                            ),
+                          ),
+                          HoverPushButton(
+                            iconName: 'assets/pencil.png',
+                            onPressed: () {},
+                          ),
+                          Transform.translate(
+                            offset: Offset(0, -1),
+                            child: Padding(
+                              padding: EdgeInsets.only(left: 10),
+                              child: Text('(10/12/2015 - 10/25/2015)'),
+                            ),
+                          ),
+                          Spacer(),
+                          Transform.translate(
+                            offset: Offset(0, -1),
+                            child: Text(r'Total Check Amount: $5,296.63'),
+                          ),
+                        ],
+                      ),
+                    ),
                   ),
                   Expanded(
                     child: Padding(
-                      padding: EdgeInsets.only(top: 5),
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text('BSS, NNV8-913197 (COSC)'),
-                          Expanded(
-                            child: DecoratedBox(
-                              decoration: BoxDecoration(border: Border.all()),
-                              child: Padding(
-                                padding: EdgeInsets.symmetric(horizontal: 10),
-                                child: TextField(
-                                  decoration:
-                                      InputDecoration(border: InputBorder.none),
-                                  minLines: 10,
-                                  maxLines: 20,
-                                ),
-                              ),
-                            ),
+                      padding: EdgeInsets.fromLTRB(5, 0, 6, 4),
+                      child: pivot.TerraTabPane(
+                        initialSelectedIndex: 0,
+                        tabs: <pivot.Tab>[
+                          pivot.Tab(
+                            label: 'Billable Hours',
+                            child: BillableHours(),
+                          ),
+                          pivot.Tab(
+                            label: 'Expense Reports',
+                            child: ExpenseReports(),
+                          ),
+                          pivot.Tab(
+                            label: 'Accomplishments',
+                            child: Accomplishments(),
+                          ),
+                          pivot.Tab(
+                            label: 'Review & Submit',
+                            child: ReviewAndSubmit(),
                           ),
                         ],
                       ),
@@ -606,43 +272,442 @@ class _FooState extends State<Foo> with SingleTickerProviderStateMixin {
                   ),
                 ],
               ),
-            );
-          } else {
-            return Padding(
-              padding: EdgeInsets.all(6),
-              child: Scrollbar(
-                child: SingleChildScrollView(
-                  child: Padding(
-                    padding: EdgeInsets.all(10),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.start,
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: <Widget>[
-                        Text('Volkert, Todd',
-                            style: TextStyle(fontWeight: FontWeight.bold)),
-                        Text('Invoice #FOO'),
-                        Text('10/12/2015 - 10/25/2015'),
-                        Text(r'$4,401.58'),
-                        SizedBox(height: 20),
-                        DefaultTextStyle.merge(
-                          style: TextStyle(fontWeight: FontWeight.bold),
-                          child: Row(
-                            children: [
-                              Expanded(child: Text('Billable Hours')),
-                              Text(r'$1,264.95'),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-            );
-          }
-        }).toList(),
+            ),
+          ),
+        ],
       ),
     );
+  }
+}
+
+class ReviewAndSubmit extends StatelessWidget {
+  const ReviewAndSubmit({
+    Key key,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    final TextStyle italic = Theme.of(context).textTheme.bodyText2.copyWith(fontStyle: FontStyle.italic);
+
+    return Padding(
+      padding: EdgeInsets.all(15),
+      child: Scrollbar(
+        child: SingleChildScrollView(
+          child: Padding(
+            padding: EdgeInsets.all(11),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: <Widget>[
+                Padding(
+                  padding: EdgeInsets.only(bottom: 4),
+                  child: Text('Volkert, Todd', style: TextStyle(fontWeight: FontWeight.bold)),
+                ),
+                Padding(
+                  padding: EdgeInsets.only(bottom: 4),
+                  child: Text('Invoice #FOO'),
+                ),
+                Padding(
+                  padding: EdgeInsets.only(bottom: 4),
+                  child: Text('10/12/2015 - 10/25/2015'),
+                ),
+                Padding(
+                  padding: EdgeInsets.only(bottom: 4),
+                  child: Text(r'$5,296.63'),
+                ),
+                Padding(
+                  padding: EdgeInsets.only(top: 27),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: DefaultTextStyle.merge(
+                          style: TextStyle(fontWeight: FontWeight.bold),
+                          child: Text('Billable Hours'),
+                        ),
+                      ),
+                      Text(r'$2,160.95'),
+                    ],
+                  ),
+                ),
+                Table(
+                  defaultColumnWidth: FixedColumnWidth(34),
+                  columnWidths: <int, TableColumnWidth>{
+                    0: IntrinsicColumnWidth(),
+                    17: FlexColumnWidth(),
+                  },
+                  border: const TestBorder(),
+                  children: <TableRow>[
+                    TableRow(
+                      children: <Widget>[
+                        Container(),
+                        SummaryDateHeading('10/12'),
+                        SummaryDateHeading('10/13'),
+                        SummaryDateHeading('10/14'),
+                        SummaryDateHeading('10/15'),
+                        SummaryDateHeading('10/16'),
+                        SummaryDateHeading('10/17'),
+                        SummaryDateHeading('10/18'),
+                        Container(),
+                        SummaryDateHeading('10/19'),
+                        SummaryDateHeading('10/20'),
+                        SummaryDateHeading('10/21'),
+                        SummaryDateHeading('10/22'),
+                        SummaryDateHeading('10/23'),
+                        SummaryDateHeading('10/24'),
+                        SummaryDateHeading('10/25'),
+                        Container(),
+                        Container(),
+                      ],
+                    ),
+                    TableRow(
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                      ),
+                      children: <Widget>[
+                        SummaryRowHeader(label: 'SCI - Overhead'),
+                        DailyTotal(amount: 4),
+                        DailyTotal(amount: 4),
+                        DailyTotal(amount: 5),
+                        DailyTotal(amount: 6),
+                        DailyTotal(amount: 6),
+                        DailyTotal(amount: 7, isWeekend: true),
+                        DailyTotal(amount: 6, isWeekend: true),
+                        DailyTotal(amount: 0, isAggregate: true),
+                        DailyTotal(amount: 7),
+                        DailyTotal(amount: 0),
+                        DailyTotal(amount: 0),
+                        DailyTotal(amount: 0),
+                        DailyTotal(amount: 0),
+                        DailyTotal(amount: 0, isWeekend: true),
+                        DailyTotal(amount: 0, isWeekend: true),
+                        DailyTotal(amount: 0, isAggregate: true),
+                        Container(),
+                      ],
+                    ),
+                    TableRow(
+                      children: <Widget>[
+                        SummaryRowHeader(label: 'BSS, NNV8-913197 (COSC) (123)'),
+                        DailyTotal(amount: 0),
+                        DailyTotal(amount: 0),
+                        DailyTotal(amount: 0),
+                        DailyTotal(amount: 10),
+                        DailyTotal(amount: 0),
+                        DailyTotal(amount: 0, isWeekend: true),
+                        DailyTotal(amount: 0, isWeekend: true),
+                        DailyTotal(amount: 0, isAggregate: true),
+                        DailyTotal(amount: 0),
+                        DailyTotal(amount: 0),
+                        DailyTotal(amount: 0),
+                        DailyTotal(amount: 0),
+                        DailyTotal(amount: 0),
+                        DailyTotal(amount: 0, isWeekend: true),
+                        DailyTotal(amount: 0, isWeekend: true),
+                        DailyTotal(amount: 0, isAggregate: true),
+                        Container(),
+                      ],
+                    ),
+                    TableRow(
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                      ),
+                      children: <Widget>[
+                        SummaryRowHeader(label: 'Orbital Sciences (abd)'),
+                        DailyTotal(amount: 0),
+                        DailyTotal(amount: 2),
+                        DailyTotal(amount: 1),
+                        DailyTotal(amount: 0),
+                        DailyTotal(amount: 0),
+                        DailyTotal(amount: 0, isWeekend: true),
+                        DailyTotal(amount: 0, isWeekend: true),
+                        DailyTotal(amount: 0, isAggregate: true),
+                        DailyTotal(amount: 0),
+                        DailyTotal(amount: 0),
+                        DailyTotal(amount: 0),
+                        DailyTotal(amount: 0),
+                        DailyTotal(amount: 0),
+                        DailyTotal(amount: 0, isWeekend: true),
+                        DailyTotal(amount: 0, isWeekend: true),
+                        DailyTotal(amount: 0, isAggregate: true),
+                        Container(),
+                      ],
+                    ),
+                    TableRow(
+                      children: <Widget>[
+                        SummaryRowHeader(label: 'Loral - T14R'),
+                        DailyTotal(amount: 0),
+                        DailyTotal(amount: 0),
+                        DailyTotal(amount: 0),
+                        DailyTotal(amount: 0),
+                        DailyTotal(amount: 0),
+                        DailyTotal(amount: 0, isWeekend: true),
+                        DailyTotal(amount: 0, isWeekend: true),
+                        DailyTotal(amount: 0, isAggregate: true),
+                        DailyTotal(amount: 8),
+                        DailyTotal(amount: 0),
+                        DailyTotal(amount: 0),
+                        DailyTotal(amount: 0),
+                        DailyTotal(amount: 0),
+                        DailyTotal(amount: 0, isWeekend: true),
+                        DailyTotal(amount: 0, isWeekend: true),
+                        DailyTotal(amount: 0, isAggregate: true),
+                        Container(),
+                      ],
+                    ),
+                    TableRow(
+                      decoration: BoxDecoration(
+                        color: Color(0xffedead9),
+                      ),
+                      children: <Widget>[
+                        SummaryRowHeader(label: 'Daily Totals', isAggregate: true),
+                        DailyTotal(amount: 4, isAggregate: true),
+                        DailyTotal(amount: 6, isAggregate: true),
+                        DailyTotal(amount: 6, isAggregate: true),
+                        DailyTotal(amount: 16, isAggregate: true),
+                        DailyTotal(amount: 6, isAggregate: true),
+                        DailyTotal(amount: 7, isAggregate: true),
+                        DailyTotal(amount: 6, isAggregate: true),
+                        DailyTotal(amount: 51, isAggregate: true, isWeeklyTotal: true),
+                        DailyTotal(amount: 15, isAggregate: true),
+                        DailyTotal(amount: 0, isAggregate: true),
+                        DailyTotal(amount: 0, isAggregate: true),
+                        DailyTotal(amount: 0, isAggregate: true),
+                        DailyTotal(amount: 0, isAggregate: true),
+                        DailyTotal(amount: 0, isAggregate: true),
+                        DailyTotal(amount: 0, isAggregate: true),
+                        DailyTotal(amount: 15, isAggregate: true, isWeeklyTotal: true),
+                        Container(),
+                      ],
+                    ),
+                  ],
+                ),
+                Padding(
+                  padding: EdgeInsets.only(top: 30),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: DefaultTextStyle.merge(
+                          style: TextStyle(fontWeight: FontWeight.bold),
+                          child: Text('Expense Reports'),
+                        ),
+                      ),
+                      Text(r'$3,136.63'),
+                    ],
+                  ),
+                ),
+                Padding(
+                  padding: EdgeInsets.only(top: 20),
+                  child: Row(
+                    children: [
+                      DefaultTextStyle.merge(
+                        style: TextStyle(fontWeight: FontWeight.bold),
+                        child: Text('Accomplishments'),
+                      ),
+                    ],
+                  ),
+                ),
+                Row(
+                  children: [
+                    RaisedButton(
+                      onPressed: null,
+                      child: Text('Submit Invoice'),
+                    ),
+                    Checkbox(
+                      value: false,
+                      onChanged: (bool value) {},
+                    ),
+                    Text('I certify that I have worked the above hours as described.'),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class Accomplishments extends StatelessWidget {
+  const Accomplishments({
+    Key key,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: EdgeInsets.all(6),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: <Widget>[
+          Row(
+            children: [
+              LinkButton(
+                image: AssetImage('assets/note_add.png'),
+                text: 'Add accomplishment',
+                onPressed: () {},
+              ),
+            ],
+          ),
+          Expanded(
+            child: Padding(
+              padding: EdgeInsets.all(15),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Padding(
+                    padding: EdgeInsets.only(right: 10),
+                    child: Text('BSS, NNV8-913197 (COSC)'),
+                  ),
+                  Expanded(
+                    child: DecoratedBox(
+                      decoration: BoxDecoration(
+                        border: Border.all(color: Color(0xff999999), width: 1),
+                      ),
+                      child: Padding(
+                        padding: EdgeInsets.all(1),
+                        child: TextField(
+                          minLines: 10,
+                          maxLines: 20,
+                          cursorWidth: 1,
+                          cursorColor: Colors.black,
+                          decoration: InputDecoration(
+                            filled: true,
+                            fillColor: Colors.white,
+                            contentPadding: EdgeInsets.symmetric(horizontal: 6, vertical: 12),
+                            hoverColor: Colors.transparent,
+                            border: InputBorder.none,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+enum SortDirection {
+  ascending,
+  descending,
+}
+
+class TableHeaderCell extends StatelessWidget {
+  const TableHeaderCell({
+    Key key,
+    @required this.label,
+    this.width,
+    this.sortDirection,
+  }) : super(key: key);
+
+  final String label;
+  final double width;
+  final SortDirection sortDirection;
+
+  @override
+  Widget build(BuildContext context) {
+    Widget content = Text(label);
+    if (sortDirection != null) {
+      content = Row(
+        children: [
+          content,
+          Expanded(
+            child: Align(
+              alignment: Alignment.centerRight,
+              child: Padding(
+                padding: EdgeInsets.only(right: 2),
+                child: CustomPaint(
+                  size: Size(7, 4),
+                  painter: SortIndicatorPainter(sortDirection: sortDirection),
+                ),
+              ),
+            ),
+          ),
+        ],
+      );
+    }
+
+    final Widget box = DecoratedBox(
+      decoration: BoxDecoration(
+        border: Border(
+          top: BorderSide(color: Color(0xff999999)),
+          right: BorderSide(color: Color(0xff999999)),
+          bottom: BorderSide(color: Color(0xff999999)),
+        ),
+        gradient: LinearGradient(
+          begin: Alignment(0, 0.8),
+          end: Alignment(0, -0.8),
+          colors: <Color>[Color(0xffdfded7), Color(0xfff6f4ed)],
+        ),
+      ),
+      child: Padding(
+        padding: EdgeInsets.fromLTRB(3, 2, 3, 3),
+        child: content,
+      ),
+    );
+
+    if (width != null) {
+      return SizedBox(
+        width: width,
+        child: box,
+      );
+    } else {
+      return Expanded(
+        child: box,
+      );
+    }
+  }
+}
+
+class SortIndicatorPainter extends CustomPainter {
+  const SortIndicatorPainter({
+    this.sortDirection,
+    this.isAntiAlias = true,
+    this.color = const Color(0xff999999),
+  });
+
+  final SortDirection sortDirection;
+  final bool isAntiAlias;
+  final Color color;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final Paint paint = Paint()
+      ..color = color
+      ..isAntiAlias = isAntiAlias;
+    Path path = Path();
+    switch (sortDirection) {
+      case SortDirection.ascending:
+        path
+          ..moveTo(0, 3)
+          ..lineTo(3, 0)
+          ..lineTo(6, 3);
+        break;
+      case SortDirection.descending:
+        path
+          ..moveTo(0, 0)
+          ..lineTo(3, 3)
+          ..lineTo(6, 0);
+        break;
+    }
+
+    path.close();
+    paint.style = PaintingStyle.stroke;
+    canvas.drawPath(path, paint);
+    paint.style = PaintingStyle.fill;
+    canvas.drawPath(path, paint);
+  }
+
+  @override
+  bool shouldRepaint(CustomPainter old) {
+    assert(old is SortIndicatorPainter);
+    SortIndicatorPainter oldPainter = old;
+    return sortDirection != oldPainter.sortDirection;
   }
 }
 
@@ -810,17 +875,57 @@ class HoursTextInput extends StatelessWidget {
 }
 
 class Heading extends StatelessWidget {
+  const Heading(this.text) : assert(text != null);
+
   final String text;
 
-  Heading(this.text) : assert(text != null);
+  @override
+  Widget build(BuildContext context) {
+    return RotatedText(
+      offset: const Offset(-6, 4),
+      angle: math.pi / 6,
+      text: text,
+    );
+  }
+}
+
+class SummaryDateHeading extends StatelessWidget {
+  const SummaryDateHeading(this.text) : assert(text != null);
+
+  final String text;
+
+  @override
+  Widget build(BuildContext context) {
+    return RotatedText(
+      offset: const Offset(-6, 0.5),
+      angle: math.pi / 2 - 1,
+      text: text,
+    );
+  }
+}
+
+class RotatedText extends StatelessWidget {
+  const RotatedText({
+    Key key,
+    @required this.offset,
+    @required this.angle,
+    @required this.text,
+  })  : assert(offset != null),
+        assert(angle != null),
+        assert(text != null),
+        super(key: key);
+
+  final Offset offset;
+  final double angle;
+  final String text;
 
   @override
   Widget build(BuildContext context) {
     return Transform.translate(
-      offset: Offset(-6, 4),
+      offset: offset,
       child: Transform.rotate(
         alignment: Alignment.bottomCenter,
-        angle: math.pi / 6,
+        angle: angle,
         child: Padding(
           padding: const EdgeInsets.all(8),
           child: SizedBox(
@@ -867,18 +972,18 @@ class _LinkButtonState extends State<LinkButton> {
       child: GestureDetector(
         onTap: widget.onPressed,
         child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
             if (widget.image != null)
               Padding(
-                padding: EdgeInsets.only(right: 5),
+                padding: EdgeInsets.only(right: 4),
                 child: Image(image: widget.image),
               ),
             Text(
               widget.text,
               style: TextStyle(
                 color: Color(0xff2b5580),
-                decoration:
-                    hover ? TextDecoration.underline : TextDecoration.none,
+                decoration: hover ? TextDecoration.underline : TextDecoration.none,
               ),
             ),
           ],
@@ -888,92 +993,764 @@ class _LinkButtonState extends State<LinkButton> {
   }
 }
 
-enum ResizeMode {
-  splitRatio,
-  primaryRegion,
-}
+class ToolbarButton extends StatefulWidget {
+  ToolbarButton({
+    @required this.icon,
+    @required this.label,
+    this.onPressed,
+    this.menuItems,
+  })  : assert(icon != null),
+        assert(label != null);
 
-enum PrimaryRegion {
-  before,
-  after,
-}
-
-class Splitter extends StatefulWidget {
-  Splitter({
-    Key key,
-    @required this.before,
-    @required this.after,
-    @required this.axis,
-    this.initialSplitRatio = 0.5,
-    this.resizeMode,
-    this.primaryRegion,
-    this.locked,
-  }) : super(key: key);
-
-  final Widget before;
-  final Widget after;
-  final Axis axis;
-  final double initialSplitRatio;
-  final ResizeMode resizeMode;
-  final PrimaryRegion primaryRegion;
-  final bool locked;
+  final String icon;
+  final String label;
+  final VoidCallback onPressed;
+  final List<PopupMenuEntry> menuItems;
 
   @override
-  _SplitterState createState() => _SplitterState();
+  _ToolbarButtonState createState() => _ToolbarButtonState();
 }
 
-class _SplitterState extends State<Splitter> {
-  double splitRatio;
+class _ToolbarButtonState extends State<ToolbarButton> {
+  bool hover;
+  bool pressed;
+
+  static const LinearGradient highlightGradient = LinearGradient(
+    begin: Alignment(0, 0.2),
+    end: Alignment.topCenter,
+    colors: <Color>[Color(0xffdddcd5), Color(0xfff6f4ed)],
+  );
+
+  static const LinearGradient pressedGradient = LinearGradient(
+    begin: Alignment.center,
+    end: Alignment.topCenter,
+    colors: <Color>[Color(0xffdddcd5), Color(0xffc5c4bd)],
+  );
 
   @override
   void initState() {
     super.initState();
-    splitRatio = widget.initialSplitRatio;
+    hover = false;
+    pressed = false;
   }
 
   @override
   Widget build(BuildContext context) {
-    switch (widget.axis) {
-      case Axis.horizontal:
-        return LayoutBuilder(
-          builder: (BuildContext context, BoxConstraints constraints) {
-            final double split = constraints.maxWidth * splitRatio;
-            return Row(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                SizedBox(width: split, child: widget.before),
-                MouseRegion(
-                  cursor: SystemMouseCursors.horizontalDoubleArrow,
-                  child: GestureDetector(
-                    behavior: HitTestBehavior.opaque,
-                    dragStartBehavior: DragStartBehavior.down,
-                    onHorizontalDragUpdate: (DragUpdateDetails details) {
-                      final double newSplit = split + details.delta.dx;
-                      final double newSplitRatio =
-                          newSplit / context.size.width;
-                      setState(() {
-                        splitRatio = newSplitRatio;
-                      });
-                    },
-                    child: SizedBox(
-                      width: 6,
-                      child: Container(),
+    Widget button = Padding(
+      padding: EdgeInsets.symmetric(horizontal: 4, vertical: 4),
+      child: Column(
+        children: [
+          Image(image: AssetImage(widget.icon)),
+          SizedBox(height: 4),
+          Text(
+            widget.label,
+            style: Theme.of(context).textTheme.bodyText2,
+          ),
+        ],
+      ),
+    );
+
+    if (widget.menuItems != null) {
+      button = Row(
+        mainAxisAlignment: MainAxisAlignment.end,
+        children: [
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: 4),
+            child: button,
+          ),
+          Spacer(),
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: 4),
+            child: CustomPaint(
+              size: Size(7, 4),
+              painter: SortIndicatorPainter(
+                sortDirection: SortDirection.descending,
+                color: Colors.black,
+              ),
+            ),
+          )
+        ],
+      );
+    }
+
+    GestureTapCallback callback = widget.onPressed;
+    if (widget.menuItems != null) {
+      callback = () {
+        print('onTap');
+        if (widget.onPressed != null) {
+          widget.onPressed();
+        }
+        setState(() {
+          hover = true;
+          pressed = true;
+        });
+        final RenderBox button = context.findRenderObject() as RenderBox;
+        final RenderBox overlay = Overlay.of(context).context.findRenderObject() as RenderBox;
+        final RelativeRect position = RelativeRect.fromRect(
+          Rect.fromPoints(
+            button.localToGlobal(button.size.bottomLeft(Offset.zero), ancestor: overlay),
+            button.localToGlobal(button.size.bottomRight(Offset.zero), ancestor: overlay),
+          ),
+          Offset.zero & overlay.size,
+        );
+        showMenu<String>(
+          context: context,
+          position: position,
+          items: widget.menuItems,
+        ).then((String value) {
+          setState(() {
+            hover = false;
+            pressed = false;
+          });
+          switch (value) {
+            case 'about':
+              showAboutDialog(
+                context: context,
+                applicationName: 'Payouts',
+                applicationVersion: '2.0.0',
+                applicationIcon: Image.asset('assets/logo-large.png'),
+                applicationLegalese:
+                    '\u00A9 2001-2020 Satellite Consulting, Inc. All Rights Reserved. SCI Payouts and the Satellite Consulting, Inc. logo are trademarks of Satellite Consulting, Inc. All rights reserved.',
+              );
+              break;
+          }
+        });
+      };
+    }
+
+    if (widget.onPressed == null) {
+      button = Opacity(
+        opacity: 0.5,
+        child: button,
+      );
+    } else {
+      button = MouseRegion(
+        cursor: SystemMouseCursors.click,
+        onEnter: (PointerEnterEvent event) {
+          setState(() => hover = true);
+        },
+        onExit: (PointerExitEvent event) {
+          print('onExit');
+          if (!Navigator.of(context).canPop()) {
+            setState(() => hover = false);
+          }
+        },
+        child: Listener(
+          onPointerDown: (PointerDownEvent event) {
+            setState(() => pressed = true);
+          },
+          onPointerUp: (PointerUpEvent event) {
+            print('onPointerUp');
+            setState(() => pressed = false);
+          },
+          child: GestureDetector(
+            onTap: callback,
+            child: Tooltip(
+              message: widget.label,
+              waitDuration: Duration(seconds: 1, milliseconds: 500),
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  border: hover ? Border.all(color: Color(0xff999999)) : null,
+                  gradient: hover ? (pressed ? pressedGradient : highlightGradient) : null,
+                ),
+                child: button,
+              ),
+            ),
+          ),
+        ),
+      );
+    }
+
+    return button;
+  }
+}
+
+class BillableHours extends StatelessWidget {
+  TableRow _buildRow(String assignment, String footer) {
+    return TableRow(
+      children: <Widget>[
+        TimesheetHeaderRow(assignment: assignment),
+        HoursTextInput(),
+        HoursTextInput(),
+        HoursTextInput(),
+        HoursTextInput(),
+        HoursTextInput(),
+        HoursTextInput(isWeekend: true),
+        HoursTextInput(isWeekend: true),
+        HoursTextInput(),
+        HoursTextInput(),
+        HoursTextInput(),
+        HoursTextInput(),
+        HoursTextInput(),
+        HoursTextInput(isWeekend: true),
+        HoursTextInput(isWeekend: true),
+        Padding(
+          padding: EdgeInsets.only(left: 10),
+          child: Text(footer, maxLines: 1),
+        ),
+        Container(),
+      ],
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: <Widget>[
+        Padding(
+          padding: EdgeInsets.all(7),
+          child: LinkButton(
+            image: AssetImage('assets/table_add.png'),
+            text: 'Add hours line item',
+            onPressed: () {},
+          ),
+        ),
+        Expanded(
+          child: Scrollbar(
+            child: SingleChildScrollView(
+              scrollDirection: Axis.vertical,
+              child: Padding(
+                padding: EdgeInsets.only(left: 32, right: 32),
+                child: Table(
+                  defaultVerticalAlignment: TableCellVerticalAlignment.baseline,
+                  textBaseline: TextBaseline.alphabetic,
+                  columnWidths: {
+                    0: IntrinsicColumnWidth(),
+                    1: FixedColumnWidth(33),
+                    2: FixedColumnWidth(33),
+                    3: FixedColumnWidth(33),
+                    4: FixedColumnWidth(33),
+                    5: FixedColumnWidth(33),
+                    6: FixedColumnWidth(33),
+                    7: FixedColumnWidth(33),
+                    8: FixedColumnWidth(33),
+                    9: FixedColumnWidth(33),
+                    10: FixedColumnWidth(33),
+                    11: FixedColumnWidth(33),
+                    12: FixedColumnWidth(33),
+                    13: FixedColumnWidth(33),
+                    14: FixedColumnWidth(33),
+                    15: IntrinsicColumnWidth(),
+                    16: FlexColumnWidth(),
+                  },
+                  children: <TableRow>[
+                    TableRow(
+                      children: <Widget>[
+                        Container(),
+                        Heading('10/12'),
+                        Heading('10/13'),
+                        Heading('10/14'),
+                        Heading('10/15'),
+                        Heading('10/16'),
+                        Heading('10/17'),
+                        Heading('10/18'),
+                        Heading('10/19'),
+                        Heading('10/20'),
+                        Heading('10/21'),
+                        Heading('10/22'),
+                        Heading('10/23'),
+                        Heading('10/24'),
+                        Heading('10/25'),
+                        Container(),
+                        Container(),
+                      ],
                     ),
+                    _buildRow('SCI - Overhead', r'47 hrs @$0.00/hr ($0.00)'),
+                    _buildRow('BSS, NNV8-913197 (COSC) (123)', r'1.21 hrs @$95.00/hr ($114.95)'),
+                    _buildRow('Orbital Sciences (abc)', r'5 hrs @$110.00/hr ($550.00)'),
+                    _buildRow('Loral - T14R', r'0 hrs @$110.00/hr ($0.00)'),
+                    _buildRow('Sirius FM 6', r'5 hrs @$120.00/hr ($600.00)'),
+                    TableRow(
+                      decoration: BoxDecoration(border: Border(bottom: BorderSide(color: Color(0xff999999)))),
+                      children: [
+                        SizedBox(height: 5),
+                        Container(),
+                        Container(),
+                        Container(),
+                        Container(),
+                        Container(),
+                        Container(),
+                        Container(),
+                        Container(),
+                        Container(),
+                        Container(),
+                        Container(),
+                        Container(),
+                        Container(),
+                        Container(),
+                        Container(),
+                        Container(),
+                      ],
+                    ),
+                    TableRow(
+                      children: [
+                        Text('Daily Totals', maxLines: 1, style: TextStyle(fontStyle: FontStyle.italic)),
+                        Padding(
+                          padding: EdgeInsets.only(top: 5, left: 2),
+                          child: Text('6', style: TextStyle(fontStyle: FontStyle.italic)),
+                        ),
+                        Padding(
+                          padding: EdgeInsets.only(top: 5, left: 2),
+                          child: Text('6', style: TextStyle(fontStyle: FontStyle.italic)),
+                        ),
+                        Padding(
+                          padding: EdgeInsets.only(top: 5, left: 2),
+                          child: Text('6', style: TextStyle(fontStyle: FontStyle.italic)),
+                        ),
+                        Padding(
+                          padding: EdgeInsets.only(top: 5, left: 2),
+                          child: Text('9.21', style: TextStyle(fontStyle: FontStyle.italic)),
+                        ),
+                        Padding(
+                          padding: EdgeInsets.only(top: 5, left: 2),
+                          child: Text('11', style: TextStyle(fontStyle: FontStyle.italic)),
+                        ),
+                        Padding(
+                          padding: EdgeInsets.only(top: 5, left: 2),
+                          child: Text('7', style: TextStyle(fontStyle: FontStyle.italic)),
+                        ),
+                        Padding(
+                          padding: EdgeInsets.only(top: 5, left: 2),
+                          child: Text('6', style: TextStyle(fontStyle: FontStyle.italic)),
+                        ),
+                        Padding(
+                          padding: EdgeInsets.only(top: 5, left: 2),
+                          child: Text('7', style: TextStyle(fontStyle: FontStyle.italic)),
+                        ),
+                        Text(''),
+                        Text(''),
+                        Text(''),
+                        Text(''),
+                        Text(''),
+                        Text(''),
+                        Container(),
+                        Container(),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class ExpenseReports extends StatelessWidget {
+  List<TableRow> _buildExpenseRows() {
+    List<List<String>> data = [
+      ['2015-10-12', 'Lodging', r'$219.05', 'Hotel'],
+      ['2015-10-13', 'Car Rental', r'$34.50', 'Test'],
+      ['2015-10-13', 'Parking', r'$12.00', ''],
+      ['2015-10-13', 'Lodging', r'$219.05', 'Hotel'],
+      ['2015-10-14', 'Car Rental', r'$23.43', 'foo'],
+      ['2015-10-14', 'Lodging', r'$219.05', 'Hotel'],
+      ['2015-10-15', 'Lodging', r'$219.05', 'Hotel'],
+      ['2015-10-16', 'Lodging', r'$219.05', 'Hotel'],
+      ['2015-10-17', 'Lodging', r'$219.05', 'Hotel'],
+      ['2015-10-18', 'Lodging', r'$219.05', 'Hotel'],
+      ['2015-10-19', 'Lodging', r'$219.05', 'Hotel'],
+      ['2015-10-20', 'Lodging', r'$219.05', 'Hotel'],
+      ['2015-10-21', 'Lodging', r'$219.05', 'Hotel'],
+      ['2015-10-22', 'Lodging', r'$219.05', 'Hotel'],
+      ['2015-10-23', 'Lodging', r'$219.05', 'Hotel'],
+      ['2015-10-24', 'Lodging', r'$219.05', 'Hotel'],
+      ['2015-10-25', 'Lodging', r'$219.05', 'Hotel'],
+    ];
+
+    List<Color> colors = <Color>[Colors.white, Color(0xfff7f5ee)];
+    int colorIndex = 1;
+    return data.map<TableRow>((List<String> row) {
+      colorIndex = 1 - colorIndex;
+      return TableRow(
+        decoration: BoxDecoration(color: colors[colorIndex]),
+        children: row.map<Widget>((String value) {
+          return Padding(
+            padding: EdgeInsets.fromLTRB(2, 3, 2, 3),
+            child: Text(
+              value,
+              maxLines: 1,
+              overflow: TextOverflow.clip,
+            ),
+          );
+        }).toList(),
+      );
+    }).toList();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: EdgeInsets.all(6),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: <Widget>[
+          Padding(
+            padding: EdgeInsets.fromLTRB(0, 0, 7, 5),
+            child: LinkButton(
+              image: AssetImage('assets/money_add.png'),
+              text: 'Add expense report',
+              onPressed: () {},
+            ),
+          ),
+          Expanded(
+            child: Padding(
+              padding: EdgeInsets.only(top: 5),
+              child: Splitter(
+                axis: Axis.horizontal,
+                initialSplitRatio: 0.25,
+                primaryRegion: null,
+                before: ExpenseReportListView(),
+                after: DecoratedBox(
+                  decoration: BoxDecoration(border: Border.all(color: Color(0xFF999999))),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Padding(
+                        padding: EdgeInsets.fromLTRB(11, 11, 11, 9),
+                        child: DefaultTextStyle(
+                          style: Theme.of(context).textTheme.bodyText2.copyWith(color: Colors.black),
+                          child: Table(
+                            columnWidths: {
+                              0: IntrinsicColumnWidth(),
+                              1: FlexColumnWidth(),
+                            },
+                            children: [
+                              TableRow(
+                                children: [
+                                  Padding(padding: EdgeInsets.only(bottom: 4), child: Text('Program:')),
+                                  Padding(padding: EdgeInsets.only(bottom: 4), child: Text('Orbital Sciences')),
+                                ],
+                              ),
+                              TableRow(
+                                children: [
+                                  Padding(padding: EdgeInsets.only(bottom: 4), child: Text('Charge number:')),
+                                  Padding(padding: EdgeInsets.only(bottom: 4), child: Text('123')),
+                                ],
+                              ),
+                              TableRow(
+                                children: [
+                                  Padding(padding: EdgeInsets.only(bottom: 4), child: Text('Dates:')),
+                                  Padding(padding: EdgeInsets.only(bottom: 4), child: Text('2015-10-12 to 2015-10-25')),
+                                ],
+                              ),
+                              TableRow(
+                                children: [
+                                  Padding(padding: EdgeInsets.only(bottom: 4), child: Text('Purpose of travel:')),
+                                  Padding(padding: EdgeInsets.only(bottom: 4), child: Text('None of your business')),
+                                ],
+                              ),
+                              TableRow(
+                                children: [
+                                  Padding(padding: EdgeInsets.only(bottom: 4), child: Text('Destination (city):')),
+                                  Padding(padding: EdgeInsets.only(bottom: 4), child: Text('Vancouver')),
+                                ],
+                              ),
+                              TableRow(
+                                children: [
+                                  Padding(
+                                      padding: EdgeInsets.only(bottom: 4, right: 6),
+                                      child: Text('Party or parties visited:')),
+                                  Padding(padding: EdgeInsets.only(bottom: 4), child: Text('Jimbo')),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      Padding(
+                        padding: EdgeInsets.only(bottom: 10, left: 11),
+                        child: Row(
+                          children: [
+                            LinkButton(
+                              image: AssetImage('assets/money_add.png'),
+                              text: 'Add expense line item',
+                              onPressed: () {},
+                            ),
+                          ],
+                        ),
+                      ),
+                      Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 1),
+                        child: Row(
+                          children: [
+                            TableHeaderCell(width: 120, label: 'Date', sortDirection: SortDirection.ascending),
+                            TableHeaderCell(width: 120, label: 'Type'),
+                            TableHeaderCell(width: 100, label: 'Amount'),
+                            TableHeaderCell(label: 'Description'),
+                          ],
+                        ),
+                      ),
+                      Expanded(
+                        child: Scrollbar(
+                          thickness: 10,
+                          radius: Radius.circular(5),
+                          child: SingleChildScrollView(
+                            child: Padding(
+                              padding: EdgeInsets.symmetric(horizontal: 1),
+                              child: Table(
+                                border: TableBorder.symmetric(
+                                  inside: BorderSide(
+                                    width: 0,
+                                    color: Color(0xfff7f5ee),
+                                  ),
+                                ),
+                                columnWidths: <int, TableColumnWidth>{
+                                  0: FixedColumnWidth(120),
+                                  1: FixedColumnWidth(120),
+                                  2: FixedColumnWidth(100),
+                                  3: FlexColumnWidth(),
+                                },
+                                defaultVerticalAlignment: TableCellVerticalAlignment.baseline,
+                                textBaseline: TextBaseline.alphabetic,
+                                children: _buildExpenseRows(),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
-                Expanded(child: widget.after),
-              ],
-            );
-          },
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class SummaryReportTableDecoration extends Decoration {
+  const SummaryReportTableDecoration({
+    @required this.border,
+    @required this.color,
+  }) : assert(border != null);
+
+  final BoxBorder border;
+  final Color color;
+
+  @override
+  SummaryReportBoxPainter createBoxPainter([VoidCallback onChanged]) {
+    return SummaryReportBoxPainter(this, onChanged);
+  }
+}
+
+class SummaryReportBoxPainter extends BoxPainter {
+  const SummaryReportBoxPainter(this._decoration, VoidCallback onChanged)
+      : assert(_decoration != null),
+        super(onChanged);
+
+  final SummaryReportTableDecoration _decoration;
+
+  @override
+  void paint(Canvas canvas, Offset offset, ImageConfiguration configuration) {
+    assert(configuration != null);
+    assert(configuration.size != null);
+    final Rect backgroundRect = offset & (configuration.size - Offset(0, 1));
+    final Rect borderRect = (offset - Offset(1, 0)) & (configuration.size + Offset(2, 0));
+    canvas.drawRect(backgroundRect, Paint()..color = _decoration.color);
+    _decoration.border?.paint(
+      canvas,
+      borderRect,
+      shape: BoxShape.rectangle,
+      borderRadius: null,
+      textDirection: configuration.textDirection,
+    );
+  }
+}
+
+class TestBorder extends TableBorder {
+  const TestBorder()
+      : super(
+          top: _outsideBorder,
+          right: _outsideBorder,
+          bottom: _outsideBorder,
+          left: _outsideBorder,
         );
-        break;
-      case Axis.vertical:
-        break;
+
+  static const BorderSide _outsideBorder = BorderSide(
+    color: Color(0xffb3b3b3),
+  );
+
+  @override
+  TableBorder scale(double t) {
+    throw UnsupportedError('scale');
+  }
+
+  @override
+  void paint(
+    Canvas canvas,
+    Rect rect, {
+    @required Iterable<double> rows,
+    @required Iterable<double> columns,
+  }) {
+    // properties can't be null
+    assert(top != null);
+    assert(right != null);
+    assert(bottom != null);
+    assert(left != null);
+
+    // arguments can't be null
+    assert(canvas != null);
+    assert(rect != null);
+    assert(rows != null);
+    assert(rows.isEmpty || (rows.first >= 0.0 && rows.last <= rect.height));
+    assert(columns != null);
+    assert(columns.isEmpty || (columns.first >= 0.0 && columns.last <= rect.width));
+
+    final List<double> rowsList = List<double>.from(rows, growable: false);
+    final List<double> columnsList = List<double>.from(columns, growable: false);
+
+    if (columnsList.isNotEmpty || rowsList.isNotEmpty) {
+      final Paint paint = Paint();
+      final Path path = Path();
+
+      if (columnsList.isNotEmpty) {
+        paint
+          ..color = const Color(0xfff8f5ee)
+          ..strokeWidth = 1
+          ..style = PaintingStyle.stroke;
+        path.reset();
+        for (final double x in columnsList) {
+          path.moveTo(rect.left + x + 0.5, rect.top);
+          path.lineTo(rect.left + x + 0.5, rect.bottom);
+        }
+        canvas.drawPath(path, paint);
+      }
+
+      if (rowsList.isNotEmpty) {
+        paint
+          ..color = const Color(0xfff8f5ee)
+          ..strokeWidth = 1
+          ..style = PaintingStyle.stroke;
+        path.reset();
+        for (final double y in rowsList.sublist(1)) {
+          path.moveTo(rect.left, rect.top + y + 0.5);
+          path.lineTo(rect.right, rect.top + y + 0.5);
+        }
+        canvas.drawPath(path, paint);
+      }
+
+      for (int columnIndex in const <int>[0, 7, 8, 15, 16]) {
+        if (columnsList.length > columnIndex) {
+          paint
+            ..color = const Color(0xffb3b3b3)
+            ..strokeWidth = 1
+            ..style = PaintingStyle.stroke;
+          canvas.drawLine(
+            Offset(rect.left + columnsList[columnIndex] + 0.5, rect.top + rowsList.first),
+            Offset(rect.left + columnsList[columnIndex] + 0.5, rect.bottom),
+            paint,
+          );
+        }
+      }
+
+      if (rowsList.isNotEmpty) {
+        paint
+          ..color = const Color(0xffb3b3b3)
+          ..strokeWidth = 1
+          ..style = PaintingStyle.stroke;
+        canvas.drawLine(
+          Offset(rect.left, rect.top + rowsList.last + 0.5),
+          Offset(rect.right, rect.top + rowsList.last + 0.5),
+          paint,
+        );
+      }
     }
-    return SizedBox.expand(
-      key: widget.key,
-      child: Row(
-        children: [],
+
+    paintBorder(
+      canvas,
+      Rect.fromLTRB(rect.left, rect.top + rowsList.first, rect.right, rect.bottom),
+      top: top,
+      right: right,
+      bottom: bottom,
+      left: left,
+    );
+  }
+}
+
+class DailyTotal extends StatelessWidget {
+  const DailyTotal({
+    @required this.amount,
+    this.isWeekend = false,
+    this.isAggregate = false,
+    this.isWeeklyTotal = false,
+    Key key,
+  })  : assert(amount != null),
+        super(key: key);
+
+  final double amount;
+  final bool isWeekend;
+  final bool isAggregate;
+  final bool isWeeklyTotal;
+
+  static final intl.NumberFormat numberFormat = intl.NumberFormat('#.#');
+
+  @override
+  Widget build(BuildContext context) {
+    TextStyle style = DefaultTextStyle.of(context).style;
+    if (isAggregate) {
+      style = style.copyWith(fontStyle: FontStyle.italic);
+    }
+    if (isWeeklyTotal) {
+      style = style.copyWith(fontWeight: FontWeight.bold);
+    }
+    if (amount > 12 && !isWeeklyTotal) {
+      style = style.copyWith(color: const Color(0xffb71c28));
+    }
+
+    final String value = amount > 0 ? numberFormat.format(amount) : '';
+    Widget result = Padding(
+      padding: EdgeInsets.fromLTRB(0, 4, 3, 0),
+      child: Text(value, style: style, textAlign: TextAlign.right),
+    );
+
+    if (isAggregate || isWeekend) {
+      final Color color = isAggregate ? const Color(0xffedead9) : const Color(0xffeeeeee);
+      result = SizedBox(
+        height: 19,
+        child: ColoredBox(
+          color: color,
+          child: result,
+        ),
+      );
+    }
+
+    return result;
+  }
+}
+
+class SummaryRowHeader extends StatelessWidget {
+  const SummaryRowHeader({
+    Key key,
+    @required this.label,
+    this.isAggregate = false,
+  })  : assert(label != null),
+        super(key: key);
+
+  final String label;
+  final bool isAggregate;
+
+  @override
+  Widget build(BuildContext context) {
+    TextStyle style = DefaultTextStyle.of(context).style;
+    double height = 19;
+    if (isAggregate) {
+      style = style.copyWith(fontStyle: FontStyle.italic);
+      height = 20;
+    }
+
+    return SizedBox(
+      height: height,
+      child: Padding(
+        padding: EdgeInsets.fromLTRB(3, 4, 15, 0),
+        child: Text(label, maxLines: 1, style: style),
       ),
     );
   }

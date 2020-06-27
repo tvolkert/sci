@@ -1,9 +1,8 @@
-import 'dart:math' as math;
-
 import 'package:flutter/widgets.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
+import 'package:intl/intl.dart' as intl;
 
 class ExpenseReportListTile extends StatelessWidget {
   /// Creates a list tile.
@@ -69,6 +68,40 @@ class ExpenseReportListTile extends StatelessWidget {
   /// {@macro flutter.widgets.Focus.autofocus}
   final bool autofocus;
 
+  Color _textColor(ThemeData theme, ListTileTheme tileTheme, Color defaultColor) {
+    if (!enabled)
+      return theme.disabledColor;
+
+    if (selected && tileTheme?.selectedColor != null)
+      return tileTheme.selectedColor;
+
+    if (!selected && tileTheme?.textColor != null)
+      return tileTheme.textColor;
+
+    if (selected) {
+      return Colors.white;
+    }
+    return defaultColor;
+  }
+
+  TextStyle _textStyle(ThemeData theme, ListTileTheme tileTheme) {
+    TextStyle style;
+    if (tileTheme != null) {
+      switch (tileTheme.style) {
+        case ListTileStyle.drawer:
+          style = theme.textTheme.bodyText1;
+          break;
+        case ListTileStyle.list:
+          style = theme.textTheme.subtitle1;
+          break;
+      }
+    } else {
+      style = theme.textTheme.subtitle1;
+    }
+    final Color color = _textColor(theme, tileTheme, style.color);
+    return style.copyWith(fontFamily: 'Verdana', fontSize: 11.0, color: color);
+  }
+
   @override
   Widget build(BuildContext context) {
     assert(debugCheckHasMaterial(context));
@@ -81,27 +114,34 @@ class ExpenseReportListTile extends StatelessWidget {
       },
     );
 
-    return Material(
-      child: InkWell(
-        customBorder: ListTileTheme.of(context).shape,
-        onTap: enabled ? onTap : null,
-        mouseCursor: effectiveMouseCursor,
-        canRequestFocus: enabled,
-        focusColor: focusColor,
-        hoverColor: hoverColor,
-        autofocus: autofocus,
-        child: Semantics(
-          selected: selected,
-          enabled: enabled,
-          child: SafeArea(
-            top: false,
-            bottom: false,
-            minimum: EdgeInsets.symmetric(horizontal: 3),
+    final intl.NumberFormat _currencyFormat = intl.NumberFormat('\$#,##0.00', 'en_US');
+
+    final ThemeData theme = Theme.of(context);
+    final ListTileTheme tileTheme = ListTileTheme.of(context);
+    TextStyle textStyle = _textStyle(theme, tileTheme);
+
+    return InkWell(
+      customBorder: ListTileTheme.of(context).shape,
+      onTap: enabled ? onTap : null,
+      mouseCursor: effectiveMouseCursor,
+      canRequestFocus: enabled,
+      focusColor: focusColor,
+      hoverColor: hoverColor,
+      autofocus: autofocus,
+      child: Semantics(
+        selected: selected,
+        enabled: enabled,
+        child: SafeArea(
+          top: false,
+          bottom: false,
+          child: DefaultTextStyle(
+            style: textStyle,
             child: _ListTile(
               title: Text(title),
-              trailing: Text('(\$$amount)'),
+              trailing: Text('(${_currencyFormat.format(amount)})'),
               textDirection: Directionality.of(context),
               titleBaselineType: TextBaseline.alphabetic,
+              selected: selected,
             ),
           ),
         ),
@@ -123,14 +163,17 @@ class _ListTile extends RenderObjectWidget {
     this.trailing,
     @required this.textDirection,
     @required this.titleBaselineType,
+    this.selected = false,
   })  : assert(textDirection != null),
         assert(titleBaselineType != null),
+        assert(selected != null),
         super(key: key);
 
   final Widget title;
   final Widget trailing;
   final TextDirection textDirection;
   final TextBaseline titleBaselineType;
+  final bool selected;
 
   @override
   _ListTileElement createElement() => _ListTileElement(this);
@@ -140,6 +183,7 @@ class _ListTile extends RenderObjectWidget {
     return _RenderListTile(
       textDirection: textDirection,
       titleBaselineType: titleBaselineType,
+      selected: selected,
     );
   }
 
@@ -147,7 +191,8 @@ class _ListTile extends RenderObjectWidget {
   void updateRenderObject(BuildContext context, _RenderListTile renderObject) {
     renderObject
       ..textDirection = textDirection
-      ..titleBaselineType = titleBaselineType;
+      ..titleBaselineType = titleBaselineType
+      ..selected = selected;
   }
 }
 
@@ -259,16 +304,21 @@ class _RenderListTile extends RenderBox {
   _RenderListTile({
     @required TextDirection textDirection,
     @required TextBaseline titleBaselineType,
+    @required bool selected,
   })  : assert(textDirection != null),
         assert(titleBaselineType != null),
+        assert(selected != null),
         _textDirection = textDirection,
-        _titleBaselineType = titleBaselineType;
+        _titleBaselineType = titleBaselineType,
+        _selected = selected;
 
   // The horizontal gap between the titles and the trailing widget.
   double get _horizontalTitleGap => 2;
 
   // The minimum padding on the top and bottom of the title widget.
-  static const double _minVerticalPadding = 3.0;
+  static const double _minVerticalPadding = 3;
+
+  static const double _horizontalPadding = 2;
 
   final Map<_ListTileSlot, RenderBox> slotToChild = <_ListTileSlot, RenderBox>{};
   final Map<RenderBox, _ListTileSlot> childToSlot = <RenderBox, _ListTileSlot>{};
@@ -324,6 +374,15 @@ class _RenderListTile extends RenderBox {
     markNeedsLayout();
   }
 
+  bool get selected => _selected;
+  bool _selected;
+  set selected(bool value) {
+    assert(value != null);
+    if (_selected == value) return;
+    _selected = value;
+    markNeedsPaint();
+  }
+
   @override
   void attach(PipelineOwner owner) {
     super.attach(owner);
@@ -371,12 +430,12 @@ class _RenderListTile extends RenderBox {
 
   @override
   double computeMinIntrinsicWidth(double height) {
-    return _minWidth(title, height) + _maxWidth(trailing, height);
+    return _minWidth(title, height) + _maxWidth(trailing, height) + 2 * _horizontalPadding;
   }
 
   @override
   double computeMaxIntrinsicWidth(double height) {
-    return _maxWidth(title, height) + _maxWidth(trailing, height);
+    return _maxWidth(title, height) + _maxWidth(trailing, height) + 2 * _horizontalPadding;
   }
 
   @override
@@ -428,7 +487,7 @@ class _RenderListTile extends RenderBox {
     );
     final Size titleSize = _layoutBox(title, titleConstraints);
 
-    double tileHeight = titleSize.height + 2.0 * _minVerticalPadding;
+    double tileHeight = titleSize.height + 1.0 * _minVerticalPadding;
     double titleY = (tileHeight - titleSize.height) / 2.0;
     double trailingY = (tileHeight - trailingSize.height) / 2.0;
 
@@ -441,8 +500,8 @@ class _RenderListTile extends RenderBox {
         }
       case TextDirection.ltr:
         {
-          _positionBox(title, Offset(0, titleY));
-          if (hasTrailing) _positionBox(trailing, Offset(tileWidth - trailingSize.width, trailingY));
+          _positionBox(title, Offset(_horizontalPadding, titleY));
+          if (hasTrailing) _positionBox(trailing, Offset(tileWidth - trailingSize.width - _horizontalPadding, trailingY));
           break;
         }
     }
@@ -461,6 +520,10 @@ class _RenderListTile extends RenderBox {
       }
     }
 
+    if (selected) {
+      context.canvas.drawRect(Rect.fromLTWH(0, 0, size.width, size.height), Paint()
+        ..color = Color(0xff14538b));
+    }
     doPaint(title);
     doPaint(trailing);
   }
