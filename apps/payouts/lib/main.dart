@@ -11,7 +11,8 @@ import 'package:intl/intl.dart' as intl;
 import 'package:payouts/bug_report.dart';
 import 'package:payouts/expense_report_list_tile.dart';
 import 'package:payouts/splitter.dart';
-import 'package:payouts/terra_tab_pane.dart' as pivot;
+import 'package:payouts/src/painting.dart';
+import 'package:payouts/src/pivot.dart' as pivot;
 
 import 'package:payouts/ui/auth/persistent_credentials.dart';
 import 'package:payouts/ui/auth/require_user.dart';
@@ -138,49 +139,69 @@ class _FooState extends State<Foo> with SingleTickerProviderStateMixin {
                 height: 57,
                 child: Row(
                   children: <Widget>[
-                    ToolbarButton(
+                    TerraPushButton(
                       onPressed: () {
+//                        showGeneralDialog(
+//                          context: context,
+//                          pageBuilder: (BuildContext context, Animation<double> animation, Animation<double> secondaryAnimation) {
+//                            return TerraSheet();
+//                          },
+//                          barrierDismissible: false,
+//                          barrierColor: const Color(0xaa000000),
+//                        );
                         print('TODO: new invoice');
                       },
                       icon: 'assets/document-new.png',
                       label: 'New Invoice',
+                      axis: Axis.vertical,
+                      isToolbar: true,
                     ),
                     SizedBox(width: 5),
-                    ToolbarButton(
+                    TerraPushButton(
                       onPressed: () {
                         print('TODO: open invoice');
                       },
                       icon: 'assets/document-open.png',
                       label: 'Open Invoice',
+                      axis: Axis.vertical,
+                      isToolbar: true,
                     ),
                     SizedBox(width: 5),
-                    ToolbarButton(
+                    TerraPushButton(
                       icon: 'assets/media-floppy.png',
                       label: 'Save to Server',
+                      axis: Axis.vertical,
+                      isToolbar: true,
                     ),
                     SizedBox(width: 5),
-                    ToolbarButton(
+                    TerraPushButton(
                       onPressed: () {
                         print('TODO: delete invoice');
                       },
                       icon: 'assets/dialog-cancel.png',
                       label: 'Delete Invoice',
+                      axis: Axis.vertical,
+                      isToolbar: true,
                     ),
                     SizedBox(width: 5),
-                    ToolbarButton(
+                    TerraPushButton(
                       onPressed: () {
                         print('TODO: export to PDF');
                       },
                       icon: 'assets/x-office-presentation.png',
                       label: 'Export to PDF',
+                      axis: Axis.vertical,
+                      isToolbar: true,
                     ),
                     Spacer(),
                     SizedBox(
                       width: 64,
-                      child: ToolbarButton(
+                      child: TerraPushButton(
                         onPressed: () {},
                         icon: 'assets/help-browser.png',
                         label: 'Help',
+                        axis: Axis.vertical,
+                        isToolbar: true,
                         menuItems: <PopupMenuEntry<String>>[
                           PopupMenuItem<String>(
                             value: 'about',
@@ -247,7 +268,7 @@ class _FooState extends State<Foo> with SingleTickerProviderStateMixin {
                   Expanded(
                     child: Padding(
                       padding: EdgeInsets.fromLTRB(5, 0, 6, 4),
-                      child: pivot.TerraTabPane(
+                      child: pivot.TabPane(
                         initialSelectedIndex: 0,
                         tabs: <pivot.Tab>[
                           pivot.Tab(
@@ -287,55 +308,58 @@ class ReviewAndSubmit extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final TextStyle italic = Theme.of(context).textTheme.bodyText2.copyWith(fontStyle: FontStyle.italic);
-
     return Padding(
-      padding: EdgeInsets.all(15),
-      child: Scrollbar(
-        child: SingleChildScrollView(
-          child: Padding(
-            padding: EdgeInsets.all(11),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.start,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: <Widget>[
-                Padding(
-                  padding: EdgeInsets.only(bottom: 4),
-                  child: Text('Volkert, Todd', style: TextStyle(fontWeight: FontWeight.bold)),
-                ),
-                Padding(
-                  padding: EdgeInsets.only(bottom: 4),
-                  child: Text('Invoice #FOO'),
-                ),
-                Padding(
-                  padding: EdgeInsets.only(bottom: 4),
-                  child: Text('10/12/2015 - 10/25/2015'),
-                ),
-                Padding(
-                  padding: EdgeInsets.only(bottom: 4),
-                  child: Text(r'$5,296.63'),
-                ),
-                Padding(
-                  padding: EdgeInsets.only(top: 27),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: DefaultTextStyle.merge(
-                          style: TextStyle(fontWeight: FontWeight.bold),
-                          child: Text('Billable Hours'),
-                        ),
+      padding: EdgeInsets.all(6),
+      child: pivot.ScrollPane(
+        horizontalScrollBarPolicy: pivot.ScrollBarPolicy.stretch,
+        view: Padding(
+          padding: EdgeInsets.all(20),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: <Widget>[
+              Padding(
+                padding: EdgeInsets.only(bottom: 4),
+                child: Text('Volkert, Todd', style: TextStyle(fontWeight: FontWeight.bold)),
+              ),
+              Padding(
+                padding: EdgeInsets.only(bottom: 4),
+                child: Text('Invoice #FOO'),
+              ),
+              Padding(
+                padding: EdgeInsets.only(bottom: 4),
+                child: Text('10/12/2015 - 10/25/2015'),
+              ),
+              Padding(
+                padding: EdgeInsets.only(bottom: 4),
+                child: Text(r'$5,296.63'),
+              ),
+              Padding(
+                padding: EdgeInsets.only(top: 27),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: DefaultTextStyle.merge(
+                        style: TextStyle(fontWeight: FontWeight.bold),
+                        child: Text('Billable Hours'),
                       ),
-                      Text(r'$2,160.95'),
-                    ],
-                  ),
+                    ),
+                    Text(r'$2,160.95'),
+                  ],
                 ),
-                Table(
+              ),
+              pivot.ScrollPane(
+                horizontalScrollBarPolicy: pivot.ScrollBarPolicy.expand,
+                view: Table(
                   defaultColumnWidth: FixedColumnWidth(34),
                   columnWidths: <int, TableColumnWidth>{
                     0: IntrinsicColumnWidth(),
                     17: FlexColumnWidth(),
                   },
-                  border: const TestBorder(),
+                  border: TestBorder(
+                    aggregateColumns: <int>[0, 8, 16],
+                    lastRowIsAggregate: true,
+                  ),
                   children: <TableRow>[
                     TableRow(
                       children: <Widget>[
@@ -365,44 +389,44 @@ class ReviewAndSubmit extends StatelessWidget {
                       ),
                       children: <Widget>[
                         SummaryRowHeader(label: 'SCI - Overhead'),
-                        DailyTotal(amount: 4),
-                        DailyTotal(amount: 4),
-                        DailyTotal(amount: 5),
-                        DailyTotal(amount: 6),
-                        DailyTotal(amount: 6),
-                        DailyTotal(amount: 7, isWeekend: true),
-                        DailyTotal(amount: 6, isWeekend: true),
-                        DailyTotal(amount: 0, isAggregate: true),
-                        DailyTotal(amount: 7),
-                        DailyTotal(amount: 0),
-                        DailyTotal(amount: 0),
-                        DailyTotal(amount: 0),
-                        DailyTotal(amount: 0),
-                        DailyTotal(amount: 0, isWeekend: true),
-                        DailyTotal(amount: 0, isWeekend: true),
-                        DailyTotal(amount: 0, isAggregate: true),
+                        DailyTotalHours(amount: 4),
+                        DailyTotalHours(amount: 4),
+                        DailyTotalHours(amount: 5),
+                        DailyTotalHours(amount: 6),
+                        DailyTotalHours(amount: 6),
+                        DailyTotalHours(amount: 7, isWeekend: true),
+                        DailyTotalHours(amount: 6, isWeekend: true),
+                        DailyTotalHours(amount: 0, isAggregate: true),
+                        DailyTotalHours(amount: 7),
+                        DailyTotalHours(amount: 0),
+                        DailyTotalHours(amount: 0),
+                        DailyTotalHours(amount: 0),
+                        DailyTotalHours(amount: 0),
+                        DailyTotalHours(amount: 0, isWeekend: true),
+                        DailyTotalHours(amount: 0, isWeekend: true),
+                        DailyTotalHours(amount: 0, isAggregate: true),
                         Container(),
                       ],
                     ),
                     TableRow(
                       children: <Widget>[
                         SummaryRowHeader(label: 'BSS, NNV8-913197 (COSC) (123)'),
-                        DailyTotal(amount: 0),
-                        DailyTotal(amount: 0),
-                        DailyTotal(amount: 0),
-                        DailyTotal(amount: 10),
-                        DailyTotal(amount: 0),
-                        DailyTotal(amount: 0, isWeekend: true),
-                        DailyTotal(amount: 0, isWeekend: true),
-                        DailyTotal(amount: 0, isAggregate: true),
-                        DailyTotal(amount: 0),
-                        DailyTotal(amount: 0),
-                        DailyTotal(amount: 0),
-                        DailyTotal(amount: 0),
-                        DailyTotal(amount: 0),
-                        DailyTotal(amount: 0, isWeekend: true),
-                        DailyTotal(amount: 0, isWeekend: true),
-                        DailyTotal(amount: 0, isAggregate: true),
+                        DailyTotalHours(amount: 0),
+                        DailyTotalHours(amount: 0),
+                        DailyTotalHours(amount: 0),
+                        DailyTotalHours(amount: 10),
+                        DailyTotalHours(amount: 0),
+                        DailyTotalHours(amount: 0, isWeekend: true),
+                        DailyTotalHours(amount: 0, isWeekend: true),
+                        DailyTotalHours(amount: 0, isAggregate: true),
+                        DailyTotalHours(amount: 0),
+                        DailyTotalHours(amount: 0),
+                        DailyTotalHours(amount: 0),
+                        DailyTotalHours(amount: 0),
+                        DailyTotalHours(amount: 0),
+                        DailyTotalHours(amount: 0, isWeekend: true),
+                        DailyTotalHours(amount: 0, isWeekend: true),
+                        DailyTotalHours(amount: 0, isAggregate: true),
                         Container(),
                       ],
                     ),
@@ -412,44 +436,44 @@ class ReviewAndSubmit extends StatelessWidget {
                       ),
                       children: <Widget>[
                         SummaryRowHeader(label: 'Orbital Sciences (abd)'),
-                        DailyTotal(amount: 0),
-                        DailyTotal(amount: 2),
-                        DailyTotal(amount: 1),
-                        DailyTotal(amount: 0),
-                        DailyTotal(amount: 0),
-                        DailyTotal(amount: 0, isWeekend: true),
-                        DailyTotal(amount: 0, isWeekend: true),
-                        DailyTotal(amount: 0, isAggregate: true),
-                        DailyTotal(amount: 0),
-                        DailyTotal(amount: 0),
-                        DailyTotal(amount: 0),
-                        DailyTotal(amount: 0),
-                        DailyTotal(amount: 0),
-                        DailyTotal(amount: 0, isWeekend: true),
-                        DailyTotal(amount: 0, isWeekend: true),
-                        DailyTotal(amount: 0, isAggregate: true),
+                        DailyTotalHours(amount: 0),
+                        DailyTotalHours(amount: 2),
+                        DailyTotalHours(amount: 1),
+                        DailyTotalHours(amount: 0),
+                        DailyTotalHours(amount: 0),
+                        DailyTotalHours(amount: 0, isWeekend: true),
+                        DailyTotalHours(amount: 0, isWeekend: true),
+                        DailyTotalHours(amount: 0, isAggregate: true),
+                        DailyTotalHours(amount: 0),
+                        DailyTotalHours(amount: 0),
+                        DailyTotalHours(amount: 0),
+                        DailyTotalHours(amount: 0),
+                        DailyTotalHours(amount: 0),
+                        DailyTotalHours(amount: 0, isWeekend: true),
+                        DailyTotalHours(amount: 0, isWeekend: true),
+                        DailyTotalHours(amount: 0, isAggregate: true),
                         Container(),
                       ],
                     ),
                     TableRow(
                       children: <Widget>[
                         SummaryRowHeader(label: 'Loral - T14R'),
-                        DailyTotal(amount: 0),
-                        DailyTotal(amount: 0),
-                        DailyTotal(amount: 0),
-                        DailyTotal(amount: 0),
-                        DailyTotal(amount: 0),
-                        DailyTotal(amount: 0, isWeekend: true),
-                        DailyTotal(amount: 0, isWeekend: true),
-                        DailyTotal(amount: 0, isAggregate: true),
-                        DailyTotal(amount: 8),
-                        DailyTotal(amount: 0),
-                        DailyTotal(amount: 0),
-                        DailyTotal(amount: 0),
-                        DailyTotal(amount: 0),
-                        DailyTotal(amount: 0, isWeekend: true),
-                        DailyTotal(amount: 0, isWeekend: true),
-                        DailyTotal(amount: 0, isAggregate: true),
+                        DailyTotalHours(amount: 0),
+                        DailyTotalHours(amount: 0),
+                        DailyTotalHours(amount: 0),
+                        DailyTotalHours(amount: 0),
+                        DailyTotalHours(amount: 0),
+                        DailyTotalHours(amount: 0, isWeekend: true),
+                        DailyTotalHours(amount: 0, isWeekend: true),
+                        DailyTotalHours(amount: 0, isAggregate: true),
+                        DailyTotalHours(amount: 8),
+                        DailyTotalHours(amount: 0),
+                        DailyTotalHours(amount: 0),
+                        DailyTotalHours(amount: 0),
+                        DailyTotalHours(amount: 0),
+                        DailyTotalHours(amount: 0, isWeekend: true),
+                        DailyTotalHours(amount: 0, isWeekend: true),
+                        DailyTotalHours(amount: 0, isAggregate: true),
                         Container(),
                       ],
                     ),
@@ -459,66 +483,263 @@ class ReviewAndSubmit extends StatelessWidget {
                       ),
                       children: <Widget>[
                         SummaryRowHeader(label: 'Daily Totals', isAggregate: true),
-                        DailyTotal(amount: 4, isAggregate: true),
-                        DailyTotal(amount: 6, isAggregate: true),
-                        DailyTotal(amount: 6, isAggregate: true),
-                        DailyTotal(amount: 16, isAggregate: true),
-                        DailyTotal(amount: 6, isAggregate: true),
-                        DailyTotal(amount: 7, isAggregate: true),
-                        DailyTotal(amount: 6, isAggregate: true),
-                        DailyTotal(amount: 51, isAggregate: true, isWeeklyTotal: true),
-                        DailyTotal(amount: 15, isAggregate: true),
-                        DailyTotal(amount: 0, isAggregate: true),
-                        DailyTotal(amount: 0, isAggregate: true),
-                        DailyTotal(amount: 0, isAggregate: true),
-                        DailyTotal(amount: 0, isAggregate: true),
-                        DailyTotal(amount: 0, isAggregate: true),
-                        DailyTotal(amount: 0, isAggregate: true),
-                        DailyTotal(amount: 15, isAggregate: true, isWeeklyTotal: true),
+                        DailyTotalHours(amount: 4, isAggregate: true),
+                        DailyTotalHours(amount: 6, isAggregate: true),
+                        DailyTotalHours(amount: 6, isAggregate: true),
+                        DailyTotalHours(amount: 16, isAggregate: true),
+                        DailyTotalHours(amount: 6, isAggregate: true),
+                        DailyTotalHours(amount: 7, isAggregate: true),
+                        DailyTotalHours(amount: 6, isAggregate: true),
+                        DailyTotalHours(amount: 51, isAggregate: true, isWeeklyTotal: true),
+                        DailyTotalHours(amount: 15, isAggregate: true),
+                        DailyTotalHours(amount: 0, isAggregate: true),
+                        DailyTotalHours(amount: 0, isAggregate: true),
+                        DailyTotalHours(amount: 0, isAggregate: true),
+                        DailyTotalHours(amount: 0, isAggregate: true),
+                        DailyTotalHours(amount: 0, isAggregate: true),
+                        DailyTotalHours(amount: 0, isAggregate: true),
+                        DailyTotalHours(amount: 15, isAggregate: true, isWeeklyTotal: true),
                         Container(),
                       ],
                     ),
                   ],
                 ),
-                Padding(
-                  padding: EdgeInsets.only(top: 30),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: DefaultTextStyle.merge(
-                          style: TextStyle(fontWeight: FontWeight.bold),
-                          child: Text('Expense Reports'),
-                        ),
-                      ),
-                      Text(r'$3,136.63'),
-                    ],
-                  ),
-                ),
-                Padding(
-                  padding: EdgeInsets.only(top: 20),
-                  child: Row(
-                    children: [
-                      DefaultTextStyle.merge(
-                        style: TextStyle(fontWeight: FontWeight.bold),
-                        child: Text('Accomplishments'),
-                      ),
-                    ],
-                  ),
-                ),
-                Row(
+              ),
+              Padding(
+                padding: EdgeInsets.only(top: 30),
+                child: Row(
                   children: [
-                    RaisedButton(
-                      onPressed: null,
-                      child: Text('Submit Invoice'),
+                    Expanded(
+                      child: DefaultTextStyle.merge(
+                        style: TextStyle(fontWeight: FontWeight.bold),
+                        child: Text('Expense Reports'),
+                      ),
                     ),
-                    Checkbox(
-                      value: false,
-                      onChanged: (bool value) {},
-                    ),
-                    Text('I certify that I have worked the above hours as described.'),
+                    Text(r'$3,136.63'),
                   ],
                 ),
-              ],
+              ),
+              Table(
+                defaultColumnWidth: FixedColumnWidth(34),
+                columnWidths: <int, TableColumnWidth>{
+                  0: IntrinsicColumnWidth(),
+                  15: FlexColumnWidth(),
+                },
+                border: const TestBorder(aggregateColumns: <int>[0, 15]),
+                children: <TableRow>[
+                  TableRow(
+                    children: <Widget>[
+                      TableCell(
+                        verticalAlignment: TableCellVerticalAlignment.bottom,
+                        child: Padding(
+                          padding: EdgeInsets.fromLTRB(0, 0, 57, 4),
+                          child: Text('Orbital Sciences (123)'),
+                        ),
+                      ),
+                      SummaryDateHeading('10/12'),
+                      SummaryDateHeading('10/13'),
+                      SummaryDateHeading('10/14'),
+                      SummaryDateHeading('10/15'),
+                      SummaryDateHeading('10/16'),
+                      SummaryDateHeading('10/17'),
+                      SummaryDateHeading('10/18'),
+                      SummaryDateHeading('10/19'),
+                      SummaryDateHeading('10/20'),
+                      SummaryDateHeading('10/21'),
+                      SummaryDateHeading('10/22'),
+                      SummaryDateHeading('10/23'),
+                      SummaryDateHeading('10/24'),
+                      SummaryDateHeading('10/25'),
+                      Container(),
+                    ],
+                  ),
+                  TableRow(
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                    ),
+                    children: <Widget>[
+                      SummaryRowHeader(label: 'Car Rental'),
+                      DailyTotalDollars(amount: 0),
+                      DailyTotalDollars(amount: 34),
+                      DailyTotalDollars(amount: 23),
+                      DailyTotalDollars(amount: 0),
+                      DailyTotalDollars(amount: 0),
+                      DailyTotalDollars(amount: 0, isWeekend: true),
+                      DailyTotalDollars(amount: 0, isWeekend: true),
+                      DailyTotalDollars(amount: 0),
+                      DailyTotalDollars(amount: 0),
+                      DailyTotalDollars(amount: 0),
+                      DailyTotalDollars(amount: 0),
+                      DailyTotalDollars(amount: 0),
+                      DailyTotalDollars(amount: 0, isWeekend: true),
+                      DailyTotalDollars(amount: 0, isWeekend: true),
+                      Container(),
+                    ],
+                  ),
+                  TableRow(
+                    children: <Widget>[
+                      SummaryRowHeader(label: 'Lodging'),
+                      DailyTotalDollars(amount: 219),
+                      DailyTotalDollars(amount: 219),
+                      DailyTotalDollars(amount: 219),
+                      DailyTotalDollars(amount: 219),
+                      DailyTotalDollars(amount: 219),
+                      DailyTotalDollars(amount: 219, isWeekend: true),
+                      DailyTotalDollars(amount: 219, isWeekend: true),
+                      DailyTotalDollars(amount: 219),
+                      DailyTotalDollars(amount: 219),
+                      DailyTotalDollars(amount: 219),
+                      DailyTotalDollars(amount: 219),
+                      DailyTotalDollars(amount: 219),
+                      DailyTotalDollars(amount: 219, isWeekend: true),
+                      DailyTotalDollars(amount: 219, isWeekend: true),
+                      Container(),
+                    ],
+                  ),
+                  TableRow(
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                    ),
+                    children: <Widget>[
+                      Padding(
+                        padding: EdgeInsets.only(bottom: 1),
+                        child: SummaryRowHeader(label: 'Parking'),
+                      ),
+                      DailyTotalDollars(amount: 0),
+                      DailyTotalDollars(amount: 12),
+                      DailyTotalDollars(amount: 0),
+                      DailyTotalDollars(amount: 0),
+                      DailyTotalDollars(amount: 0),
+                      DailyTotalDollars(amount: 0, isWeekend: true),
+                      DailyTotalDollars(amount: 0, isWeekend: true),
+                      DailyTotalDollars(amount: 0),
+                      DailyTotalDollars(amount: 0),
+                      DailyTotalDollars(amount: 0),
+                      DailyTotalDollars(amount: 0),
+                      DailyTotalDollars(amount: 0),
+                      DailyTotalDollars(amount: 0, isWeekend: true),
+                      DailyTotalDollars(amount: 0, isWeekend: true),
+                      Container(),
+                    ],
+                  ),
+                ],
+              ),
+              Padding(
+                padding: EdgeInsets.only(top: 30),
+                child: Row(
+                  children: [
+                    DefaultTextStyle.merge(
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                      child: Text('Accomplishments'),
+                    ),
+                  ],
+                ),
+              ),
+              Padding(
+                padding: EdgeInsets.fromLTRB(5, 16, 0, 5),
+                child: Row(
+                  children: [
+                    Text('BSS, NNV8-913197 (COSC)'),
+                  ],
+                ),
+              ),
+              AccomplishmentsEntryField(
+                initialText: 'qdlkajs flsdsdl',
+                readOnly: true,
+              ),
+              Padding(
+                padding: EdgeInsets.only(top: 22),
+                child: CertifyAndSubmit(),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class CertifyAndSubmit extends StatefulWidget {
+  @override
+  _CertifyAndSubmitState createState() => _CertifyAndSubmitState();
+}
+
+class _CertifyAndSubmitState extends State<CertifyAndSubmit> {
+  bool certified;
+
+  @override
+  void initState() {
+    super.initState();
+    certified = false;
+  }
+
+  void _handleSubmit() {}
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        TerraPushButton(
+          icon: 'assets/lock.png',
+          label: 'Submit Invoice',
+          onPressed: certified ? _handleSubmit : null,
+        ),
+        Padding(
+          padding: EdgeInsets.fromLTRB(10, 0, 3, 0),
+          child: TerraCheckbox(
+            value: certified,
+            onChanged: (bool value) {
+              setState(() {
+                certified = value;
+              });
+            },
+          ),
+        ),
+        Text('I certify that I have worked the above hours as described.'),
+      ],
+    );
+  }
+}
+
+class TerraCheckbox extends StatelessWidget {
+  const TerraCheckbox({
+    Key key,
+    @required this.value,
+    @required this.onChanged,
+  });
+
+  final bool value;
+  final ValueChanged<bool> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    return MouseRegion(
+      cursor: SystemMouseCursors.click,
+      child: GestureDetector(
+        onTap: () {
+          onChanged(!value);
+        },
+        child: SizedBox(
+          width: 14,
+          height: 14,
+          child: DecoratedBox(
+            decoration: BoxDecoration(
+              border: Border.all(color: const Color(0xff999999)),
+            ),
+            child: Padding(
+              padding: EdgeInsets.all(1),
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.bottomCenter,
+                    end: Alignment.topCenter,
+                    colors: const <Color>[Color(0xfffcfcfc), Color(0xffe9e9e9)],
+                  ),
+                ),
+                child: CustomPaint(
+                  painter: CheckMarkPainter(checked: value),
+                ),
+              ),
             ),
           ),
         ),
@@ -560,26 +781,8 @@ class Accomplishments extends StatelessWidget {
                     child: Text('BSS, NNV8-913197 (COSC)'),
                   ),
                   Expanded(
-                    child: DecoratedBox(
-                      decoration: BoxDecoration(
-                        border: Border.all(color: Color(0xff999999), width: 1),
-                      ),
-                      child: Padding(
-                        padding: EdgeInsets.all(1),
-                        child: TextField(
-                          minLines: 10,
-                          maxLines: 20,
-                          cursorWidth: 1,
-                          cursorColor: Colors.black,
-                          decoration: InputDecoration(
-                            filled: true,
-                            fillColor: Colors.white,
-                            contentPadding: EdgeInsets.symmetric(horizontal: 6, vertical: 12),
-                            hoverColor: Colors.transparent,
-                            border: InputBorder.none,
-                          ),
-                        ),
-                      ),
+                    child: AccomplishmentsEntryField(
+                      minLines: 10,
                     ),
                   ),
                 ],
@@ -708,6 +911,45 @@ class SortIndicatorPainter extends CustomPainter {
     assert(old is SortIndicatorPainter);
     SortIndicatorPainter oldPainter = old;
     return sortDirection != oldPainter.sortDirection;
+  }
+}
+
+class CheckMarkPainter extends CustomPainter {
+  const CheckMarkPainter({
+    @required this.checked,
+    this.color = const Color(0xff2b5580),
+  })  : assert(checked != null),
+        assert(color != null);
+
+  final bool checked;
+  final Color color;
+
+  static const double _checkmarkSize = 10;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    if (checked) {
+      Paint paint = Paint()
+        ..color = color
+        ..style = PaintingStyle.stroke
+        ..strokeCap = StrokeCap.round
+        ..strokeWidth = 2.5;
+
+      final double n = _checkmarkSize / 2;
+      final double m = _checkmarkSize / 4;
+      final double offsetX = (size.width - (n + m)) / 2;
+      final double offsetY = (size.height - n) / 2;
+
+      canvas.drawLine(Offset(offsetX, (n - m) + offsetY), Offset(m + offsetX, n + offsetY), paint);
+      canvas.drawLine(Offset(m + offsetX, n + offsetY), Offset((m + n) + offsetX, offsetY), paint);
+    }
+  }
+
+  @override
+  bool shouldRepaint(CustomPainter old) {
+    assert(old is CheckMarkPainter);
+    CheckMarkPainter oldPainter = old;
+    return checked != oldPainter.checked;
   }
 }
 
@@ -993,10 +1235,12 @@ class _LinkButtonState extends State<LinkButton> {
   }
 }
 
-class ToolbarButton extends StatefulWidget {
-  ToolbarButton({
+class TerraPushButton extends StatefulWidget {
+  TerraPushButton({
     @required this.icon,
     @required this.label,
+    this.axis = Axis.horizontal,
+    this.isToolbar = false,
     this.onPressed,
     this.menuItems,
   })  : assert(icon != null),
@@ -1004,14 +1248,16 @@ class ToolbarButton extends StatefulWidget {
 
   final String icon;
   final String label;
+  final Axis axis;
+  final bool isToolbar;
   final VoidCallback onPressed;
   final List<PopupMenuEntry> menuItems;
 
   @override
-  _ToolbarButtonState createState() => _ToolbarButtonState();
+  _TerraPushButtonState createState() => _TerraPushButtonState();
 }
 
-class _ToolbarButtonState extends State<ToolbarButton> {
+class _TerraPushButtonState extends State<TerraPushButton> {
   bool hover;
   bool pressed;
 
@@ -1036,18 +1282,31 @@ class _ToolbarButtonState extends State<ToolbarButton> {
 
   @override
   Widget build(BuildContext context) {
+    final bool enabled = widget.onPressed != null;
+
+    final List<Widget> buttonData = <Widget>[];
+    if (widget.icon != null) {
+      Widget iconImage = Image(image: AssetImage(widget.icon));
+      if (!enabled) {
+        iconImage = Opacity(
+          opacity: 0.5,
+          child: iconImage,
+        );
+      }
+      buttonData..add(iconImage)..add(SizedBox(width: 4, height: 4));
+    }
+
+    if (widget.label != null) {
+      TextStyle style = Theme.of(context).textTheme.bodyText2;
+      if (!enabled) {
+        style = style.copyWith(color: const Color(0xff999999));
+      }
+      buttonData.add(Text(widget.label, style: style));
+    }
+
     Widget button = Padding(
       padding: EdgeInsets.symmetric(horizontal: 4, vertical: 4),
-      child: Column(
-        children: [
-          Image(image: AssetImage(widget.icon)),
-          SizedBox(height: 4),
-          Text(
-            widget.label,
-            style: Theme.of(context).textTheme.bodyText2,
-          ),
-        ],
-      ),
+      child: widget.axis == Axis.horizontal ? Row(children: buttonData) : Column(children: buttonData),
     );
 
     if (widget.menuItems != null) {
@@ -1073,10 +1332,22 @@ class _ToolbarButtonState extends State<ToolbarButton> {
       );
     }
 
+    if (hover || !widget.isToolbar) {
+      const Border border = Border.fromBorderSide(BorderSide(color: Color(0xff999999)));
+      Decoration decoration;
+      if (enabled && pressed) {
+        decoration = const BoxDecoration(border: border, gradient: pressedGradient);
+      } else if (enabled) {
+        decoration = const BoxDecoration(border: border, gradient: highlightGradient);
+      } else {
+        decoration = const BoxDecoration(border: border, color: Color(0xffdddcd5));
+      }
+      button = DecoratedBox(decoration: decoration, child: button);
+    }
+
     GestureTapCallback callback = widget.onPressed;
     if (widget.menuItems != null) {
       callback = () {
-        print('onTap');
         if (widget.onPressed != null) {
           widget.onPressed();
         }
@@ -1118,19 +1389,13 @@ class _ToolbarButtonState extends State<ToolbarButton> {
       };
     }
 
-    if (widget.onPressed == null) {
-      button = Opacity(
-        opacity: 0.5,
-        child: button,
-      );
-    } else {
+    if (enabled) {
       button = MouseRegion(
         cursor: SystemMouseCursors.click,
         onEnter: (PointerEnterEvent event) {
           setState(() => hover = true);
         },
         onExit: (PointerExitEvent event) {
-          print('onExit');
           if (!Navigator.of(context).canPop()) {
             setState(() => hover = false);
           }
@@ -1140,7 +1405,6 @@ class _ToolbarButtonState extends State<ToolbarButton> {
             setState(() => pressed = true);
           },
           onPointerUp: (PointerUpEvent event) {
-            print('onPointerUp');
             setState(() => pressed = false);
           },
           child: GestureDetector(
@@ -1148,13 +1412,7 @@ class _ToolbarButtonState extends State<ToolbarButton> {
             child: Tooltip(
               message: widget.label,
               waitDuration: Duration(seconds: 1, milliseconds: 500),
-              child: DecoratedBox(
-                decoration: BoxDecoration(
-                  border: hover ? Border.all(color: Color(0xff999999)) : null,
-                  gradient: hover ? (pressed ? pressedGradient : highlightGradient) : null,
-                ),
-                child: button,
-              ),
+              child: button,
             ),
           ),
         ),
@@ -1566,17 +1824,32 @@ class SummaryReportBoxPainter extends BoxPainter {
 }
 
 class TestBorder extends TableBorder {
-  const TestBorder()
-      : super(
+  const TestBorder({
+    this.aggregateColumns = const <int>[],
+    this.lastRowIsAggregate = false,
+  })  : assert(aggregateColumns != null),
+        assert(lastRowIsAggregate != null),
+        super(
           top: _outsideBorder,
           right: _outsideBorder,
           bottom: _outsideBorder,
           left: _outsideBorder,
         );
 
+  final List<int> aggregateColumns;
+  final bool lastRowIsAggregate;
+
   static const BorderSide _outsideBorder = BorderSide(
     color: Color(0xffb3b3b3),
   );
+
+  static List<int> _cellIndicesToBorderIndices(List<int> cellIndices) {
+    return List.generate(cellIndices.length * 2, (int index) {
+      int borderIndex = index ~/ 2;
+      int offset = 1 - (index % 2);
+      return cellIndices[borderIndex] - offset;
+    });
+  }
 
   @override
   TableBorder scale(double t) {
@@ -1637,8 +1910,8 @@ class TestBorder extends TableBorder {
         canvas.drawPath(path, paint);
       }
 
-      for (int columnIndex in const <int>[0, 7, 8, 15, 16]) {
-        if (columnsList.length > columnIndex) {
+      for (int columnIndex in _cellIndicesToBorderIndices(aggregateColumns)) {
+        if (columnIndex >= 0 && columnIndex < columnsList.length) {
           paint
             ..color = const Color(0xffb3b3b3)
             ..strokeWidth = 1
@@ -1651,7 +1924,7 @@ class TestBorder extends TableBorder {
         }
       }
 
-      if (rowsList.isNotEmpty) {
+      if (lastRowIsAggregate && rowsList.isNotEmpty) {
         paint
           ..color = const Color(0xffb3b3b3)
           ..strokeWidth = 1
@@ -1673,10 +1946,31 @@ class TestBorder extends TableBorder {
       left: left,
     );
   }
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    if (other.runtimeType != runtimeType) return false;
+    return other is TestBorder &&
+        other.top == top &&
+        other.right == right &&
+        other.bottom == bottom &&
+        other.left == left &&
+        other.horizontalInside == horizontalInside &&
+        other.verticalInside == verticalInside &&
+        other.aggregateColumns == aggregateColumns;
+  }
+
+  @override
+  int get hashCode => hashValues(top, right, bottom, left, horizontalInside, verticalInside, aggregateColumns);
+
+  @override
+  String toString() =>
+      'TestBorder($top, $right, $bottom, $left, $horizontalInside, $verticalInside, $aggregateColumns)';
 }
 
-class DailyTotal extends StatelessWidget {
-  const DailyTotal({
+class DailyTotalHours extends StatelessWidget {
+  const DailyTotalHours({
     @required this.amount,
     this.isWeekend = false,
     this.isAggregate = false,
@@ -1690,6 +1984,61 @@ class DailyTotal extends StatelessWidget {
   final bool isAggregate;
   final bool isWeeklyTotal;
 
+  @override
+  Widget build(BuildContext context) {
+    return DailyTotal(
+      amount: amount,
+      isWeekend: isWeekend,
+      isAggregate: isAggregate,
+      isWeeklyTotal: isWeeklyTotal,
+      cautionIfExceeded: 12,
+    );
+  }
+}
+
+class DailyTotalDollars extends StatelessWidget {
+  const DailyTotalDollars({
+    @required this.amount,
+    this.isWeekend = false,
+    this.isAggregate = false,
+    this.isWeeklyTotal = false,
+    Key key,
+  })  : assert(amount != null),
+        super(key: key);
+
+  final double amount;
+  final bool isWeekend;
+  final bool isAggregate;
+  final bool isWeeklyTotal;
+
+  @override
+  Widget build(BuildContext context) {
+    return DailyTotal(
+      amount: amount,
+      isWeekend: isWeekend,
+      isAggregate: isAggregate,
+      isWeeklyTotal: isWeeklyTotal,
+    );
+  }
+}
+
+class DailyTotal extends StatelessWidget {
+  const DailyTotal({
+    @required this.amount,
+    this.isWeekend = false,
+    this.isAggregate = false,
+    this.isWeeklyTotal = false,
+    this.cautionIfExceeded,
+    Key key,
+  })  : assert(amount != null),
+        super(key: key);
+
+  final double amount;
+  final bool isWeekend;
+  final bool isAggregate;
+  final bool isWeeklyTotal;
+  final double cautionIfExceeded;
+
   static final intl.NumberFormat numberFormat = intl.NumberFormat('#.#');
 
   @override
@@ -1701,7 +2050,7 @@ class DailyTotal extends StatelessWidget {
     if (isWeeklyTotal) {
       style = style.copyWith(fontWeight: FontWeight.bold);
     }
-    if (amount > 12 && !isWeeklyTotal) {
+    if (cautionIfExceeded != null && amount > cautionIfExceeded && !isWeeklyTotal) {
       style = style.copyWith(color: const Color(0xffb71c28));
     }
 
@@ -1751,6 +2100,67 @@ class SummaryRowHeader extends StatelessWidget {
       child: Padding(
         padding: EdgeInsets.fromLTRB(3, 4, 15, 0),
         child: Text(label, maxLines: 1, style: style),
+      ),
+    );
+  }
+}
+
+class AccomplishmentsEntryField extends StatefulWidget {
+  const AccomplishmentsEntryField({
+    Key key,
+    this.minLines = 2,
+    this.maxLines = 20,
+    this.readOnly = false,
+    this.initialText,
+  }) : super(key: key);
+
+  final int minLines;
+  final int maxLines;
+  final bool readOnly;
+  final String initialText;
+
+  @override
+  _AccomplishmentsEntryFieldState createState() => _AccomplishmentsEntryFieldState();
+}
+
+class _AccomplishmentsEntryFieldState extends State<AccomplishmentsEntryField> {
+  TextEditingController controller;
+
+  @override
+  void initState() {
+    super.initState();
+    controller = TextEditingController(text: widget.initialText);
+  }
+
+  @override
+  void dispose() {
+    controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        border: Border.all(color: Color(0xff999999), width: 1),
+      ),
+      child: Padding(
+        padding: EdgeInsets.all(1),
+        child: TextField(
+          controller: controller,
+          minLines: widget.minLines,
+          maxLines: widget.maxLines,
+          readOnly: widget.readOnly,
+          cursorWidth: 1,
+          cursorColor: Colors.black,
+          decoration: InputDecoration(
+            filled: true,
+            fillColor: Colors.white,
+            contentPadding: EdgeInsets.symmetric(horizontal: 4, vertical: 7),
+            hoverColor: Colors.transparent,
+            border: InputBorder.none,
+          ),
+        ),
       ),
     );
   }

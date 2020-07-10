@@ -12,8 +12,8 @@ class Tab {
   final Widget child;
 }
 
-class TerraTabPane extends StatefulWidget {
-  const TerraTabPane({
+class TabPane extends StatefulWidget {
+  const TabPane({
     this.initialSelectedIndex = 0,
     this.tabs,
   })  : assert(tabs != null),
@@ -23,10 +23,10 @@ class TerraTabPane extends StatefulWidget {
   final List<Tab> tabs;
 
   @override
-  _TerraTabPaneState createState() => _TerraTabPaneState();
+  _TabPaneState createState() => _TabPaneState();
 }
 
-class _TerraTabPaneState extends State<TerraTabPane> {
+class _TabPaneState extends State<TabPane> {
   int selectedIndex;
 
   @override
