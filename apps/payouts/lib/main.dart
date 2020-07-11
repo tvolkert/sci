@@ -355,7 +355,18 @@ class ReviewAndSubmit extends StatelessWidget {
                   padding: EdgeInsets.only(bottom: 1),
                   child: pivot.ScrollPane(
                     horizontalScrollBarPolicy: pivot.ScrollBarPolicy.expand,
-                    corner: Container(),
+                    topLeftCorner: Container(),
+                    bottomLeftCorner: const DecoratedBox(
+                      decoration: BoxDecoration(
+                        border: Border(left: BorderSide(color: Color(0xffb3b3b3))),
+                      ),
+                      child: Padding(
+                        padding: EdgeInsets.only(left: 1),
+                        child: ColoredBox(
+                          color: Color(0xfff0ece7),
+                        ),
+                      ),
+                    ),
                     rowHeader: Container(
                       foregroundDecoration: const BoxDecoration(
                         border: Border(
@@ -1804,8 +1815,8 @@ class ExpenseReports extends StatelessWidget {
                       ),
                       Expanded(
                         child: Scrollbar(
-                          thickness: 10,
-                          radius: Radius.circular(5),
+//                          thickness: 10,
+//                          radius: Radius.circular(5),
                           child: SingleChildScrollView(
                             child: Padding(
                               padding: EdgeInsets.symmetric(horizontal: 1),
