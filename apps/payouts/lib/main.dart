@@ -588,110 +588,176 @@ class ReviewAndSubmit extends StatelessWidget {
                   ],
                 ),
               ),
-              Table(
-                defaultColumnWidth: FixedColumnWidth(34),
-                columnWidths: <int, TableColumnWidth>{
-                  0: IntrinsicColumnWidth(),
-                  15: FlexColumnWidth(),
-                },
-                border: const TestBorder(aggregateColumns: <int>[0, 15]),
-                children: <TableRow>[
-                  TableRow(
-                    children: <Widget>[
-                      TableCell(
-                        verticalAlignment: TableCellVerticalAlignment.bottom,
-                        child: Padding(
-                          padding: EdgeInsets.fromLTRB(0, 0, 57, 4),
-                          child: Text('Orbital Sciences (123)'),
+              DecoratedBox(
+                decoration: const BoxDecoration(
+                  border: Border(bottom: BorderSide(color: Color(0xffb3b3b3))),
+                ),
+                child: Padding(
+                  padding: EdgeInsets.only(bottom: 1),
+                  child: pivot.ScrollPane(
+                    horizontalScrollBarPolicy: pivot.ScrollBarPolicy.expand,
+                    topLeftCorner: Align(
+                      alignment: Alignment.bottomLeft,
+                      child: Text('Orbital Sciences (123)', maxLines: 1),
+                    ),
+                    bottomLeftCorner: const DecoratedBox(
+                      decoration: BoxDecoration(
+                        border: Border(left: BorderSide(color: Color(0xffb3b3b3))),
+                      ),
+                      child: Padding(
+                        padding: EdgeInsets.only(left: 1),
+                        child: ColoredBox(
+                          color: Color(0xfff0ece7),
                         ),
                       ),
-                      SummaryDateHeading('10/12'),
-                      SummaryDateHeading('10/13'),
-                      SummaryDateHeading('10/14'),
-                      SummaryDateHeading('10/15'),
-                      SummaryDateHeading('10/16'),
-                      SummaryDateHeading('10/17'),
-                      SummaryDateHeading('10/18'),
-                      SummaryDateHeading('10/19'),
-                      SummaryDateHeading('10/20'),
-                      SummaryDateHeading('10/21'),
-                      SummaryDateHeading('10/22'),
-                      SummaryDateHeading('10/23'),
-                      SummaryDateHeading('10/24'),
-                      SummaryDateHeading('10/25'),
-                      Container(),
-                    ],
-                  ),
-                  TableRow(
-                    decoration: BoxDecoration(
-                      color: Colors.white,
                     ),
-                    children: <Widget>[
-                      SummaryRowHeader(label: 'Car Rental'),
-                      DailyTotalDollars(amount: 0),
-                      DailyTotalDollars(amount: 34),
-                      DailyTotalDollars(amount: 23),
-                      DailyTotalDollars(amount: 0),
-                      DailyTotalDollars(amount: 0),
-                      DailyTotalDollars(amount: 0, isWeekend: true),
-                      DailyTotalDollars(amount: 0, isWeekend: true),
-                      DailyTotalDollars(amount: 0),
-                      DailyTotalDollars(amount: 0),
-                      DailyTotalDollars(amount: 0),
-                      DailyTotalDollars(amount: 0),
-                      DailyTotalDollars(amount: 0),
-                      DailyTotalDollars(amount: 0, isWeekend: true),
-                      DailyTotalDollars(amount: 0, isWeekend: true),
-                      Container(),
-                    ],
-                  ),
-                  TableRow(
-                    children: <Widget>[
-                      SummaryRowHeader(label: 'Lodging'),
-                      DailyTotalDollars(amount: 219),
-                      DailyTotalDollars(amount: 219),
-                      DailyTotalDollars(amount: 219),
-                      DailyTotalDollars(amount: 219),
-                      DailyTotalDollars(amount: 219),
-                      DailyTotalDollars(amount: 219, isWeekend: true),
-                      DailyTotalDollars(amount: 219, isWeekend: true),
-                      DailyTotalDollars(amount: 219),
-                      DailyTotalDollars(amount: 219),
-                      DailyTotalDollars(amount: 219),
-                      DailyTotalDollars(amount: 219),
-                      DailyTotalDollars(amount: 219),
-                      DailyTotalDollars(amount: 219, isWeekend: true),
-                      DailyTotalDollars(amount: 219, isWeekend: true),
-                      Container(),
-                    ],
-                  ),
-                  TableRow(
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                    ),
-                    children: <Widget>[
-                      Padding(
-                        padding: EdgeInsets.only(bottom: 1),
-                        child: SummaryRowHeader(label: 'Parking'),
+                    rowHeader: ConstrainedBox(
+                      constraints: BoxConstraints(minWidth: 200),
+                      child: Container(
+                        foregroundDecoration: const BoxDecoration(
+                          border: Border(
+                            top: BorderSide(color: Color(0xffb3b3b3)),
+                            left: BorderSide(color: Color(0xffb3b3b3)),
+                            right: BorderSide(color: Color(0xffb3b3b3)),
+                          ),
+                        ),
+                        child: Table(
+                          defaultColumnWidth: IntrinsicColumnWidth(),
+                          border: TestBorder(),
+                          children: <TableRow>[
+                            TableRow(
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                              ),
+                              children: [SummaryRowHeader(label: 'Car Rental')],
+                            ),
+                            TableRow(
+                              children: [SummaryRowHeader(label: 'Lodging')],
+                            ),
+                            TableRow(
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                              ),
+                              children: [
+                                Padding(
+                                  padding: EdgeInsets.only(bottom: 1),
+                                  child: SummaryRowHeader(label: 'Parking'),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
                       ),
-                      DailyTotalDollars(amount: 0),
-                      DailyTotalDollars(amount: 12),
-                      DailyTotalDollars(amount: 0),
-                      DailyTotalDollars(amount: 0),
-                      DailyTotalDollars(amount: 0),
-                      DailyTotalDollars(amount: 0, isWeekend: true),
-                      DailyTotalDollars(amount: 0, isWeekend: true),
-                      DailyTotalDollars(amount: 0),
-                      DailyTotalDollars(amount: 0),
-                      DailyTotalDollars(amount: 0),
-                      DailyTotalDollars(amount: 0),
-                      DailyTotalDollars(amount: 0),
-                      DailyTotalDollars(amount: 0, isWeekend: true),
-                      DailyTotalDollars(amount: 0, isWeekend: true),
-                      Container(),
-                    ],
+                    ),
+                    columnHeader: Table(
+                      defaultColumnWidth: FixedColumnWidth(34),
+                      columnWidths: <int, TableColumnWidth>{
+                        14: FlexColumnWidth(),
+                      },
+                      children: <TableRow>[
+                        TableRow(
+                          children: <Widget>[
+                            SummaryDateHeading('10/12'),
+                            SummaryDateHeading('10/13'),
+                            SummaryDateHeading('10/14'),
+                            SummaryDateHeading('10/15'),
+                            SummaryDateHeading('10/16'),
+                            SummaryDateHeading('10/17'),
+                            SummaryDateHeading('10/18'),
+                            SummaryDateHeading('10/19'),
+                            SummaryDateHeading('10/20'),
+                            SummaryDateHeading('10/21'),
+                            SummaryDateHeading('10/22'),
+                            SummaryDateHeading('10/23'),
+                            SummaryDateHeading('10/24'),
+                            SummaryDateHeading('10/25'),
+                            Container(),
+                          ],
+                        ),
+                      ],
+                    ),
+                    view: Container(
+                      foregroundDecoration: const BoxDecoration(
+                        border: Border(
+                          top: BorderSide(color: Color(0xffb3b3b3)),
+                          right: BorderSide(color: Color(0xffb3b3b3)),
+                        ),
+                      ),
+                      child: Table(
+                        defaultColumnWidth: FixedColumnWidth(34),
+                        columnWidths: <int, TableColumnWidth>{
+                          14: FlexColumnWidth(),
+                        },
+                        border: const TestBorder(aggregateColumns: <int>[14]),
+                        children: <TableRow>[
+                          TableRow(
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                            ),
+                            children: <Widget>[
+                              DailyTotalDollars(amount: 0),
+                              DailyTotalDollars(amount: 34),
+                              DailyTotalDollars(amount: 23),
+                              DailyTotalDollars(amount: 0),
+                              DailyTotalDollars(amount: 0),
+                              DailyTotalDollars(amount: 0, isWeekend: true),
+                              DailyTotalDollars(amount: 0, isWeekend: true),
+                              DailyTotalDollars(amount: 0),
+                              DailyTotalDollars(amount: 0),
+                              DailyTotalDollars(amount: 0),
+                              DailyTotalDollars(amount: 0),
+                              DailyTotalDollars(amount: 0),
+                              DailyTotalDollars(amount: 0, isWeekend: true),
+                              DailyTotalDollars(amount: 0, isWeekend: true),
+                              Container(),
+                            ],
+                          ),
+                          TableRow(
+                            children: <Widget>[
+                              DailyTotalDollars(amount: 219),
+                              DailyTotalDollars(amount: 219),
+                              DailyTotalDollars(amount: 219),
+                              DailyTotalDollars(amount: 219),
+                              DailyTotalDollars(amount: 219),
+                              DailyTotalDollars(amount: 219, isWeekend: true),
+                              DailyTotalDollars(amount: 219, isWeekend: true),
+                              DailyTotalDollars(amount: 219),
+                              DailyTotalDollars(amount: 219),
+                              DailyTotalDollars(amount: 219),
+                              DailyTotalDollars(amount: 219),
+                              DailyTotalDollars(amount: 219),
+                              DailyTotalDollars(amount: 219, isWeekend: true),
+                              DailyTotalDollars(amount: 219, isWeekend: true),
+                              Container(),
+                            ],
+                          ),
+                          TableRow(
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                            ),
+                            children: <Widget>[
+                              DailyTotalDollars(amount: 0),
+                              DailyTotalDollars(amount: 12),
+                              DailyTotalDollars(amount: 0),
+                              DailyTotalDollars(amount: 0),
+                              DailyTotalDollars(amount: 0),
+                              DailyTotalDollars(amount: 0, isWeekend: true),
+                              DailyTotalDollars(amount: 0, isWeekend: true),
+                              DailyTotalDollars(amount: 0),
+                              DailyTotalDollars(amount: 0),
+                              DailyTotalDollars(amount: 0),
+                              DailyTotalDollars(amount: 0),
+                              DailyTotalDollars(amount: 0),
+                              DailyTotalDollars(amount: 0, isWeekend: true),
+                              DailyTotalDollars(amount: 0, isWeekend: true),
+                              Container(),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
                   ),
-                ],
+                ),
               ),
               Padding(
                 padding: EdgeInsets.only(top: 30),
@@ -764,7 +830,13 @@ class _CertifyAndSubmitState extends State<CertifyAndSubmit> {
             },
           ),
         ),
-        Text('I certify that I have worked the above hours as described.'),
+        Expanded(
+          child: Text(
+            'I certify that I have worked the above hours as described.',
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ),
       ],
     );
   }
@@ -1972,7 +2044,7 @@ class TestBorder extends TableBorder {
           ..strokeWidth = 1
           ..style = PaintingStyle.stroke;
         path.reset();
-        for (final double y in rowsList.sublist(1)) {
+        for (final double y in rowsList) {
           path.moveTo(rect.left, rect.top + y + 0.5);
           path.lineTo(rect.right, rect.top + y + 0.5);
         }
@@ -1986,7 +2058,7 @@ class TestBorder extends TableBorder {
             ..strokeWidth = 1
             ..style = PaintingStyle.stroke;
           canvas.drawLine(
-            Offset(rect.left + columnsList[columnIndex] + 0.5, rect.top/* + rowsList.first*/),
+            Offset(rect.left + columnsList[columnIndex] + 0.5, rect.top /* + rowsList.first*/),
             Offset(rect.left + columnsList[columnIndex] + 0.5, rect.bottom),
             paint,
           );
