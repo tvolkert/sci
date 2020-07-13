@@ -2016,7 +2016,7 @@ class TestBorder extends TableBorder {
     assert(rows != null);
     assert(rows.isEmpty || (rows.first >= 0.0 && rows.last <= rect.height));
     assert(columns != null);
-    assert(columns.isEmpty || (columns.first >= 0.0 && (columns.last - rect.width).abs() <= Tolerance.defaultTolerance.distance));
+    assert(columns.isEmpty || (columns.first >= 0.0 && rect.width - columns.last >= -Tolerance.defaultTolerance.distance));
 
     final List<double> rowsList = List<double>.from(rows, growable: false);
     final List<double> columnsList = List<double>.from(columns, growable: false);
@@ -2197,7 +2197,7 @@ class DailyTotal extends StatelessWidget {
 
     final String value = amount > 0 ? numberFormat.format(amount) : '';
     Widget result = Padding(
-      padding: EdgeInsets.fromLTRB(0, 4, 3, 0),
+      padding: const EdgeInsets.fromLTRB(0, 4, 3, 0),
       child: Text(value, style: style, textAlign: TextAlign.right),
     );
 
