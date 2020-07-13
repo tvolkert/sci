@@ -1337,8 +1337,6 @@ class RenderScrollPane extends RenderBox implements ScrollBarValueListener {
     );
 
     _positionMovableChildren(rowHeaderWidth: rowHeaderWidth, columnHeaderHeight: columnHeaderHeight);
-    horizontalScrollBar.value = scrollOffset.dx;
-    verticalScrollBar.value = scrollOffset.dy;
 
     // Adjust the structure of our scroll bars. Make sure to do this after
     // we adjust the scrollTop and scrollLeft values; otherwise we might
@@ -1348,6 +1346,7 @@ class RenderScrollPane extends RenderBox implements ScrollBarValueListener {
     if (viewWidth > 0) {
       horizontalScrollBar.updateValuesPriorToLayout(
         token: this,
+        value: scrollOffset.dx,
         start: 0,
         end: viewWidth,
         extent: math.min(viewWidth, viewportWidth),
@@ -1359,6 +1358,7 @@ class RenderScrollPane extends RenderBox implements ScrollBarValueListener {
     if (viewHeight > 0) {
       verticalScrollBar.updateValuesPriorToLayout(
         token: this,
+        value: scrollOffset.dy,
         start: 0,
         end: viewHeight,
         extent: math.min(viewHeight, viewportHeight),

@@ -172,18 +172,21 @@ class RenderScrollBar extends RenderBox
   /// layout (prior to calling [layout] on the scroll bar).
   void updateValuesPriorToLayout({
     @required Object token,
+    @required double value,
     @required double start,
     @required double end,
     @required double extent,
   }) {
     assert(identical(parent, token));
     assert(owner.debugDoingLayout);
+    assert(value != null);
     assert(start != null);
     assert(end != null);
     assert(extent != null);
     assert(start < end);
     assert(value >= start);
     assert(value + extent <= end);
+    _value = value;
     _start = start;
     _end = end;
     _extent = extent;
@@ -587,11 +590,12 @@ class _ScrollBarValueListenerList extends ListenerList<ScrollBarValueListener> i
   }
 }
 
-class _RenderScrollBarButton extends RenderBox with RenderObjectWithChildMixin<RenderBox> {
+class _RenderScrollBarButton extends RenderBox with RenderObjectWithChildMixin<RenderBox>, RenderBoxWithChildDefaultsMixin {
   _RenderScrollBarButton({
     this.orientation = Axis.vertical,
     this.direction = 1,
   }) {
+    // Set this here to trigger the side-effects of `enabled=`
     enabled = true;
   }
 
@@ -679,20 +683,11 @@ class _RenderScrollBarButton extends RenderBox with RenderObjectWithChildMixin<R
 
   @override
   bool hitTestChildren(BoxHitTestResult result, {ui.Offset position}) {
-    return true;
-//    final BoxParentData childParentData = child.parentData as ParentDataType;
-//    final bool isHit = result.addWithPaintOffset(
-//      offset: childParentData.offset,
-//      position: position,
-//      hitTest: (BoxHitTestResult result, Offset transformed) {
-//        assert(transformed == position - childParentData.offset);
-//        return child.hitTest(result, position: transformed);
-//      },
-//    );
-//    if (isHit)
-//      return true;
-//    return false;
+    return defaultHitTestChild(result, position: position);
   }
+
+  @override
+  bool hitTestSelf(ui.Offset position) => true;
 
   @override
   double computeMinIntrinsicHeight(double width) => _length;
@@ -727,7 +722,7 @@ class _RenderScrollBarButton extends RenderBox with RenderObjectWithChildMixin<R
   }
 }
 
-class _RenderScrollBarHandle extends RenderBox with RenderObjectWithChildMixin {
+class _RenderScrollBarHandle extends RenderBox with RenderObjectWithChildMixin<RenderBox>, RenderBoxWithChildDefaultsMixin {
   _RenderScrollBarHandle({@required this.orientation}) : assert(orientation != null) {
     child = RenderMouseRegion(
       onEnter: _onEnter,
@@ -802,8 +797,11 @@ class _RenderScrollBarHandle extends RenderBox with RenderObjectWithChildMixin {
 
   @override
   bool hitTestChildren(BoxHitTestResult result, {ui.Offset position}) {
-    return true;
+    return defaultHitTestChild(result, position: position);
   }
+
+  @override
+  bool hitTestSelf(ui.Offset position) => true;
 
   @override
   void performLayout() {
@@ -826,6 +824,23 @@ class _RenderScrollBarHandle extends RenderBox with RenderObjectWithChildMixin {
     }
 
     if (child != null) context.paintChild(child, offset);
+  }
+}
+
+mixin RenderBoxWithChildDefaultsMixin on RenderObjectWithChildMixin<RenderBox> {
+  bool defaultHitTestChild(BoxHitTestResult result, { Offset position }) {
+    if (child == null) {
+      return false;
+    }
+    final BoxParentData childParentData = child.parentData;
+    return result.addWithPaintOffset(
+      offset: childParentData.offset,
+      position: position,
+      hitTest: (BoxHitTestResult result, Offset transformed) {
+        assert(transformed == position - childParentData.offset);
+        return child.hitTest(result, position: transformed);
+      },
+    );
   }
 }
 
