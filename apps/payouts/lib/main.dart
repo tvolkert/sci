@@ -2016,7 +2016,7 @@ class TestBorder extends TableBorder {
     assert(rows != null);
     assert(rows.isEmpty || (rows.first >= 0.0 && rows.last <= rect.height));
     assert(columns != null);
-    assert(columns.isEmpty || (columns.first >= 0.0 && columns.last <= rect.width));
+    assert(columns.isEmpty || (columns.first >= 0.0 && (columns.last - rect.width).abs() <= Tolerance.defaultTolerance.distance));
 
     final List<double> rowsList = List<double>.from(rows, growable: false);
     final List<double> columnsList = List<double>.from(columns, growable: false);
