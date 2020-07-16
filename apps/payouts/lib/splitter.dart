@@ -59,7 +59,7 @@ class _SplitterState extends State<Splitter> {
               children: [
                 SizedBox(width: split, child: widget.before),
                 MouseRegion(
-                  cursor: SystemMouseCursors.horizontalDoubleArrow,
+                  cursor: SystemMouseCursors.resizeLeftRight,
                   child: GestureDetector(
                     behavior: HitTestBehavior.opaque,
                     dragStartBehavior: DragStartBehavior.down,
