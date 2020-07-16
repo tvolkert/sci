@@ -25,22 +25,6 @@ void main() {
   FlutterError.onError = (FlutterErrorDetails details, {bool forceReport = false}) =>
       FlutterError.dumpErrorToConsole(details, forceReport: true);
   runApp(
-//    Directionality(
-//      textDirection: TextDirection.ltr,
-//      child: Table(
-//        children: <TableRow>[
-//          TableRow(
-//            children: <Widget>[
-//              RotatedBox(
-//                quarterTurns: 1,
-//                child: Text('rotated so should be tall, not wide'),
-//              ),
-//            ],
-//          ),
-//        ],
-//      ),
-//    ),
-
 //    BugReport(),
     PayoutsApp(),
   );
@@ -1594,24 +1578,25 @@ class BillableHours extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.start,
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: <Widget>[
-        Padding(
-          padding: EdgeInsets.all(7),
-          child: LinkButton(
-            image: AssetImage('assets/table_add.png'),
-            text: 'Add hours line item',
-            onPressed: () {},
+    return Padding(
+      padding: EdgeInsets.all(7),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: <Widget>[
+          Padding(
+            padding: EdgeInsets.only(bottom: 7),
+            child: LinkButton(
+              image: AssetImage('assets/table_add.png'),
+              text: 'Add hours line item',
+              onPressed: () {},
+            ),
           ),
-        ),
-        Expanded(
-          child: Scrollbar(
-            child: SingleChildScrollView(
-              scrollDirection: Axis.vertical,
-              child: Padding(
-                padding: EdgeInsets.only(left: 32, right: 32),
+          Expanded(
+            child: pivot.ScrollPane(
+              horizontalScrollBarPolicy: pivot.ScrollBarPolicy.expand,
+              view: Padding(
+                padding: EdgeInsets.only(left: 20, right: 25),
                 child: Table(
                   defaultVerticalAlignment: TableCellVerticalAlignment.baseline,
                   textBaseline: TextBaseline.alphabetic,
@@ -1733,8 +1718,8 @@ class BillableHours extends StatelessWidget {
               ),
             ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }
@@ -1863,7 +1848,7 @@ class ExpenseReports extends StatelessWidget {
                         ),
                       ),
                       Padding(
-                        padding: EdgeInsets.only(bottom: 10, left: 11),
+                        padding: EdgeInsets.only(bottom: 9, left: 11),
                         child: Row(
                           children: [
                             LinkButton(
@@ -1874,41 +1859,43 @@ class ExpenseReports extends StatelessWidget {
                           ],
                         ),
                       ),
-                      Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 1),
-                        child: Row(
-                          children: [
-                            TableHeaderCell(width: 120, label: 'Date', sortDirection: SortDirection.ascending),
-                            TableHeaderCell(width: 120, label: 'Type'),
-                            TableHeaderCell(width: 100, label: 'Amount'),
-                            TableHeaderCell(label: 'Description'),
-                          ],
-                        ),
-                      ),
                       Expanded(
-                        child: Scrollbar(
-//                          thickness: 10,
-//                          radius: Radius.circular(5),
-                          child: SingleChildScrollView(
-                            child: Padding(
-                              padding: EdgeInsets.symmetric(horizontal: 1),
-                              child: Table(
-                                border: TableBorder.symmetric(
-                                  inside: BorderSide(
-                                    width: 0,
-                                    color: Color(0xfff7f5ee),
-                                  ),
+                        child: Padding(
+                          padding: EdgeInsets.all(1),
+                          child: pivot.ScrollPane(
+                            horizontalScrollBarPolicy: pivot.ScrollBarPolicy.stretch,
+                            topRightCorner: DecoratedBox(
+                              decoration: BoxDecoration(
+                                color: Color(0xfff0ece7),
+                                border: Border(
+                                  top: BorderSide(color: Color(0xff999999)),
                                 ),
-                                columnWidths: <int, TableColumnWidth>{
-                                  0: FixedColumnWidth(120),
-                                  1: FixedColumnWidth(120),
-                                  2: FixedColumnWidth(100),
-                                  3: FlexColumnWidth(),
-                                },
-                                defaultVerticalAlignment: TableCellVerticalAlignment.baseline,
-                                textBaseline: TextBaseline.alphabetic,
-                                children: _buildExpenseRows(),
                               ),
+                            ),
+                            columnHeader: Row(
+                              children: [
+                                TableHeaderCell(width: 120, label: 'Date', sortDirection: SortDirection.ascending),
+                                TableHeaderCell(width: 120, label: 'Type'),
+                                TableHeaderCell(width: 100, label: 'Amount'),
+                                TableHeaderCell(label: 'Description'),
+                              ],
+                            ),
+                            view: Table(
+                              border: TableBorder.symmetric(
+                                inside: BorderSide(
+                                  width: 0,
+                                  color: Color(0xfff7f5ee),
+                                ),
+                              ),
+                              columnWidths: <int, TableColumnWidth>{
+                                0: FixedColumnWidth(120),
+                                1: FixedColumnWidth(120),
+                                2: FixedColumnWidth(100),
+                                3: FlexColumnWidth(),
+                              },
+                              defaultVerticalAlignment: TableCellVerticalAlignment.baseline,
+                              textBaseline: TextBaseline.alphabetic,
+                              children: _buildExpenseRows(),
                             ),
                           ),
                         ),
