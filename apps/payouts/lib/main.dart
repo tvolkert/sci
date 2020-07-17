@@ -1785,124 +1785,125 @@ class ExpenseReports extends StatelessWidget {
           Expanded(
             child: Padding(
               padding: EdgeInsets.only(top: 5),
-              child: Splitter(
+              child: Split(
                 axis: Axis.horizontal,
-                initialSplitRatio: 0.25,
-                primaryRegion: null,
-                before: ExpenseReportListView(),
-                after: DecoratedBox(
-                  decoration: BoxDecoration(border: Border.all(color: Color(0xFF999999))),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      Padding(
-                        padding: EdgeInsets.fromLTRB(11, 11, 11, 9),
-                        child: DefaultTextStyle(
-                          style: Theme.of(context).textTheme.bodyText2.copyWith(color: Colors.black),
-                          child: Table(
-                            columnWidths: {
-                              0: IntrinsicColumnWidth(),
-                              1: FlexColumnWidth(),
-                            },
+                initialFractions: [0.25, 0.75],
+                children: [
+                  ExpenseReportListView(),
+                  DecoratedBox(
+                    decoration: BoxDecoration(border: Border.all(color: Color(0xFF999999))),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        Padding(
+                          padding: EdgeInsets.fromLTRB(11, 11, 11, 9),
+                          child: DefaultTextStyle(
+                            style: Theme.of(context).textTheme.bodyText2.copyWith(color: Colors.black),
+                            child: Table(
+                              columnWidths: {
+                                0: IntrinsicColumnWidth(),
+                                1: FlexColumnWidth(),
+                              },
+                              children: [
+                                TableRow(
+                                  children: [
+                                    Padding(padding: EdgeInsets.only(bottom: 4), child: Text('Program:')),
+                                    Padding(padding: EdgeInsets.only(bottom: 4), child: Text('Orbital Sciences')),
+                                  ],
+                                ),
+                                TableRow(
+                                  children: [
+                                    Padding(padding: EdgeInsets.only(bottom: 4), child: Text('Charge number:')),
+                                    Padding(padding: EdgeInsets.only(bottom: 4), child: Text('123')),
+                                  ],
+                                ),
+                                TableRow(
+                                  children: [
+                                    Padding(padding: EdgeInsets.only(bottom: 4), child: Text('Dates:')),
+                                    Padding(padding: EdgeInsets.only(bottom: 4), child: Text('2015-10-12 to 2015-10-25')),
+                                  ],
+                                ),
+                                TableRow(
+                                  children: [
+                                    Padding(padding: EdgeInsets.only(bottom: 4), child: Text('Purpose of travel:')),
+                                    Padding(padding: EdgeInsets.only(bottom: 4), child: Text('None of your business')),
+                                  ],
+                                ),
+                                TableRow(
+                                  children: [
+                                    Padding(padding: EdgeInsets.only(bottom: 4), child: Text('Destination (city):')),
+                                    Padding(padding: EdgeInsets.only(bottom: 4), child: Text('Vancouver')),
+                                  ],
+                                ),
+                                TableRow(
+                                  children: [
+                                    Padding(
+                                        padding: EdgeInsets.only(bottom: 4, right: 6),
+                                        child: Text('Party or parties visited:')),
+                                    Padding(padding: EdgeInsets.only(bottom: 4), child: Text('Jimbo')),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                        Padding(
+                          padding: EdgeInsets.only(bottom: 9, left: 11),
+                          child: Row(
                             children: [
-                              TableRow(
-                                children: [
-                                  Padding(padding: EdgeInsets.only(bottom: 4), child: Text('Program:')),
-                                  Padding(padding: EdgeInsets.only(bottom: 4), child: Text('Orbital Sciences')),
-                                ],
-                              ),
-                              TableRow(
-                                children: [
-                                  Padding(padding: EdgeInsets.only(bottom: 4), child: Text('Charge number:')),
-                                  Padding(padding: EdgeInsets.only(bottom: 4), child: Text('123')),
-                                ],
-                              ),
-                              TableRow(
-                                children: [
-                                  Padding(padding: EdgeInsets.only(bottom: 4), child: Text('Dates:')),
-                                  Padding(padding: EdgeInsets.only(bottom: 4), child: Text('2015-10-12 to 2015-10-25')),
-                                ],
-                              ),
-                              TableRow(
-                                children: [
-                                  Padding(padding: EdgeInsets.only(bottom: 4), child: Text('Purpose of travel:')),
-                                  Padding(padding: EdgeInsets.only(bottom: 4), child: Text('None of your business')),
-                                ],
-                              ),
-                              TableRow(
-                                children: [
-                                  Padding(padding: EdgeInsets.only(bottom: 4), child: Text('Destination (city):')),
-                                  Padding(padding: EdgeInsets.only(bottom: 4), child: Text('Vancouver')),
-                                ],
-                              ),
-                              TableRow(
-                                children: [
-                                  Padding(
-                                      padding: EdgeInsets.only(bottom: 4, right: 6),
-                                      child: Text('Party or parties visited:')),
-                                  Padding(padding: EdgeInsets.only(bottom: 4), child: Text('Jimbo')),
-                                ],
+                              LinkButton(
+                                image: AssetImage('assets/money_add.png'),
+                                text: 'Add expense line item',
+                                onPressed: () {},
                               ),
                             ],
                           ),
                         ),
-                      ),
-                      Padding(
-                        padding: EdgeInsets.only(bottom: 9, left: 11),
-                        child: Row(
-                          children: [
-                            LinkButton(
-                              image: AssetImage('assets/money_add.png'),
-                              text: 'Add expense line item',
-                              onPressed: () {},
-                            ),
-                          ],
-                        ),
-                      ),
-                      Expanded(
-                        child: Padding(
-                          padding: EdgeInsets.all(1),
-                          child: pivot.ScrollPane(
-                            horizontalScrollBarPolicy: pivot.ScrollBarPolicy.stretch,
-                            topRightCorner: DecoratedBox(
-                              decoration: BoxDecoration(
-                                color: Color(0xfff0ece7),
-                                border: Border(
-                                  top: BorderSide(color: Color(0xff999999)),
+                        Expanded(
+                          child: Padding(
+                            padding: EdgeInsets.all(1),
+                            child: pivot.ScrollPane(
+                              horizontalScrollBarPolicy: pivot.ScrollBarPolicy.stretch,
+                              topRightCorner: DecoratedBox(
+                                decoration: BoxDecoration(
+                                  color: Color(0xfff0ece7),
+                                  border: Border(
+                                    top: BorderSide(color: Color(0xff999999)),
+                                  ),
                                 ),
                               ),
-                            ),
-                            columnHeader: Row(
-                              children: [
-                                TableHeaderCell(width: 120, label: 'Date', sortDirection: SortDirection.ascending),
-                                TableHeaderCell(width: 120, label: 'Type'),
-                                TableHeaderCell(width: 100, label: 'Amount'),
-                                TableHeaderCell(label: 'Description'),
-                              ],
-                            ),
-                            view: Table(
-                              border: TableBorder.symmetric(
-                                inside: BorderSide(
-                                  width: 0,
-                                  color: Color(0xfff7f5ee),
-                                ),
+                              columnHeader: Row(
+                                children: [
+                                  TableHeaderCell(width: 120, label: 'Date', sortDirection: SortDirection.ascending),
+                                  TableHeaderCell(width: 120, label: 'Type'),
+                                  TableHeaderCell(width: 100, label: 'Amount'),
+                                  TableHeaderCell(label: 'Description'),
+                                ],
                               ),
-                              columnWidths: <int, TableColumnWidth>{
-                                0: FixedColumnWidth(120),
-                                1: FixedColumnWidth(120),
-                                2: FixedColumnWidth(100),
-                                3: FlexColumnWidth(),
-                              },
-                              defaultVerticalAlignment: TableCellVerticalAlignment.baseline,
-                              textBaseline: TextBaseline.alphabetic,
-                              children: _buildExpenseRows(),
+                              view: Table(
+                                border: TableBorder.symmetric(
+                                  inside: BorderSide(
+                                    width: 0,
+                                    color: Color(0xfff7f5ee),
+                                  ),
+                                ),
+                                columnWidths: <int, TableColumnWidth>{
+                                  0: FixedColumnWidth(120),
+                                  1: FixedColumnWidth(120),
+                                  2: FixedColumnWidth(100),
+                                  3: FlexColumnWidth(),
+                                },
+                                defaultVerticalAlignment: TableCellVerticalAlignment.baseline,
+                                textBaseline: TextBaseline.alphabetic,
+                                children: _buildExpenseRows(),
+                              ),
                             ),
                           ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
-                ),
+                ],
               ),
             ),
           ),
