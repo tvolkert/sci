@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math' as math;
 import 'dart:ui' show window;
 
@@ -124,14 +125,6 @@ class _FooState extends State<Foo> with SingleTickerProviderStateMixin {
                   children: <Widget>[
                     TerraPushButton(
                       onPressed: () {
-//                        showGeneralDialog(
-//                          context: context,
-//                          pageBuilder: (BuildContext context, Animation<double> animation, Animation<double> secondaryAnimation) {
-//                            return TerraSheet();
-//                          },
-//                          barrierDismissible: false,
-//                          barrierColor: const Color(0xaa000000),
-//                        );
                         print('TODO: new invoice');
                       },
                       icon: 'assets/document-new.png',
@@ -160,6 +153,15 @@ class _FooState extends State<Foo> with SingleTickerProviderStateMixin {
                     TerraPushButton(
                       onPressed: () {
                         print('TODO: delete invoice');
+                        pivot.Prompt.open(
+                          context: context,
+                          messageType: pivot.MessageType.warning,
+                          message: 'Permanently Delete Invoice?',
+                          body: Text('Are you sure you want to delete this invoice? Invoices cannot be recovered after they are deleted.'),
+                          options: ['OK', 'Cancel'],
+                        ).then((int selectedOption) {
+                          print('User selected $selectedOption');
+                        });
                       },
                       icon: 'assets/dialog-cancel.png',
                       label: 'Delete Invoice',
@@ -1820,7 +1822,8 @@ class ExpenseReports extends StatelessWidget {
                                 TableRow(
                                   children: [
                                     Padding(padding: EdgeInsets.only(bottom: 4), child: Text('Dates:')),
-                                    Padding(padding: EdgeInsets.only(bottom: 4), child: Text('2015-10-12 to 2015-10-25')),
+                                    Padding(
+                                        padding: EdgeInsets.only(bottom: 4), child: Text('2015-10-12 to 2015-10-25')),
                                   ],
                                 ),
                                 TableRow(
@@ -2004,7 +2007,8 @@ class TestBorder extends TableBorder {
     assert(rows != null);
     assert(rows.isEmpty || (rows.first >= 0.0 && rows.last <= rect.height));
     assert(columns != null);
-    assert(columns.isEmpty || (columns.first >= 0.0 && rect.width - columns.last >= -Tolerance.defaultTolerance.distance));
+    assert(
+        columns.isEmpty || (columns.first >= 0.0 && rect.width - columns.last >= -Tolerance.defaultTolerance.distance));
 
     final List<double> rowsList = List<double>.from(rows, growable: false);
     final List<double> columnsList = List<double>.from(columns, growable: false);
