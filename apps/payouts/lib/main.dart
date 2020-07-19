@@ -123,7 +123,7 @@ class _FooState extends State<Foo> with SingleTickerProviderStateMixin {
                 height: 57,
                 child: Row(
                   children: <Widget>[
-                    TerraPushButton(
+                    pivot.PushButton(
                       onPressed: () {
                         print('TODO: new invoice');
                       },
@@ -133,7 +133,7 @@ class _FooState extends State<Foo> with SingleTickerProviderStateMixin {
                       isToolbar: true,
                     ),
                     SizedBox(width: 5),
-                    TerraPushButton(
+                    pivot.PushButton(
                       onPressed: () {
                         print('TODO: open invoice');
                       },
@@ -143,21 +143,24 @@ class _FooState extends State<Foo> with SingleTickerProviderStateMixin {
                       isToolbar: true,
                     ),
                     SizedBox(width: 5),
-                    TerraPushButton(
+                    pivot.PushButton(
                       icon: 'assets/media-floppy.png',
                       label: 'Save to Server',
                       axis: Axis.vertical,
                       isToolbar: true,
                     ),
                     SizedBox(width: 5),
-                    TerraPushButton(
+                    pivot.PushButton(
                       onPressed: () {
                         print('TODO: delete invoice');
                         pivot.Prompt.open(
                           context: context,
                           messageType: pivot.MessageType.warning,
                           message: 'Permanently Delete Invoice?',
-                          body: Text('Are you sure you want to delete this invoice? Invoices cannot be recovered after they are deleted.'),
+                          body: Text(
+                            'Are you sure you want to delete this invoice? Invoices cannot be recovered after they are deleted.',
+                            style: Theme.of(context).textTheme.bodyText2.copyWith(height: 1.25),
+                          ),
                           options: ['OK', 'Cancel'],
                         ).then((int selectedOption) {
                           print('User selected $selectedOption');
@@ -169,7 +172,7 @@ class _FooState extends State<Foo> with SingleTickerProviderStateMixin {
                       isToolbar: true,
                     ),
                     SizedBox(width: 5),
-                    TerraPushButton(
+                    pivot.PushButton(
                       onPressed: () {
                         print('TODO: export to PDF');
                       },
@@ -181,7 +184,7 @@ class _FooState extends State<Foo> with SingleTickerProviderStateMixin {
                     Spacer(),
                     SizedBox(
                       width: 64,
-                      child: TerraPushButton(
+                      child: pivot.PushButton(
                         onPressed: () {},
                         icon: 'assets/help-browser.png',
                         label: 'Help',
@@ -800,7 +803,7 @@ class _CertifyAndSubmitState extends State<CertifyAndSubmit> {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        TerraPushButton(
+        pivot.PushButton(
           icon: 'assets/lock.png',
           label: 'Submit Invoice',
           onPressed: certified ? _handleSubmit : null,
@@ -922,11 +925,6 @@ class Accomplishments extends StatelessWidget {
   }
 }
 
-enum SortDirection {
-  ascending,
-  descending,
-}
-
 class TableHeaderCell extends StatelessWidget {
   const TableHeaderCell({
     Key key,
@@ -937,7 +935,7 @@ class TableHeaderCell extends StatelessWidget {
 
   final String label;
   final double width;
-  final SortDirection sortDirection;
+  final pivot.SortDirection sortDirection;
 
   @override
   Widget build(BuildContext context) {
@@ -953,7 +951,7 @@ class TableHeaderCell extends StatelessWidget {
                 padding: EdgeInsets.only(right: 2),
                 child: CustomPaint(
                   size: Size(7, 4),
-                  painter: SortIndicatorPainter(sortDirection: sortDirection),
+                  painter: pivot.SortIndicatorPainter(sortDirection: sortDirection),
                 ),
               ),
             ),
@@ -991,53 +989,6 @@ class TableHeaderCell extends StatelessWidget {
         child: box,
       );
     }
-  }
-}
-
-class SortIndicatorPainter extends CustomPainter {
-  const SortIndicatorPainter({
-    this.sortDirection,
-    this.isAntiAlias = true,
-    this.color = const Color(0xff999999),
-  });
-
-  final SortDirection sortDirection;
-  final bool isAntiAlias;
-  final Color color;
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final Paint paint = Paint()
-      ..color = color
-      ..isAntiAlias = isAntiAlias;
-    Path path = Path();
-    switch (sortDirection) {
-      case SortDirection.ascending:
-        path
-          ..moveTo(0, 3)
-          ..lineTo(3, 0)
-          ..lineTo(6, 3);
-        break;
-      case SortDirection.descending:
-        path
-          ..moveTo(0, 0)
-          ..lineTo(3, 3)
-          ..lineTo(6, 0);
-        break;
-    }
-
-    path.close();
-    paint.style = PaintingStyle.stroke;
-    canvas.drawPath(path, paint);
-    paint.style = PaintingStyle.fill;
-    canvas.drawPath(path, paint);
-  }
-
-  @override
-  bool shouldRepaint(CustomPainter old) {
-    assert(old is SortIndicatorPainter);
-    SortIndicatorPainter oldPainter = old;
-    return sortDirection != oldPainter.sortDirection;
   }
 }
 
@@ -1359,194 +1310,6 @@ class _LinkButtonState extends State<LinkButton> {
         ),
       ),
     );
-  }
-}
-
-class TerraPushButton extends StatefulWidget {
-  TerraPushButton({
-    @required this.icon,
-    @required this.label,
-    this.axis = Axis.horizontal,
-    this.isToolbar = false,
-    this.onPressed,
-    this.menuItems,
-  })  : assert(icon != null),
-        assert(label != null);
-
-  final String icon;
-  final String label;
-  final Axis axis;
-  final bool isToolbar;
-  final VoidCallback onPressed;
-  final List<PopupMenuEntry> menuItems;
-
-  @override
-  _TerraPushButtonState createState() => _TerraPushButtonState();
-}
-
-class _TerraPushButtonState extends State<TerraPushButton> {
-  bool hover;
-  bool pressed;
-
-  static const LinearGradient highlightGradient = LinearGradient(
-    begin: Alignment(0, 0.2),
-    end: Alignment.topCenter,
-    colors: <Color>[Color(0xffdddcd5), Color(0xfff6f4ed)],
-  );
-
-  static const LinearGradient pressedGradient = LinearGradient(
-    begin: Alignment.center,
-    end: Alignment.topCenter,
-    colors: <Color>[Color(0xffdddcd5), Color(0xffc5c4bd)],
-  );
-
-  @override
-  void initState() {
-    super.initState();
-    hover = false;
-    pressed = false;
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final bool enabled = widget.onPressed != null;
-
-    final List<Widget> buttonData = <Widget>[];
-    if (widget.icon != null) {
-      Widget iconImage = Image(image: AssetImage(widget.icon));
-      if (!enabled) {
-        iconImage = Opacity(
-          opacity: 0.5,
-          child: iconImage,
-        );
-      }
-      buttonData..add(iconImage)..add(SizedBox(width: 4, height: 4));
-    }
-
-    if (widget.label != null) {
-      TextStyle style = Theme.of(context).textTheme.bodyText2;
-      if (!enabled) {
-        style = style.copyWith(color: const Color(0xff999999));
-      }
-      buttonData.add(Text(widget.label, style: style));
-    }
-
-    Widget button = Padding(
-      padding: EdgeInsets.symmetric(horizontal: 4, vertical: 4),
-      child: widget.axis == Axis.horizontal ? Row(children: buttonData) : Column(children: buttonData),
-    );
-
-    if (widget.menuItems != null) {
-      button = Row(
-        mainAxisAlignment: MainAxisAlignment.end,
-        children: [
-          Padding(
-            padding: EdgeInsets.symmetric(horizontal: 4),
-            child: button,
-          ),
-          Spacer(),
-          Padding(
-            padding: EdgeInsets.symmetric(horizontal: 4),
-            child: CustomPaint(
-              size: Size(7, 4),
-              painter: SortIndicatorPainter(
-                sortDirection: SortDirection.descending,
-                color: Colors.black,
-              ),
-            ),
-          )
-        ],
-      );
-    }
-
-    if (hover || !widget.isToolbar) {
-      const Border border = Border.fromBorderSide(BorderSide(color: Color(0xff999999)));
-      Decoration decoration;
-      if (enabled && pressed) {
-        decoration = const BoxDecoration(border: border, gradient: pressedGradient);
-      } else if (enabled) {
-        decoration = const BoxDecoration(border: border, gradient: highlightGradient);
-      } else {
-        decoration = const BoxDecoration(border: border, color: Color(0xffdddcd5));
-      }
-      button = DecoratedBox(decoration: decoration, child: button);
-    }
-
-    GestureTapCallback callback = widget.onPressed;
-    if (widget.menuItems != null) {
-      callback = () {
-        if (widget.onPressed != null) {
-          widget.onPressed();
-        }
-        setState(() {
-          hover = true;
-          pressed = true;
-        });
-        final RenderBox button = context.findRenderObject() as RenderBox;
-        final RenderBox overlay = Overlay.of(context).context.findRenderObject() as RenderBox;
-        final RelativeRect position = RelativeRect.fromRect(
-          Rect.fromPoints(
-            button.localToGlobal(button.size.bottomLeft(Offset.zero), ancestor: overlay),
-            button.localToGlobal(button.size.bottomRight(Offset.zero), ancestor: overlay),
-          ),
-          Offset.zero & overlay.size,
-        );
-        showMenu<String>(
-          context: context,
-          position: position,
-          items: widget.menuItems,
-        ).then((String value) {
-          setState(() {
-            hover = false;
-            pressed = false;
-          });
-          switch (value) {
-            case 'about':
-              showAboutDialog(
-                context: context,
-                applicationName: 'Payouts',
-                applicationVersion: '2.0.0',
-                applicationIcon: Image.asset('assets/logo-large.png'),
-                applicationLegalese:
-                    '\u00A9 2001-2020 Satellite Consulting, Inc. All Rights Reserved. SCI Payouts and the Satellite Consulting, Inc. logo are trademarks of Satellite Consulting, Inc. All rights reserved.',
-              );
-              break;
-          }
-        });
-      };
-    }
-
-    if (enabled) {
-      button = MouseRegion(
-        cursor: SystemMouseCursors.click,
-        onEnter: (PointerEnterEvent event) {
-          setState(() => hover = true);
-        },
-        onExit: (PointerExitEvent event) {
-          if (!Navigator.of(context).canPop()) {
-            setState(() => hover = false);
-          }
-        },
-        child: Listener(
-          onPointerDown: (PointerDownEvent event) {
-            setState(() => pressed = true);
-          },
-          onPointerUp: (PointerUpEvent event) {
-            setState(() => pressed = false);
-          },
-          child: GestureDetector(
-            onTap: callback,
-            child: Tooltip(
-              message: widget.label,
-              waitDuration: Duration(seconds: 1, milliseconds: 500),
-              child: button,
-            ),
-          ),
-        ),
-      );
-    }
-
-    return button;
   }
 }
 
@@ -1877,7 +1640,8 @@ class ExpenseReports extends StatelessWidget {
                               ),
                               columnHeader: Row(
                                 children: [
-                                  TableHeaderCell(width: 120, label: 'Date', sortDirection: SortDirection.ascending),
+                                  TableHeaderCell(
+                                      width: 120, label: 'Date', sortDirection: pivot.SortDirection.ascending),
                                   TableHeaderCell(width: 120, label: 'Type'),
                                   TableHeaderCell(width: 100, label: 'Amount'),
                                   TableHeaderCell(label: 'Description'),
