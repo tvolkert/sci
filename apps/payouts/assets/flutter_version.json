@@ -1,0 +1,9 @@
+{
+  "frameworkVersion": "1.21.0-2.0.pre.55",
+  "channel": "master",
+  "repositoryUrl": "git@github.com:tvolkert/flutter.git",
+  "frameworkRevision": "1840b7121a6a721484afca300265c7866e82dc77",
+  "frameworkCommitDate": "2020-07-16 23:15:23 -0700",
+  "engineRevision": "d3b81f19fc98076283892c1152d30e2567b6406e",
+  "dartSdkVersion": "2.9.0 (build 2.9.0-21.0.dev 06183779d7)"
+}
