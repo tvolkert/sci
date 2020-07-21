@@ -400,7 +400,7 @@ class _OpenInvoiceSheetState extends State<OpenInvoiceSheet> {
                 ),
               pivot.CommandPushButton(
                 label: 'OK',
-                onPressed: () => Navigator.of(context).pop(1 /* TODO: invoiceId */),
+                onPressed: invoices == null ? null : () => Navigator.of(context).pop(1 /* TODO: invoiceId */),
               ),
               SizedBox(width: 4),
               pivot.CommandPushButton(
