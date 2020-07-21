@@ -208,7 +208,7 @@ class AboutSheet extends StatelessWidget {
                   SizedBox(height: 16),
                   FlutterVersion(data: flutterVersionData),
                   SizedBox(height: 16),
-                  LinkButton(text: 'View licenses', onPressed: () => showLicensePage(context: context)),
+                  pivot.LinkButton(text: 'View licenses', onPressed: () => showLicensePage(context: context)),
                   SizedBox(height: 16),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.end,
@@ -1067,7 +1067,7 @@ class Accomplishments extends StatelessWidget {
         children: <Widget>[
           Row(
             children: [
-              LinkButton(
+              pivot.LinkButton(
                 image: AssetImage('assets/note_add.png'),
                 text: 'Add accomplishment',
                 onPressed: () {},
@@ -1435,58 +1435,6 @@ class RotatedText extends StatelessWidget {
   }
 }
 
-class LinkButton extends StatefulWidget {
-  const LinkButton({this.image, this.text, this.onPressed});
-
-  final ImageProvider image;
-  final String text;
-  final VoidCallback onPressed;
-
-  @override
-  _LinkButtonState createState() => _LinkButtonState();
-}
-
-class _LinkButtonState extends State<LinkButton> {
-  bool hover = false;
-
-  @override
-  Widget build(BuildContext context) {
-    return MouseRegion(
-      onEnter: (PointerEnterEvent event) {
-        setState(() {
-          hover = true;
-        });
-      },
-      onExit: (PointerExitEvent event) {
-        setState(() {
-          hover = false;
-        });
-      },
-      cursor: SystemMouseCursors.click,
-      child: GestureDetector(
-        onTap: widget.onPressed,
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: <Widget>[
-            if (widget.image != null)
-              Padding(
-                padding: EdgeInsets.only(right: 4),
-                child: Image(image: widget.image),
-              ),
-            Text(
-              widget.text,
-              style: TextStyle(
-                color: Color(0xff2b5580),
-                decoration: hover ? TextDecoration.underline : TextDecoration.none,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
 class BillableHours extends StatelessWidget {
   TableRow _buildRow(String assignment, String footer) {
     return TableRow(
@@ -1525,7 +1473,7 @@ class BillableHours extends StatelessWidget {
         children: <Widget>[
           Padding(
             padding: EdgeInsets.only(bottom: 7),
-            child: LinkButton(
+            child: pivot.LinkButton(
               image: AssetImage('assets/table_add.png'),
               text: 'Add hours line item',
               onPressed: () {},
@@ -1715,7 +1663,7 @@ class ExpenseReports extends StatelessWidget {
         children: <Widget>[
           Padding(
             padding: EdgeInsets.fromLTRB(0, 0, 7, 5),
-            child: LinkButton(
+            child: pivot.LinkButton(
               image: AssetImage('assets/money_add.png'),
               text: 'Add expense report',
               onPressed: () {},
@@ -1791,7 +1739,7 @@ class ExpenseReports extends StatelessWidget {
                           padding: EdgeInsets.only(bottom: 9, left: 11),
                           child: Row(
                             children: [
-                              LinkButton(
+                              pivot.LinkButton(
                                 image: AssetImage('assets/money_add.png'),
                                 text: 'Add expense line item',
                                 onPressed: () {},

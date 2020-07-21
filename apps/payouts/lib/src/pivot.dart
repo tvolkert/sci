@@ -1,4 +1,5 @@
 export 'pivot/colors.dart';
+export 'pivot/link_button.dart';
 export 'pivot/listener_list.dart';
 export 'pivot/push_button.dart';
 export 'pivot/scroll_bar.dart';
