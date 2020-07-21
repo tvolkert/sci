@@ -12,6 +12,8 @@ const Axis _defaultAxis = Axis.horizontal;
 const Color _defaultColor = Color(0xff000000);
 const Color _defaultBackgroundColor = Color(0xffdddcd5);
 const Color _defaultBorderColor = Color(0xff999999);
+const Color _defaultDisabledBackgroundColor = Color(0xffdddcd5);
+const Color _defaultDisabledBorderColor = Color(0xff999999);
 const EdgeInsetsGeometry _defaultPadding = EdgeInsets.symmetric(horizontal: 4, vertical: 4);
 const bool _defaultIsToolbar = false;
 const bool _defaultShowTooltip = true;
@@ -30,6 +32,8 @@ class PushButton<T> extends StatefulWidget {
     this.color = _defaultColor,
     this.backgroundColor = _defaultBackgroundColor,
     this.borderColor = _defaultBorderColor,
+    this.disabledBackgroundColor = _defaultDisabledBackgroundColor,
+    this.disabledBorderColor = _defaultDisabledBorderColor,
     this.padding = _defaultPadding,
     this.showTooltip = _defaultShowTooltip,
   }) : super(key: key);
@@ -45,6 +49,8 @@ class PushButton<T> extends StatefulWidget {
   final Color color;
   final Color backgroundColor;
   final Color borderColor;
+  final Color disabledBackgroundColor;
+  final Color disabledBorderColor;
   final EdgeInsets padding;
   final bool showTooltip;
 
@@ -138,14 +144,16 @@ class _PushButtonState<T> extends State<PushButton<T>> {
     }
 
     if (menuActive || hover || !widget.isToolbar) {
-      final Border border = Border.fromBorderSide(BorderSide(color: widget.borderColor));
+      final Border border = Border.fromBorderSide(
+        BorderSide(color: enabled ? widget.borderColor : widget.disabledBorderColor),
+      );
       Decoration decoration;
       if (enabled && (pressed || menuActive)) {
         decoration = BoxDecoration(border: border, gradient: pressedGradient);
       } else if (enabled) {
         decoration = BoxDecoration(border: border, gradient: highlightGradient);
       } else {
-        decoration = BoxDecoration(border: border, color: Color(0xffdddcd5));
+        decoration = BoxDecoration(border: border, color: widget.disabledBackgroundColor);
       }
       button = DecoratedBox(decoration: decoration, child: button);
     }
@@ -320,7 +328,6 @@ class CommandPushButton<T> extends StatelessWidget {
     @required this.label,
     @required this.onPressed,
   })  : assert(label != null),
-        assert(onPressed != null),
         super(key: key);
 
   final String label;
