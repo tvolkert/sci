@@ -101,27 +101,6 @@ class Foo extends StatefulWidget {
 }
 
 class _FooState extends State<Foo> with SingleTickerProviderStateMixin {
-  final List<Tab> tabs = <Tab>[
-    Tab(text: 'Billable Hours'),
-    Tab(text: 'Expense Reports'),
-    Tab(text: 'Accomplishments'),
-    Tab(text: 'Review & Submit'),
-  ];
-
-  TabController _controller;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = TabController(length: tabs.length, vsync: this);
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
   void _onMenuItemSelected(String value) {
     switch (value) {
       case 'about':
