@@ -58,9 +58,19 @@ class PayoutsApp extends StatelessWidget {
         actions: <Type, Action<Intent>>{
           ...WidgetsApp.defaultActions,
           AboutIntent: AboutAction(),
+          CreateInvoiceIntent: CreateInvoiceAction(),
+          DeleteInvoiceIntent: DeleteInvoiceAction(),
+          ExportInvoiceIntent: ExportInvoiceAction(),
+          OpenInvoiceIntent: OpenInvoiceAction(),
+          SaveInvoiceIntent: SaveInvoiceAction(),
         },
         shortcuts: <LogicalKeySet, Intent>{
           ...WidgetsApp.defaultShortcuts,
+          LogicalKeySet(LogicalKeyboardKey.meta, LogicalKeyboardKey.keyN): CreateInvoiceIntent(),
+          LogicalKeySet(LogicalKeyboardKey.meta, LogicalKeyboardKey.keyD): DeleteInvoiceIntent(),
+          LogicalKeySet(LogicalKeyboardKey.meta, LogicalKeyboardKey.keyE): ExportInvoiceIntent(),
+          LogicalKeySet(LogicalKeyboardKey.meta, LogicalKeyboardKey.keyO): OpenInvoiceIntent(),
+          LogicalKeySet(LogicalKeyboardKey.meta, LogicalKeyboardKey.keyS): SaveInvoiceIntent(),
         },
         home: Foo(),
       );
@@ -140,63 +150,44 @@ class _FooState extends State<Foo> with SingleTickerProviderStateMixin {
                 height: 57,
                 child: Row(
                   children: <Widget>[
-                    pivot.PushButton(
-                      onPressed: () {
-                        print('TODO: new invoice');
-                      },
+                    pivot.ActionPushButton<CreateInvoiceIntent>(
                       icon: 'assets/document-new.png',
                       label: 'New Invoice',
                       axis: Axis.vertical,
                       isToolbar: true,
+                      intent: CreateInvoiceIntent(context: context),
                     ),
                     SizedBox(width: 5),
-                    pivot.PushButton(
-                      onPressed: () {
-                        print('TODO: open invoice');
-                      },
+                    pivot.ActionPushButton<OpenInvoiceIntent>(
                       icon: 'assets/document-open.png',
                       label: 'Open Invoice',
                       axis: Axis.vertical,
                       isToolbar: true,
+                      intent: OpenInvoiceIntent(context: context),
                     ),
                     SizedBox(width: 5),
-                    pivot.PushButton(
+                    pivot.ActionPushButton<SaveInvoiceIntent>(
                       icon: 'assets/media-floppy.png',
                       label: 'Save to Server',
                       axis: Axis.vertical,
                       isToolbar: true,
+                      intent: SaveInvoiceIntent(context: context),
                     ),
                     SizedBox(width: 5),
-                    pivot.PushButton(
-                      onPressed: () {
-                        print('TODO: delete invoice');
-                        pivot.Prompt.open(
-                          context: context,
-                          messageType: pivot.MessageType.warning,
-                          message: 'Permanently Delete Invoice?',
-                          body: Text(
-                            'Are you sure you want to delete this invoice? Invoices cannot be recovered after they are deleted.',
-                            style: Theme.of(context).textTheme.bodyText2.copyWith(height: 1.25),
-                          ),
-                          options: ['OK', 'Cancel'],
-                        ).then((int selectedOption) {
-                          print('User selected $selectedOption');
-                        });
-                      },
+                    pivot.ActionPushButton<DeleteInvoiceIntent>(
                       icon: 'assets/dialog-cancel.png',
                       label: 'Delete Invoice',
                       axis: Axis.vertical,
                       isToolbar: true,
+                      intent: DeleteInvoiceIntent(context: context),
                     ),
                     SizedBox(width: 5),
-                    pivot.PushButton(
-                      onPressed: () {
-                        print('TODO: export to PDF');
-                      },
+                    pivot.ActionPushButton<ExportInvoiceIntent>(
                       icon: 'assets/x-office-presentation.png',
                       label: 'Export to PDF',
                       axis: Axis.vertical,
                       isToolbar: true,
+                      intent: ExportInvoiceIntent(context: context),
                     ),
                     Spacer(),
                     SizedBox(
