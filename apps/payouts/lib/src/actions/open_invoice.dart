@@ -64,7 +64,10 @@ class _OpenInvoiceSheetState extends State<OpenInvoiceSheet> {
   void initState() {
     super.initState();
     // TODO: Really fetch invoice data
-    Timer(const Duration(seconds: 3), () {
+    Timer(const Duration(seconds: 30), () {
+      if (!mounted) {
+        return;
+      }
       setState(() {
         invoices = [
           {
@@ -388,8 +391,7 @@ class _OpenInvoiceSheetState extends State<OpenInvoiceSheet> {
                       SizedBox(
                         width: 20,
                         height: 20,
-                        // TODO Pivot circular progress indicator
-                        child: CircularProgressIndicator(backgroundColor: Colors.black),
+                        child: pivot.ActivityIndicator(),
                       ),
                       SizedBox(width: 4),
                       Text('Loading invoice...'),
