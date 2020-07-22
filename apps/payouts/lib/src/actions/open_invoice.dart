@@ -371,13 +371,25 @@ class _OpenInvoiceSheetState extends State<OpenInvoiceSheet> {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          DecoratedBox(
-            decoration: BoxDecoration(
-              border: Border.all(color: const Color(0xff999999)),
-            ),
-            child: SizedBox(
-              height: 200,
-              child: InvoicesView(invoices: invoices),
+          pivot.Border(
+            title: 'Open Existing Invoice',
+            titlePadding: EdgeInsets.symmetric(horizontal: 4),
+            inset: 9,
+            borderColor: const Color(0xff999999),
+            child: Padding(
+              padding: EdgeInsets.fromLTRB(9, 13, 9, 9),
+              child: SizedBox(
+                height: 200,
+                child: DecoratedBox(
+                  decoration: BoxDecoration(
+                    border: Border.all(color: const Color(0xff999999)),
+                  ),
+                  child: Padding(
+                    padding: EdgeInsets.all(1),
+                    child: InvoicesView(invoices: invoices),
+                  ),
+                ),
+              ),
             ),
           ),
           SizedBox(height: 8),
@@ -486,10 +498,7 @@ class BillingPeriodCell extends StatelessWidget {
     int duration = invoice['billing_duration'];
     DateTime startDate = DateTime.parse(start);
     DateTime endDate = startDate.add(Duration(days: duration));
-    StringBuffer buf = StringBuffer()
-      ..write(format.format(startDate))
-      ..write(' - ')
-      ..write(format.format(endDate));
+    StringBuffer buf = StringBuffer()..write(format.format(startDate))..write(' - ')..write(format.format(endDate));
     return Text(buf.toString(), maxLines: 1, overflow: TextOverflow.visible);
   }
 }
