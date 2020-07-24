@@ -12,6 +12,10 @@ class ExportInvoiceIntent extends Intent {
 }
 
 class ExportInvoiceAction extends ContextAction<ExportInvoiceIntent> {
+  // TODO: enable this once file browsing and PDF generating are on the docket
+  @override
+  bool isEnabled(ExportInvoiceIntent intent) => false;
+
   @override
   Future<void> invoke(ExportInvoiceIntent intent, [BuildContext context]) async {
     context ??= intent.context ?? primaryFocus.context;
