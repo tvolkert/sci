@@ -64,7 +64,7 @@ class _OpenInvoiceSheetState extends State<OpenInvoiceSheet> {
   void initState() {
     super.initState();
     // TODO: Really fetch invoice data
-    Timer(const Duration(seconds: 30), () {
+    Timer(const Duration(seconds: 3), () {
       if (!mounted) {
         return;
       }
