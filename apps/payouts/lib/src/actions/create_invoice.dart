@@ -12,10 +12,10 @@ class CreateInvoiceIntent extends Intent {
   final BuildContext context;
 }
 
-class CreateInvoiceAction extends Action<CreateInvoiceIntent> {
+class CreateInvoiceAction extends ContextAction<CreateInvoiceIntent> {
   @override
-  Future<void> invoke(CreateInvoiceIntent intent) async {
-    BuildContext context = intent.context ?? primaryFocus.context;
+  Future<void> invoke(CreateInvoiceIntent intent, [BuildContext context]) async {
+    context ??= intent.context ?? primaryFocus.context;
     if (context == null) {
       throw StateError('No context in which to invoke $runtimeType');
     }

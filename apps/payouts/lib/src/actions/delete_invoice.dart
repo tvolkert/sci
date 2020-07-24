@@ -10,10 +10,10 @@ class DeleteInvoiceIntent extends Intent {
   final BuildContext context;
 }
 
-class DeleteInvoiceAction extends Action<DeleteInvoiceIntent> {
+class DeleteInvoiceAction extends ContextAction<DeleteInvoiceIntent> {
   @override
-  Future<void> invoke(DeleteInvoiceIntent intent) async {
-    BuildContext context = intent.context ?? primaryFocus.context;
+  Future<void> invoke(DeleteInvoiceIntent intent, [BuildContext context]) async {
+    context ??= intent.context ?? primaryFocus.context;
     if (context == null) {
       throw StateError('No context in which to invoke $runtimeType');
     }

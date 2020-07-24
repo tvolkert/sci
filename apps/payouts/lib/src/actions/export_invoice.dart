@@ -11,10 +11,10 @@ class ExportInvoiceIntent extends Intent {
   final BuildContext context;
 }
 
-class ExportInvoiceAction extends Action<ExportInvoiceIntent> {
+class ExportInvoiceAction extends ContextAction<ExportInvoiceIntent> {
   @override
-  Future<void> invoke(ExportInvoiceIntent intent) async {
-    BuildContext context = intent.context ?? primaryFocus.context;
+  Future<void> invoke(ExportInvoiceIntent intent, [BuildContext context]) async {
+    context ??= intent.context ?? primaryFocus.context;
     if (context == null) {
       throw StateError('No context in which to invoke $runtimeType');
     }

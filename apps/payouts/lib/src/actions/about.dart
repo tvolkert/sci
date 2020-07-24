@@ -13,10 +13,10 @@ class AboutIntent extends Intent {
   final BuildContext context;
 }
 
-class AboutAction extends Action<AboutIntent> {
+class AboutAction extends ContextAction<AboutIntent> {
   @override
-  Future<void> invoke(AboutIntent intent) async {
-    BuildContext context = intent.context ?? primaryFocus.context;
+  Future<void> invoke(AboutIntent intent, [BuildContext context]) async {
+    context ??= intent.context ?? primaryFocus.context;
     if (context == null) {
       throw StateError('No context in which to invoke $runtimeType');
     }
