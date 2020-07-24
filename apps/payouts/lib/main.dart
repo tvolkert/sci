@@ -19,6 +19,7 @@ import 'package:payouts/src/pivot.dart' as pivot;
 import 'package:payouts/ui/auth/persistent_credentials.dart';
 import 'package:payouts/ui/auth/require_user.dart';
 import 'package:payouts/ui/auth/user_binding.dart';
+import 'package:payouts/ui/common/task_monitor.dart';
 import 'package:payouts/ui/invoice/invoice_binding.dart';
 import 'package:payouts/ui/invoice/invoice_home.dart';
 
@@ -72,7 +73,7 @@ class PayoutsApp extends StatelessWidget {
           LogicalKeySet(LogicalKeyboardKey.meta, LogicalKeyboardKey.keyO): OpenInvoiceIntent(),
           LogicalKeySet(LogicalKeyboardKey.meta, LogicalKeyboardKey.keyS): SaveInvoiceIntent(),
         },
-        home: Foo(),
+        home: PayoutsScaffold(),
       );
     } else {
       return MaterialApp(
@@ -95,13 +96,20 @@ class PayoutsApp extends StatelessWidget {
   }
 }
 
-class Foo extends StatefulWidget {
+class PayoutsScaffold extends StatelessWidget {
   @override
-  _FooState createState() => _FooState();
+  Widget build(BuildContext context) {
+    return Material(
+      type: MaterialType.transparency,
+      child: TaskMonitor(
+        child: PayoutsHome(),
+      ),
+    );
+  }
 }
 
-class _FooState extends State<Foo> with SingleTickerProviderStateMixin {
-  void _onMenuItemSelected(String value) {
+class PayoutsHome extends StatelessWidget {
+  void _onMenuItemSelected(BuildContext context, String value) {
     switch (value) {
       case 'about':
         Actions.invoke(context, AboutIntent(context: context));
@@ -111,168 +119,168 @@ class _FooState extends State<Foo> with SingleTickerProviderStateMixin {
 
   @override
   Widget build(BuildContext context) {
-    return Material(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          DecoratedBox(
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.bottomCenter,
-                end: Alignment.topCenter,
-                colors: <Color>[Color(0xffc8c8bb), Color(0xffdddcd5)],
-              ),
-            ),
-            child: Padding(
-              padding: EdgeInsets.fromLTRB(5, 2, 8, 3),
-              child: SizedBox(
-                height: 57,
-                child: Row(
-                  children: <Widget>[
-                    pivot.ActionPushButton<CreateInvoiceIntent>(
-                      icon: 'assets/document-new.png',
-                      label: 'New Invoice',
-                      axis: Axis.vertical,
-                      isToolbar: true,
-                      intent: CreateInvoiceIntent(context: context),
-                    ),
-                    SizedBox(width: 5),
-                    pivot.ActionPushButton<OpenInvoiceIntent>(
-                      icon: 'assets/document-open.png',
-                      label: 'Open Invoice',
-                      axis: Axis.vertical,
-                      isToolbar: true,
-                      intent: OpenInvoiceIntent(context: context),
-                    ),
-                    SizedBox(width: 5),
-                    pivot.ActionPushButton<SaveInvoiceIntent>(
-                      icon: 'assets/media-floppy.png',
-                      label: 'Save to Server',
-                      axis: Axis.vertical,
-                      isToolbar: true,
-                      intent: SaveInvoiceIntent(context: context),
-                    ),
-                    SizedBox(width: 5),
-                    pivot.ActionPushButton<DeleteInvoiceIntent>(
-                      icon: 'assets/dialog-cancel.png',
-                      label: 'Delete Invoice',
-                      axis: Axis.vertical,
-                      isToolbar: true,
-                      intent: DeleteInvoiceIntent(context: context),
-                    ),
-                    SizedBox(width: 5),
-                    pivot.ActionPushButton<ExportInvoiceIntent>(
-                      icon: 'assets/x-office-presentation.png',
-                      label: 'Export to PDF',
-                      axis: Axis.vertical,
-                      isToolbar: true,
-                      intent: ExportInvoiceIntent(context: context),
-                    ),
-                    Spacer(),
-                    SizedBox(
-                      width: 64,
-                      child: pivot.PushButton<String>(
-                        onPressed: () {},
-                        icon: 'assets/help-browser.png',
-                        label: 'Help',
-                        axis: Axis.vertical,
-                        isToolbar: true,
-                        menuItems: <PopupMenuEntry<String>>[
-                          PopupMenuItem<String>(
-                            value: 'about',
-                            height: 22,
-                            child: Text('About'),
-                          ),
-                          PopupMenuItem<String>(
-                            value: 'feedback',
-                            height: 22,
-                            child: Text('Provide feedback'),
-                          ),
-                        ],
-                        onMenuItemSelected: _onMenuItemSelected,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        DecoratedBox(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.bottomCenter,
+              end: Alignment.topCenter,
+              colors: <Color>[Color(0xffc8c8bb), Color(0xffdddcd5)],
             ),
           ),
-          Divider(
-            height: 1,
-            thickness: 1,
-            color: Color(0xff999999),
-          ),
-          Expanded(
-            child: Ink(
-              decoration: BoxDecoration(color: Color(0xffc8c8bb)),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  Padding(
-                    padding: EdgeInsets.fromLTRB(5, 5, 5.5, 5),
-                    child: SizedBox(
-                      height: 22,
-                      child: Row(
-                        children: [
-                          Transform.translate(
-                            offset: Offset(0, -1),
-                            child: Text(
-                              'FOO',
-                              style: Theme.of(context).textTheme.bodyText2.copyWith(fontWeight: FontWeight.bold),
-                            ),
-                          ),
-                          HoverPushButton(
-                            iconName: 'assets/pencil.png',
-                            onPressed: () {},
-                          ),
-                          Transform.translate(
-                            offset: Offset(0, -1),
-                            child: Padding(
-                              padding: EdgeInsets.only(left: 10),
-                              child: Text('(10/12/2015 - 10/25/2015)'),
-                            ),
-                          ),
-                          Spacer(),
-                          Transform.translate(
-                            offset: Offset(0, -1),
-                            child: Text(r'Total Check Amount: $5,296.63'),
-                          ),
-                        ],
-                      ),
-                    ),
+          child: Padding(
+            padding: EdgeInsets.fromLTRB(5, 2, 8, 3),
+            child: SizedBox(
+              height: 57,
+              child: Row(
+                children: <Widget>[
+                  pivot.ActionPushButton<CreateInvoiceIntent>(
+                    icon: 'assets/document-new.png',
+                    label: 'New Invoice',
+                    axis: Axis.vertical,
+                    isToolbar: true,
+                    intent: CreateInvoiceIntent(context: context),
                   ),
-                  Expanded(
-                    child: Padding(
-                      padding: EdgeInsets.fromLTRB(5, 0, 6, 4),
-                      child: pivot.TabPane(
-                        initialSelectedIndex: 0,
-                        tabs: <pivot.Tab>[
-                          pivot.Tab(
-                            label: 'Billable Hours',
-                            child: BillableHours(),
-                          ),
-                          pivot.Tab(
-                            label: 'Expense Reports',
-                            child: ExpenseReports(),
-                          ),
-                          pivot.Tab(
-                            label: 'Accomplishments',
-                            child: Accomplishments(),
-                          ),
-                          pivot.Tab(
-                            label: 'Review & Submit',
-                            child: ReviewAndSubmit(),
-                          ),
-                        ],
-                      ),
+                  SizedBox(width: 5),
+                  pivot.ActionPushButton<OpenInvoiceIntent>(
+                    icon: 'assets/document-open.png',
+                    label: 'Open Invoice',
+                    axis: Axis.vertical,
+                    isToolbar: true,
+                    intent: OpenInvoiceIntent(context: context),
+                  ),
+                  SizedBox(width: 5),
+                  pivot.ActionPushButton<SaveInvoiceIntent>(
+                    icon: 'assets/media-floppy.png',
+                    label: 'Save to Server',
+                    axis: Axis.vertical,
+                    isToolbar: true,
+                    intent: SaveInvoiceIntent(context: context),
+                  ),
+                  SizedBox(width: 5),
+                  pivot.ActionPushButton<DeleteInvoiceIntent>(
+                    icon: 'assets/dialog-cancel.png',
+                    label: 'Delete Invoice',
+                    axis: Axis.vertical,
+                    isToolbar: true,
+                    intent: DeleteInvoiceIntent(context: context),
+                  ),
+                  SizedBox(width: 5),
+                  pivot.ActionPushButton<ExportInvoiceIntent>(
+                    icon: 'assets/x-office-presentation.png',
+                    label: 'Export to PDF',
+                    axis: Axis.vertical,
+                    isToolbar: true,
+                    intent: ExportInvoiceIntent(context: context),
+                  ),
+                  Spacer(),
+                  SizedBox(
+                    width: 64,
+                    child: pivot.PushButton<String>(
+                      onPressed: () {},
+                      icon: 'assets/help-browser.png',
+                      label: 'Help',
+                      axis: Axis.vertical,
+                      isToolbar: true,
+                      menuItems: <PopupMenuEntry<String>>[
+                        PopupMenuItem<String>(
+                          value: 'about',
+                          height: 22,
+                          child: Text('About'),
+                        ),
+                        PopupMenuItem<String>(
+                          value: 'feedback',
+                          height: 22,
+                          child: Text('Provide feedback'),
+                        ),
+                      ],
+                      onMenuItemSelected: (String value) {
+                        _onMenuItemSelected(context, value);
+                      },
                     ),
                   ),
                 ],
               ),
             ),
           ),
-        ],
-      ),
+        ),
+        Divider(
+          height: 1,
+          thickness: 1,
+          color: Color(0xff999999),
+        ),
+        Expanded(
+          child: Ink(
+            decoration: BoxDecoration(color: Color(0xffc8c8bb)),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Padding(
+                  padding: EdgeInsets.fromLTRB(5, 5, 5.5, 5),
+                  child: SizedBox(
+                    height: 22,
+                    child: Row(
+                      children: [
+                        Transform.translate(
+                          offset: Offset(0, -1),
+                          child: Text(
+                            'FOO',
+                            style: Theme.of(context).textTheme.bodyText2.copyWith(fontWeight: FontWeight.bold),
+                          ),
+                        ),
+                        HoverPushButton(
+                          iconName: 'assets/pencil.png',
+                          onPressed: () {},
+                        ),
+                        Transform.translate(
+                          offset: Offset(0, -1),
+                          child: Padding(
+                            padding: EdgeInsets.only(left: 10),
+                            child: Text('(10/12/2015 - 10/25/2015)'),
+                          ),
+                        ),
+                        Spacer(),
+                        Transform.translate(
+                          offset: Offset(0, -1),
+                          child: Text(r'Total Check Amount: $5,296.63'),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                Expanded(
+                  child: Padding(
+                    padding: EdgeInsets.fromLTRB(5, 0, 6, 4),
+                    child: pivot.TabPane(
+                      initialSelectedIndex: 0,
+                      tabs: <pivot.Tab>[
+                        pivot.Tab(
+                          label: 'Billable Hours',
+                          child: BillableHours(),
+                        ),
+                        pivot.Tab(
+                          label: 'Expense Reports',
+                          child: ExpenseReports(),
+                        ),
+                        pivot.Tab(
+                          label: 'Accomplishments',
+                          child: Accomplishments(),
+                        ),
+                        pivot.Tab(
+                          label: 'Review & Submit',
+                          child: ReviewAndSubmit(),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
     );
   }
 }
