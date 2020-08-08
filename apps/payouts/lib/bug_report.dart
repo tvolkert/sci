@@ -1,58 +1,78 @@
+import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter/widgets.dart';
+import 'package:payouts/src/pivot.dart' as pivot;
+import 'package:payouts/src/pivot/basic_table_view.dart';
 
 void main() {
   runApp(BugReport());
 }
 
 class BugReport extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return ColoredBox(
-      color: Color(0xffffffff),
-      child: Padding(
-        padding: EdgeInsets.all(10),
-        child: DecoratedBox(
-          decoration: BoxDecoration(
-            border: Border.all(color: Color(0xff000000), width: 0),
+  Widget _renderBar({
+    BuildContext context,
+    Map<dynamic, dynamic> row,
+    int rowIndex,
+    int columnIndex,
+    BasicTableView<Map<dynamic, dynamic>> tableView,
+    String columnName,
+    bool selected,
+    bool highlighted,
+    bool enabled,
+  }) {
+    dynamic value = row['bar'];
+    return MouseRegion(
+      cursor: SystemMouseCursors.click,
+      child: ColoredBox(
+        color: Colors.red,
+        child: Padding(
+          padding: EdgeInsets.all(4),
+          child: DecoratedBox(
+            decoration: BoxDecoration(
+              border: Border.all(),
+            ),
+            child: Text('$value'),
           ),
         ),
       ),
     );
   }
-}
 
-class RawPainter extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return LayoutBuilder(
-      builder: (BuildContext context, BoxConstraints constraints) {
-        return CustomPaint(
-          size: Size(constraints.maxWidth, constraints.maxHeight),
-          painter: BugReportBoxPainter(),
-        );
-      },
+    return Material(
+      child: Directionality(
+        textDirection: TextDirection.ltr,
+        child: pivot.ScrollPane(
+          horizontalScrollBarPolicy: pivot.ScrollBarPolicy.stretch,
+//        view: SizedBox(width: 100, height: 1100),
+            view: BasicTableView<Map<dynamic, dynamic>>(
+              rowHeight: 22,
+              columns: [
+                BasicTableColumn(
+                  name: 'foo',
+                  width: FixedTableColumnWidth(150),
+                ),
+                BasicTableColumn(
+                  name: 'bar',
+                  width: FlexTableColumnWidth(),
+                  cellRenderer: _renderBar,
+                ),
+                BasicTableColumn(
+                  name: 'baz',
+                  width: FixedTableColumnWidth(275),
+                ),
+              ],
+              data: List<Map<dynamic, dynamic>>.generate(100000, (int index) {
+                return <dynamic, dynamic>{
+                  'foo': 'foo_$index',
+                  'bar': 'bar_$index',
+                  'baz': 'baz_$index',
+                };
+              }),
+            ),
+        ),
+      ),
     );
   }
-}
-
-class BugReportBoxPainter extends CustomPainter {
-  @override
-  void paint(Canvas canvas, Size size) {
-    final double borderWidth = 1;
-    canvas.drawRect(
-      Rect.fromLTWH(0, 0, size.width, size.height),
-      Paint()
-        ..style = PaintingStyle.fill
-        ..color = Color(0xffffffff),
-    );
-    canvas.drawRect(
-        Rect.fromLTWH(10.0, 10.0, size.width - 20.0, size.height - 20.0).deflate(borderWidth / 2),
-        Paint()
-          ..style = PaintingStyle.stroke
-          ..strokeWidth = borderWidth
-          ..color = Color(0xff000000));
-  }
-
-  @override
-  bool shouldRepaint(CustomPainter oldDelegate) => true;
 }
