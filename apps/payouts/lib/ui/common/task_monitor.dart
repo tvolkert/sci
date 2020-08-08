@@ -30,7 +30,6 @@ class TaskMonitor extends StatefulWidget {
           stack: StackTrace.current,
           library: 'payouts',
         ));
-        return false;
       }
       return true;
     }());
