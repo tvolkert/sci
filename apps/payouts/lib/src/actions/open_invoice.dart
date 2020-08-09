@@ -464,27 +464,24 @@ class InvoicesTable extends StatelessWidget {
   Widget build(BuildContext context) {
     return ColoredBox(
       color: Colors.white,
-      child: pivot.BasicTableView<Map<String, dynamic>>(
-        data: invoices,
+      child: pivot.BasicTableView(
+        length: invoices.length,
         rowHeight: 19,
         columns: [
-          pivot.BasicTableColumn<Map<String, dynamic>>(
-            name: 'billing_start',
+          pivot.BasicTableColumn(
             width: pivot.FixedTableColumnWidth(125),
-            cellRenderer: BillingPeriodCell.render,
+            cellRenderer: BillingPeriodCell.rendererFor(invoices),
           ),
-          pivot.BasicTableColumn<Map<String, dynamic>>(
-            name: 'invoice_number',
+          pivot.BasicTableColumn(
             width: pivot.FixedTableColumnWidth(125),
+            cellRenderer: InvoiceNumberCell.rendererFor(invoices),
           ),
-          pivot.BasicTableColumn<Map<String, dynamic>>(
-            name: 'submitted',
+          pivot.BasicTableColumn(
             width: pivot.FixedTableColumnWidth(125),
-            cellRenderer: SubmittedCell.render,
+            cellRenderer: SubmittedCell.rendererFor(invoices),
           ),
-          pivot.BasicTableColumn<Map<String, dynamic>>(
-            name: 'resubmit',
-            cellRenderer: ResubmitCell.render,
+          pivot.BasicTableColumn(
+            cellRenderer: ResubmitCell.rendererFor(invoices),
           ),
         ],
       ),
@@ -539,17 +536,46 @@ class BillingPeriodCell extends StatelessWidget {
     );
   }
 
-  static Widget render({
-    BuildContext context,
-    pivot.BasicTableView<Map<String, dynamic>> tableView,
-    Map<String, dynamic> row,
-    String columnName,
-    int rowIndex,
-    int columnIndex,
-  }) {
-    return CellWrapper(
-      child: BillingPeriodCell(invoice: row),
+  static pivot.TableCellRenderer rendererFor(List<Map<String, dynamic>> data) {
+    return ({
+      BuildContext context,
+      int rowIndex,
+      int columnIndex,
+    }) {
+      return CellWrapper(
+        child: BillingPeriodCell(invoice: data[rowIndex]),
+      );
+    };
+  }
+}
+
+class InvoiceNumberCell extends StatelessWidget {
+  const InvoiceNumberCell({
+    Key key,
+    this.invoice,
+  }) : super(key: key);
+
+  final Map<String, dynamic> invoice;
+
+  @override
+  Widget build(BuildContext context) {
+    final String invoiceNumber = invoice['invoice_number'];
+    return Padding(
+      padding: EdgeInsets.all(2),
+      child: Text(invoiceNumber, textAlign: TextAlign.left),
     );
+  }
+
+  static pivot.TableCellRenderer rendererFor(List<Map<String, dynamic>> data) {
+    return ({
+      BuildContext context,
+      int rowIndex,
+      int columnIndex,
+    }) {
+      return CellWrapper(
+        child: InvoiceNumberCell(invoice: data[rowIndex]),
+      );
+    };
   }
 }
 
@@ -574,17 +600,16 @@ class SubmittedCell extends StatelessWidget {
     }
   }
 
-  static Widget render({
-    BuildContext context,
-    pivot.BasicTableView<Map<String, dynamic>> tableView,
-    Map<String, dynamic> row,
-    String columnName,
-    int rowIndex,
-    int columnIndex,
-  }) {
-    return CellWrapper(
-      child: SubmittedCell(invoice: row),
-    );
+  static pivot.TableCellRenderer rendererFor(List<Map<String, dynamic>> data) {
+    return ({
+      BuildContext context,
+      int rowIndex,
+      int columnIndex,
+    }) {
+      return CellWrapper(
+        child: SubmittedCell(invoice: data[rowIndex]),
+      );
+    };
   }
 }
 
@@ -602,16 +627,15 @@ class ResubmitCell extends StatelessWidget {
     return resubmit ? Image.asset('assets/exclamation.png', width: 16, height: 16) : Container();
   }
 
-  static Widget render({
-    BuildContext context,
-    pivot.BasicTableView<Map<String, dynamic>> tableView,
-    Map<String, dynamic> row,
-    String columnName,
-    int rowIndex,
-    int columnIndex,
-  }) {
-    return CellWrapper(
-      child: ResubmitCell(invoice: row),
-    );
+  static pivot.TableCellRenderer rendererFor(List<Map<String, dynamic>> data) {
+    return ({
+      BuildContext context,
+      int rowIndex,
+      int columnIndex,
+    }) {
+      return CellWrapper(
+        child: ResubmitCell(invoice: data[rowIndex]),
+      );
+    };
   }
 }

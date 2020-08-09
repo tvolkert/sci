@@ -2,25 +2,31 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/widgets.dart';
 import 'package:payouts/src/pivot.dart' as pivot;
-import 'package:payouts/src/pivot/basic_table_view.dart';
 
 void main() {
   runApp(BugReport());
 }
 
 class BugReport extends StatelessWidget {
+  pivot.TableCellRenderer _basicRenderer(String columnName) {
+    return ({
+      BuildContext context,
+      int rowIndex,
+      int columnIndex,
+    }) {
+      return Padding(
+        padding: EdgeInsets.all(2),
+        child: Text('${columnName}_${rowIndex}'),
+      );
+    };
+  }
+
   Widget _renderBar({
     BuildContext context,
-    Map<dynamic, dynamic> row,
     int rowIndex,
     int columnIndex,
-    BasicTableView<Map<dynamic, dynamic>> tableView,
     String columnName,
-    bool selected,
-    bool highlighted,
-    bool enabled,
   }) {
-    dynamic value = row['bar'];
     return MouseRegion(
       cursor: SystemMouseCursors.click,
       child: ColoredBox(
@@ -31,7 +37,7 @@ class BugReport extends StatelessWidget {
             decoration: BoxDecoration(
               border: Border.all(),
             ),
-            child: Text('$value'),
+            child: Text('bar_$rowIndex'),
           ),
         ),
       ),
@@ -45,32 +51,24 @@ class BugReport extends StatelessWidget {
         textDirection: TextDirection.ltr,
         child: pivot.ScrollPane(
           horizontalScrollBarPolicy: pivot.ScrollBarPolicy.stretch,
-//        view: SizedBox(width: 100, height: 1100),
-            view: BasicTableView<Map<dynamic, dynamic>>(
-              rowHeight: 22,
-              columns: [
-                BasicTableColumn(
-                  name: 'foo',
-                  width: FixedTableColumnWidth(150),
-                ),
-                BasicTableColumn(
-                  name: 'bar',
-                  width: FlexTableColumnWidth(),
-                  cellRenderer: _renderBar,
-                ),
-                BasicTableColumn(
-                  name: 'baz',
-                  width: FixedTableColumnWidth(275),
-                ),
-              ],
-              data: List<Map<dynamic, dynamic>>.generate(100000, (int index) {
-                return <dynamic, dynamic>{
-                  'foo': 'foo_$index',
-                  'bar': 'bar_$index',
-                  'baz': 'baz_$index',
-                };
-              }),
-            ),
+          view: pivot.BasicTableView(
+            rowHeight: 22,
+            length: 1000000,
+            columns: [
+              pivot.BasicTableColumn(
+                width: pivot.FixedTableColumnWidth(150),
+                cellRenderer: _basicRenderer('foo'),
+              ),
+              pivot.BasicTableColumn(
+                width: pivot.FlexTableColumnWidth(),
+                cellRenderer: _renderBar,
+              ),
+              pivot.BasicTableColumn(
+                width: pivot.FixedTableColumnWidth(275),
+                cellRenderer: _basicRenderer('baz'),
+              ),
+            ],
+          ),
         ),
       ),
     );
