@@ -4,6 +4,7 @@ import 'dart:math' as math;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/widgets.dart';
+import 'package:payouts/src/pivot.dart';
 
 import 'segment.dart';
 
@@ -32,8 +33,8 @@ typedef TableViewLayoutCallback = void Function({
 @immutable
 class BasicTableColumn<T> with Diagnosticable {
   BasicTableColumn({
-    this.name,
-    this.width,
+    @required this.name,
+    this.width = const FlexTableColumnWidth(),
     TableCellRenderer<T> cellRenderer,
   }) : _cellRenderer = cellRenderer;
 
@@ -55,12 +56,9 @@ class BasicTableColumn<T> with Diagnosticable {
     if (row is Map<dynamic, dynamic>) {
       final dynamic cellData = row[columnName];
       if (cellData != null) {
-        result = ColoredBox(
-          color: const Color(0xff000000),
-          child: Padding(
-            padding: EdgeInsets.all(2),
-            child: Text('$cellData', textAlign: TextAlign.left, style: TextStyle(color: const Color(0xffffffff))),
-          ),
+        result = Padding(
+          padding: EdgeInsets.all(2),
+          child: Text('$cellData', textAlign: TextAlign.left),
         );
       }
     }
@@ -554,7 +552,6 @@ class RenderBasicTableView<T> extends RenderSegment {
 
   /// Change the layout callback.
   void updateCallback(TableViewLayoutCallback value) {
-    assert(value != null);
     if (value == _layoutCallback) return;
     _layoutCallback = value;
     markNeedsBuild();
