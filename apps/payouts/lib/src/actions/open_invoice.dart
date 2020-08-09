@@ -462,22 +462,54 @@ class InvoicesTable extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Table(
-      defaultColumnWidth: FixedColumnWidth(135),
-      columnWidths: {
-        3: FlexColumnWidth(),
-      },
-      children: List<TableRow>.generate(invoices.length, (int index) {
-        final Map<String, dynamic> invoice = invoices[index];
-        return TableRow(
-          children: [
-            BillingPeriodCell(invoice: invoice),
-            Text(invoice['invoice_number']),
-            SubmittedCell(invoice: invoice),
-            ResubmitCell(invoice: invoice),
-          ],
-        );
-      }),
+    return ColoredBox(
+      color: Colors.white,
+      child: pivot.BasicTableView<Map<String, dynamic>>(
+        data: invoices,
+        rowHeight: 19,
+        columns: [
+          pivot.BasicTableColumn<Map<String, dynamic>>(
+            name: 'billing_start',
+            width: pivot.FixedTableColumnWidth(125),
+            cellRenderer: BillingPeriodCell.render,
+          ),
+          pivot.BasicTableColumn<Map<String, dynamic>>(
+            name: 'invoice_number',
+            width: pivot.FixedTableColumnWidth(125),
+          ),
+          pivot.BasicTableColumn<Map<String, dynamic>>(
+            name: 'submitted',
+            width: pivot.FixedTableColumnWidth(125),
+            cellRenderer: SubmittedCell.render,
+          ),
+          pivot.BasicTableColumn<Map<String, dynamic>>(
+            name: 'resubmit',
+            cellRenderer: ResubmitCell.render,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class CellWrapper extends StatelessWidget {
+  const CellWrapper({Key key, this.child}) : super(key: key);
+
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return ColoredBox(
+      color: Colors.white,
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          border: const Border(bottom: BorderSide(color: const Color(0xfff7f5ee))),
+        ),
+        child: Align(
+          alignment: Alignment.centerLeft,
+          child: child,
+        ),
+      ),
     );
   }
 }
@@ -499,7 +531,25 @@ class BillingPeriodCell extends StatelessWidget {
     DateTime startDate = DateTime.parse(start);
     DateTime endDate = startDate.add(Duration(days: duration));
     StringBuffer buf = StringBuffer()..write(format.format(startDate))..write(' - ')..write(format.format(endDate));
-    return Text(buf.toString(), maxLines: 1, overflow: TextOverflow.visible);
+    return Text(
+      buf.toString(),
+      maxLines: 1,
+      softWrap: false,
+      overflow: TextOverflow.clip,
+    );
+  }
+
+  static Widget render({
+    BuildContext context,
+    pivot.BasicTableView<Map<String, dynamic>> tableView,
+    Map<String, dynamic> row,
+    String columnName,
+    int rowIndex,
+    int columnIndex,
+  }) {
+    return CellWrapper(
+      child: BillingPeriodCell(invoice: row),
+    );
   }
 }
 
@@ -523,6 +573,19 @@ class SubmittedCell extends StatelessWidget {
       return Text(format.format(submittedTime));
     }
   }
+
+  static Widget render({
+    BuildContext context,
+    pivot.BasicTableView<Map<String, dynamic>> tableView,
+    Map<String, dynamic> row,
+    String columnName,
+    int rowIndex,
+    int columnIndex,
+  }) {
+    return CellWrapper(
+      child: SubmittedCell(invoice: row),
+    );
+  }
 }
 
 class ResubmitCell extends StatelessWidget {
@@ -537,5 +600,18 @@ class ResubmitCell extends StatelessWidget {
   Widget build(BuildContext context) {
     final bool resubmit = invoice['resubmit'];
     return resubmit ? Image.asset('assets/exclamation.png', width: 16, height: 16) : Container();
+  }
+
+  static Widget render({
+    BuildContext context,
+    pivot.BasicTableView<Map<String, dynamic>> tableView,
+    Map<String, dynamic> row,
+    String columnName,
+    int rowIndex,
+    int columnIndex,
+  }) {
+    return CellWrapper(
+      child: ResubmitCell(invoice: row),
+    );
   }
 }
