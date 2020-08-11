@@ -443,16 +443,12 @@ class InvoicesView extends StatelessWidget {
       // TODO: what should this be?
       return Text('TODO');
     } else {
-      return pivot.ScrollPane(
-        horizontalScrollBarPolicy: pivot.ScrollBarPolicy.expand,
-        verticalScrollBarPolicy: pivot.ScrollBarPolicy.expand,
-        view: InvoicesTable(invoices: invoices),
-      );
+      return InvoicesTable(invoices: invoices);
     }
   }
 }
 
-class InvoicesTable extends StatelessWidget {
+class InvoicesTable extends StatefulWidget {
   const InvoicesTable({
     Key key,
     this.invoices,
@@ -461,29 +457,59 @@ class InvoicesTable extends StatelessWidget {
   final List<Map<String, dynamic>> invoices;
 
   @override
+  _InvoicesTableState createState() => _InvoicesTableState();
+}
+
+class _InvoicesTableState extends State<InvoicesTable> {
+  Map<int, double> columnWidths = <int, double>{
+    0: 125,
+    1: 125,
+    2: 125,
+  };
+
+  @override
   Widget build(BuildContext context) {
-    return ColoredBox(
-      color: Colors.white,
-      child: pivot.BasicTableView(
-        length: invoices.length,
+    List<pivot.TableColumn> columns = <pivot.TableColumn>[
+      pivot.TableColumn(
+        name: 'billing_period',
+        width: pivot.FixedTableColumnWidth(columnWidths[0]),
+        cellRenderer: BillingPeriodCell.rendererFor(widget.invoices),
+      ),
+      pivot.TableColumn(
+        name: 'invoice_number',
+        width: pivot.FixedTableColumnWidth(columnWidths[1]),
+        cellRenderer: InvoiceNumberCell.rendererFor(widget.invoices),
+      ),
+      pivot.TableColumn(
+        name: 'submitted',
+        width: pivot.FixedTableColumnWidth(columnWidths[2]),
+        cellRenderer: SubmittedCell.rendererFor(widget.invoices),
+      ),
+      pivot.TableColumn(
+        name: 'resubmit',
+        cellRenderer: ResubmitCell.rendererFor(widget.invoices),
+      ),
+    ];
+
+    return pivot.ScrollPane(
+      horizontalScrollBarPolicy: pivot.ScrollBarPolicy.expand,
+      verticalScrollBarPolicy: pivot.ScrollBarPolicy.expand,
+      columnHeader: pivot.TableViewHeader(
         rowHeight: 19,
-        columns: [
-          pivot.BasicTableColumn(
-            width: pivot.FixedTableColumnWidth(125),
-            cellRenderer: BillingPeriodCell.rendererFor(invoices),
-          ),
-          pivot.BasicTableColumn(
-            width: pivot.FixedTableColumnWidth(125),
-            cellRenderer: InvoiceNumberCell.rendererFor(invoices),
-          ),
-          pivot.BasicTableColumn(
-            width: pivot.FixedTableColumnWidth(125),
-            cellRenderer: SubmittedCell.rendererFor(invoices),
-          ),
-          pivot.BasicTableColumn(
-            cellRenderer: ResubmitCell.rendererFor(invoices),
-          ),
-        ],
+        columns: columns,
+        handleColumnResize: (int columnIndex, double delta) {
+          setState(() {
+            columnWidths[columnIndex] += delta;
+          });
+        },
+      ),
+      view: ColoredBox(
+        color: Colors.white,
+        child: pivot.BasicTableView(
+          length: widget.invoices.length,
+          rowHeight: 19,
+          columns: columns,
+        ),
       ),
     );
   }
