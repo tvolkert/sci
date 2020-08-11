@@ -64,7 +64,7 @@ class _OpenInvoiceSheetState extends State<OpenInvoiceSheet> {
   void initState() {
     super.initState();
     // TODO: Really fetch invoice data
-    Timer(const Duration(seconds: 3), () {
+    Timer(const Duration(seconds: 1), () {
       if (!mounted) {
         return;
       }
@@ -448,7 +448,7 @@ class InvoicesView extends StatelessWidget {
   }
 }
 
-class InvoicesTable extends StatefulWidget {
+class InvoicesTable extends StatelessWidget {
   const InvoicesTable({
     Key key,
     this.invoices,
@@ -456,60 +456,79 @@ class InvoicesTable extends StatefulWidget {
 
   final List<Map<String, dynamic>> invoices;
 
-  @override
-  _InvoicesTableState createState() => _InvoicesTableState();
-}
+  Widget _renderBillingPeriodCell({BuildContext context, int rowIndex, int columnIndex}) {
+    return CellWrapper(
+      child: BillingPeriodCell(invoice: invoices[rowIndex]),
+    );
+  }
 
-class _InvoicesTableState extends State<InvoicesTable> {
-  Map<int, double> columnWidths = <int, double>{
-    0: 125,
-    1: 125,
-    2: 125,
-  };
+  Widget _renderBillingPeriodHeader({BuildContext context, int columnIndex}) {
+    return SingleLineText(data: 'Billing Period');
+  }
+
+  Widget _renderInvoiceNumberCell({BuildContext context, int rowIndex, int columnIndex}) {
+    return CellWrapper(
+      child: InvoiceNumberCell(invoice: invoices[rowIndex]),
+    );
+  }
+
+  Widget _renderInvoiceNumberHeader({BuildContext context, int columnIndex}) {
+    return SingleLineText(data: 'Invoice Number');
+  }
+
+  Widget _renderSubmittedCell({BuildContext context, int rowIndex, int columnIndex}) {
+    return CellWrapper(
+      child: SubmittedCell(invoice: invoices[rowIndex]),
+    );
+  }
+
+  Widget _renderSubmittedHeader({BuildContext context, int columnIndex}) {
+    return SingleLineText(data: 'Submitted');
+  }
+
+  Widget _renderResubmitCell({BuildContext context, int rowIndex, int columnIndex}) {
+    return CellWrapper(
+      child: ResubmitCell(invoice: invoices[rowIndex]),
+    );
+  }
+
+  Widget _renderResubmitHeader({BuildContext context, int columnIndex}) {
+    return SingleLineText(data: '');
+  }
 
   @override
   Widget build(BuildContext context) {
-    List<pivot.TableColumn> columns = <pivot.TableColumn>[
-      pivot.TableColumn(
-        name: 'billing_period',
-        width: pivot.FixedTableColumnWidth(columnWidths[0]),
-        cellRenderer: BillingPeriodCell.rendererFor(widget.invoices),
-      ),
-      pivot.TableColumn(
-        name: 'invoice_number',
-        width: pivot.FixedTableColumnWidth(columnWidths[1]),
-        cellRenderer: InvoiceNumberCell.rendererFor(widget.invoices),
-      ),
-      pivot.TableColumn(
-        name: 'submitted',
-        width: pivot.FixedTableColumnWidth(columnWidths[2]),
-        cellRenderer: SubmittedCell.rendererFor(widget.invoices),
-      ),
-      pivot.TableColumn(
-        name: 'resubmit',
-        cellRenderer: ResubmitCell.rendererFor(widget.invoices),
-      ),
-    ];
-
-    return pivot.ScrollPane(
-      horizontalScrollBarPolicy: pivot.ScrollBarPolicy.expand,
-      verticalScrollBarPolicy: pivot.ScrollBarPolicy.expand,
-      columnHeader: pivot.TableViewHeader(
+    return ColoredBox(
+      color: const Color(0xffffffff),
+      child: pivot.ScrollableTableView(
+        length: invoices.length,
         rowHeight: 19,
-        columns: columns,
-        handleColumnResize: (int columnIndex, double delta) {
-          setState(() {
-            columnWidths[columnIndex] += delta;
-          });
-        },
-      ),
-      view: ColoredBox(
-        color: Colors.white,
-        child: pivot.BasicTableView(
-          length: widget.invoices.length,
-          rowHeight: 19,
-          columns: columns,
-        ),
+        columns: <pivot.TableColumnController>[
+          pivot.TableColumnController(
+            name: 'billing_period',
+            width: pivot.ConstrainedTableColumnWidth(width: 150, minWidth: 50),
+            cellRenderer: _renderBillingPeriodCell,
+            headerRenderer: _renderBillingPeriodHeader,
+          ),
+          pivot.TableColumnController(
+            name: 'invoice_number',
+            width: pivot.ConstrainedTableColumnWidth(width: 125, minWidth: 50),
+            cellRenderer: _renderInvoiceNumberCell,
+            headerRenderer: _renderInvoiceNumberHeader,
+          ),
+          pivot.TableColumnController(
+            name: 'submitted',
+            width: pivot.ConstrainedTableColumnWidth(width: 125, minWidth: 50),
+            cellRenderer: _renderSubmittedCell,
+            headerRenderer: _renderSubmittedHeader,
+          ),
+          pivot.TableColumnController(
+            name: 'resubmit',
+            width: pivot.FlexTableColumnWidth(),
+            cellRenderer: _renderResubmitCell,
+            headerRenderer: _renderResubmitHeader,
+          ),
+        ],
       ),
     );
   }
@@ -522,17 +541,38 @@ class CellWrapper extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ColoredBox(
-      color: Colors.white,
-      child: DecoratedBox(
-        decoration: BoxDecoration(
-          border: const Border(bottom: BorderSide(color: const Color(0xfff7f5ee))),
-        ),
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        border: const Border(bottom: BorderSide(color: const Color(0xfff7f5ee))),
+      ),
+      child: Padding(
+        padding: EdgeInsets.only(left: 2),
         child: Align(
           alignment: Alignment.centerLeft,
           child: child,
         ),
       ),
+    );
+  }
+}
+
+class SingleLineText extends StatelessWidget {
+  const SingleLineText({
+    Key key,
+    @required this.data,
+  })  : assert(data != null),
+        super(key: key);
+
+  final String data;
+
+  @override
+  Widget build(BuildContext context) {
+    return Text(
+      data,
+      maxLines: 1,
+      softWrap: false,
+      textAlign: TextAlign.left,
+      overflow: TextOverflow.clip,
     );
   }
 }
@@ -554,24 +594,7 @@ class BillingPeriodCell extends StatelessWidget {
     DateTime startDate = DateTime.parse(start);
     DateTime endDate = startDate.add(Duration(days: duration));
     StringBuffer buf = StringBuffer()..write(format.format(startDate))..write(' - ')..write(format.format(endDate));
-    return Text(
-      buf.toString(),
-      maxLines: 1,
-      softWrap: false,
-      overflow: TextOverflow.clip,
-    );
-  }
-
-  static pivot.TableCellRenderer rendererFor(List<Map<String, dynamic>> data) {
-    return ({
-      BuildContext context,
-      int rowIndex,
-      int columnIndex,
-    }) {
-      return CellWrapper(
-        child: BillingPeriodCell(invoice: data[rowIndex]),
-      );
-    };
+    return SingleLineText(data: buf.toString());
   }
 }
 
@@ -586,22 +609,7 @@ class InvoiceNumberCell extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final String invoiceNumber = invoice['invoice_number'];
-    return Padding(
-      padding: EdgeInsets.all(2),
-      child: Text(invoiceNumber, textAlign: TextAlign.left),
-    );
-  }
-
-  static pivot.TableCellRenderer rendererFor(List<Map<String, dynamic>> data) {
-    return ({
-      BuildContext context,
-      int rowIndex,
-      int columnIndex,
-    }) {
-      return CellWrapper(
-        child: InvoiceNumberCell(invoice: data[rowIndex]),
-      );
-    };
+    return SingleLineText(data: invoiceNumber);
   }
 }
 
@@ -622,20 +630,8 @@ class SubmittedCell extends StatelessWidget {
       return Container();
     } else {
       DateTime submittedTime = DateTime.fromMillisecondsSinceEpoch(submitted);
-      return Text(format.format(submittedTime));
+      return SingleLineText(data: format.format(submittedTime));
     }
-  }
-
-  static pivot.TableCellRenderer rendererFor(List<Map<String, dynamic>> data) {
-    return ({
-      BuildContext context,
-      int rowIndex,
-      int columnIndex,
-    }) {
-      return CellWrapper(
-        child: SubmittedCell(invoice: data[rowIndex]),
-      );
-    };
   }
 }
 
@@ -651,17 +647,5 @@ class ResubmitCell extends StatelessWidget {
   Widget build(BuildContext context) {
     final bool resubmit = invoice['resubmit'];
     return resubmit ? Image.asset('assets/exclamation.png', width: 16, height: 16) : Container();
-  }
-
-  static pivot.TableCellRenderer rendererFor(List<Map<String, dynamic>> data) {
-    return ({
-      BuildContext context,
-      int rowIndex,
-      int columnIndex,
-    }) {
-      return CellWrapper(
-        child: ResubmitCell(invoice: data[rowIndex]),
-      );
-    };
   }
 }
