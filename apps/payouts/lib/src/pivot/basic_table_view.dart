@@ -84,6 +84,7 @@ class BasicTableView extends RenderObjectWidget {
     @required this.length,
     @required this.columns,
     @required this.rowHeight,
+    this.roundColumnWidthsToWholePixel = false,
   })  : assert(length != null),
         assert(columns != null),
         assert(rowHeight != null),
@@ -93,13 +94,19 @@ class BasicTableView extends RenderObjectWidget {
   final int length;
   final List<BasicTableColumn> columns;
   final double rowHeight;
+  final bool roundColumnWidthsToWholePixel;
 
   @override
   BasicTableViewElement createElement() => BasicTableViewElement(this);
 
   @override
   RenderBasicTableView createRenderObject(BuildContext context) {
-    return RenderBasicTableView(rowHeight: rowHeight, length: length, columns: columns);
+    return RenderBasicTableView(
+      rowHeight: rowHeight,
+      length: length,
+      columns: columns,
+      roundColumnWidthsToWholePixel: roundColumnWidthsToWholePixel,
+    );
   }
 
   @override
@@ -107,7 +114,8 @@ class BasicTableView extends RenderObjectWidget {
     renderObject
       ..rowHeight = rowHeight
       ..length = length
-      ..columns = columns;
+      ..columns = columns
+      ..roundColumnWidthsToWholePixel = roundColumnWidthsToWholePixel;
   }
 }
 
@@ -151,6 +159,8 @@ class TableCellRect extends TableCellRange {
   final int top;
   final int right;
   final int bottom;
+
+  static const TableCellRect zero = TableCellRect.fromLTRB(0, 0, 0, 0);
 
   TableCellRange deflate(TableCellRect rect) {
     return TableCellRect.fromLTRB(
@@ -299,6 +309,9 @@ class BasicTableViewElement extends RenderObjectElement {
         assert(_children != null);
         assert(_children.containsKey(rowIndex));
         final Map<int, Element> row = _children[rowIndex];
+        if (!row.containsKey(columnIndex)) {
+          print(1);
+        }
         assert(row.containsKey(columnIndex));
         final Element child = row[columnIndex];
         assert(child != null);
@@ -444,9 +457,11 @@ class RenderBasicTableView extends RenderSegment {
     double rowHeight,
     int length,
     List<BasicTableColumn> columns,
+    bool roundColumnWidthsToWholePixel = false,
   })  : _rowHeight = rowHeight,
         _length = length,
-        _columns = columns;
+        _columns = columns,
+        _roundColumnWidthsToWholePixel = roundColumnWidthsToWholePixel;
 
   double _rowHeight;
   double get rowHeight => _rowHeight;
@@ -474,6 +489,18 @@ class RenderBasicTableView extends RenderSegment {
     if (_columns == value) return;
     _columns = value;
     _metrics = null;
+    markNeedsBuild();
+  }
+
+  bool _roundColumnWidthsToWholePixel;
+  bool get roundColumnWidthsToWholePixel => _roundColumnWidthsToWholePixel;
+  set roundColumnWidthsToWholePixel(bool value) {
+    assert(value != null);
+    if (_roundColumnWidthsToWholePixel == value) return;
+    _roundColumnWidthsToWholePixel = value;
+    _metrics = null;
+    // The fact that the cell constraints may change could affect the built
+    // output (e.g. if the cell builder uses LayoutBuilder).
     markNeedsBuild();
   }
 
@@ -631,7 +658,12 @@ class RenderBasicTableView extends RenderSegment {
   void performLayout() {
     final BoxConstraints boxConstraints = constraints.asBoxConstraints();
     if (_metrics == null || _metrics.constraints != boxConstraints || _metrics.rowHeight != rowHeight) {
-      _metrics = TableViewMetrics.of(columns, rowHeight, boxConstraints);
+      _metrics = TableViewMetrics.of(
+        columns,
+        rowHeight,
+        boxConstraints,
+        roundWidths: roundColumnWidthsToWholePixel,
+      );
     }
 
     rebuildIfNecessary();
@@ -647,6 +679,36 @@ class RenderBasicTableView extends RenderSegment {
     });
   }
 
+  TableCellRange skipAlreadyBuilt(TableCellRange range) {
+    return ProxyTableCellRange((TableCellVisitor visitor) {
+      range.visitCells((int rowIndex, int columnIndex) {
+        if (!_children.containsKey(rowIndex) || !_children[rowIndex].containsKey(columnIndex)) {
+          visitor(rowIndex, columnIndex);
+        }
+      });
+    });
+  }
+
+  TableCellRange skipOutOfBounds(TableCellRange range) {
+    return ProxyTableCellRange((TableCellVisitor visitor) {
+      range.visitCells((int rowIndex, int columnIndex) {
+        if (rowIndex < length && columnIndex < columns.length) {
+          visitor(rowIndex, columnIndex);
+        }
+      });
+    });
+  }
+
+  TableCellRange skipEmptyCells(TableCellRange range) {
+    return ProxyTableCellRange((TableCellVisitor visitor) {
+      range.visitCells((int rowIndex, int columnIndex) {
+        if (_children.containsKey(rowIndex) && _children[rowIndex].containsKey(columnIndex)) {
+          visitor(rowIndex, columnIndex);
+        }
+      });
+    });
+  }
+
   void rebuildIfNecessary() {
     assert(_layoutCallback != null);
     final UnionTableCellRange buildCells = UnionTableCellRange();
@@ -656,26 +718,6 @@ class RenderBasicTableView extends RenderSegment {
         visitor(rowIndex, columnIndex);
       }, allowMutations: true);
     });
-
-    TableCellRange skipAlreadyBuilt(TableCellRange range) {
-      return ProxyTableCellRange((TableCellVisitor visitor) {
-        range.visitCells((int rowIndex, int columnIndex) {
-          if (!_children.containsKey(rowIndex) || !_children[rowIndex].containsKey(columnIndex)) {
-            visitor(rowIndex, columnIndex);
-          }
-        });
-      });
-    }
-
-    TableCellRange skipOutOfBounds(TableCellRange range) {
-      return ProxyTableCellRange((TableCellVisitor visitor) {
-        range.visitCells((int rowIndex, int columnIndex) {
-          if (rowIndex < length && columnIndex < columns.length) {
-            visitor(rowIndex, columnIndex);
-          }
-        });
-      });
-    }
 
     if (_needsBuild) {
       _needsBuild = false;
@@ -742,7 +784,7 @@ class RenderBasicTableView extends RenderSegment {
     _viewport = constraints.viewport;
     invokeLayoutCallback<SegmentConstraints>((SegmentConstraints _) {
       _layoutCallback(
-        visitChildrenToRemove: skipOutOfBounds(removeCells).visitCells,
+        visitChildrenToRemove: skipEmptyCells(skipOutOfBounds(removeCells)).visitCells,
         visitChildrenToBuild: skipOutOfBounds(buildCells).visitCells,
       );
     });
@@ -851,7 +893,12 @@ class TableViewMetrics {
   /// The total column width of the table view.
   final double totalWidth;
 
-  static TableViewMetrics of(List<BasicTableColumn> columns, double rowHeight, BoxConstraints constraints) {
+  static TableViewMetrics of(
+    List<BasicTableColumn> columns,
+    double rowHeight,
+    BoxConstraints constraints, {
+    bool roundWidths = false,
+  }) {
     assert(constraints.runtimeType == BoxConstraints);
     double totalFlexWidth = 0;
     double totalFixedWidth = 0;
@@ -867,7 +914,10 @@ class TableViewMetrics {
         totalFlexWidth += widthSpecification.width;
         flexColumns[i] = column;
       } else {
-        final double columnWidth = column.width.width;
+        double columnWidth = column.width.width;
+        if (roundWidths) {
+          columnWidth = columnWidth.roundToDouble();
+        }
         totalFixedWidth += columnWidth;
         resolvedWidths[i] = columnWidth;
       }
@@ -912,7 +962,11 @@ class TableViewMetrics {
         for (MapEntry<int, BasicTableColumn> flexColumn in flexColumns.entries) {
           final FlexTableColumnWidth widthSpecification = flexColumn.value.width;
           final double allocationPercentage = widthSpecification.width / totalFlexWidth;
-          resolvedWidths[flexColumn.key] = flexAllocation * allocationPercentage;
+          double columnWidth = flexAllocation * allocationPercentage;
+          if (roundWidths) {
+            columnWidth = columnWidth.roundToDouble();
+          }
+          resolvedWidths[flexColumn.key] = columnWidth;
         }
       }
     }
@@ -940,8 +994,10 @@ class TableViewMetrics {
 
   TableCellRange intersect(
     Rect rect, {
-    TableCellRect deflate = const TableCellRect.fromLTRB(0, 0, 0, 0),
+    TableCellRect deflate = TableCellRect.zero,
   }) {
+    assert(rect != null);
+    assert(deflate != null);
     if (rect.isEmpty) {
       return EmptyTableCellRange();
     }

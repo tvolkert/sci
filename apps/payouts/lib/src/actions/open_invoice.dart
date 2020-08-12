@@ -438,7 +438,7 @@ class InvoicesView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (invoices == null) {
-      return Container();
+      return InvoicesTable(invoices: const <Map<String, dynamic>>[]);
     } else if (invoices.isEmpty) {
       // TODO: what should this be?
       return Text('TODO');
@@ -503,6 +503,7 @@ class InvoicesTable extends StatelessWidget {
       child: pivot.ScrollableTableView(
         length: invoices.length,
         rowHeight: 19,
+        roundColumnWidthsToWholePixel: true,
         columns: <pivot.TableColumnController>[
           pivot.TableColumnController(
             name: 'billing_period',
