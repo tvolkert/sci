@@ -448,7 +448,7 @@ class InvoicesView extends StatelessWidget {
   }
 }
 
-class InvoicesTable extends StatelessWidget {
+class InvoicesTable extends StatefulWidget {
   const InvoicesTable({
     Key key,
     this.invoices,
@@ -456,9 +456,34 @@ class InvoicesTable extends StatelessWidget {
 
   final List<Map<String, dynamic>> invoices;
 
-  Widget _renderBillingPeriodCell({BuildContext context, int rowIndex, int columnIndex}) {
+  @override
+  _InvoicesTableState createState() => _InvoicesTableState();
+}
+
+class _InvoicesTableState extends State<InvoicesTable> {
+  pivot.TableViewSelectionController _selectionController;
+
+  @override
+  initState() {
+    super.initState();
+    _selectionController = pivot.TableViewSelectionController(selectMode: pivot.SelectMode.single);
+  }
+
+  @override
+  dispose() {
+    _selectionController.dispose();
+    super.dispose();
+  }
+
+  Widget _renderBillingPeriodCell({
+    BuildContext context,
+    int rowIndex,
+    int columnIndex,
+    bool rowHighlighted,
+    bool rowSelected,
+  }) {
     return CellWrapper(
-      child: BillingPeriodCell(invoice: invoices[rowIndex]),
+      child: BillingPeriodCell(invoice: widget.invoices[rowIndex]),
     );
   }
 
@@ -466,9 +491,15 @@ class InvoicesTable extends StatelessWidget {
     return SingleLineText(data: 'Billing Period');
   }
 
-  Widget _renderInvoiceNumberCell({BuildContext context, int rowIndex, int columnIndex}) {
+  Widget _renderInvoiceNumberCell({
+    BuildContext context,
+    int rowIndex,
+    int columnIndex,
+    bool rowHighlighted,
+    bool rowSelected,
+  }) {
     return CellWrapper(
-      child: InvoiceNumberCell(invoice: invoices[rowIndex]),
+      child: InvoiceNumberCell(invoice: widget.invoices[rowIndex]),
     );
   }
 
@@ -476,9 +507,15 @@ class InvoicesTable extends StatelessWidget {
     return SingleLineText(data: 'Invoice Number');
   }
 
-  Widget _renderSubmittedCell({BuildContext context, int rowIndex, int columnIndex}) {
+  Widget _renderSubmittedCell({
+    BuildContext context,
+    int rowIndex,
+    int columnIndex,
+    bool rowHighlighted,
+    bool rowSelected,
+  }) {
     return CellWrapper(
-      child: SubmittedCell(invoice: invoices[rowIndex]),
+      child: SubmittedCell(invoice: widget.invoices[rowIndex]),
     );
   }
 
@@ -486,9 +523,15 @@ class InvoicesTable extends StatelessWidget {
     return SingleLineText(data: 'Submitted');
   }
 
-  Widget _renderResubmitCell({BuildContext context, int rowIndex, int columnIndex}) {
+  Widget _renderResubmitCell({
+    BuildContext context,
+    int rowIndex,
+    int columnIndex,
+    bool rowHighlighted,
+    bool rowSelected,
+  }) {
     return CellWrapper(
-      child: ResubmitCell(invoice: invoices[rowIndex]),
+      child: ResubmitCell(invoice: widget.invoices[rowIndex]),
     );
   }
 
@@ -501,9 +544,10 @@ class InvoicesTable extends StatelessWidget {
     return ColoredBox(
       color: const Color(0xffffffff),
       child: pivot.ScrollableTableView(
-        length: invoices.length,
+        length: widget.invoices.length,
         rowHeight: 19,
         roundColumnWidthsToWholePixel: true,
+        selectionController: _selectionController,
         columns: <pivot.TableColumnController>[
           pivot.TableColumnController(
             name: 'billing_period',

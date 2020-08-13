@@ -8,7 +8,7 @@ void main() {
 }
 
 class BugReport extends StatelessWidget {
-  pivot.TableCellRenderer _basicRenderer(String columnName) {
+  pivot.BasicTableCellRenderer _basicRenderer(String columnName) {
     return ({
       BuildContext context,
       int rowIndex,
