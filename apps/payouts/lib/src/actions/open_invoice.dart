@@ -412,7 +412,9 @@ class _OpenInvoiceSheetState extends State<OpenInvoiceSheet> {
                 ),
               pivot.CommandPushButton(
                 label: 'OK',
-                onPressed: invoices == null ? null : () => Navigator.of(context).pop(1 /* TODO: invoiceId */),
+                onPressed: invoices == null
+                    ? null
+                    : () => Navigator.of(context).pop(1 /* TODO: invoiceId */),
               ),
               SizedBox(width: 4),
               pivot.CommandPushButton(
@@ -483,6 +485,7 @@ class _InvoicesTableState extends State<InvoicesTable> {
     bool rowSelected,
   }) {
     return CellWrapper(
+      selected: rowSelected,
       child: BillingPeriodCell(invoice: widget.invoices[rowIndex]),
     );
   }
@@ -499,6 +502,7 @@ class _InvoicesTableState extends State<InvoicesTable> {
     bool rowSelected,
   }) {
     return CellWrapper(
+      selected: rowSelected,
       child: InvoiceNumberCell(invoice: widget.invoices[rowIndex]),
     );
   }
@@ -515,6 +519,7 @@ class _InvoicesTableState extends State<InvoicesTable> {
     bool rowSelected,
   }) {
     return CellWrapper(
+      selected: rowSelected,
       child: SubmittedCell(invoice: widget.invoices[rowIndex]),
     );
   }
@@ -531,6 +536,7 @@ class _InvoicesTableState extends State<InvoicesTable> {
     bool rowSelected,
   }) {
     return CellWrapper(
+      selected: rowSelected,
       child: ResubmitCell(invoice: widget.invoices[rowIndex]),
     );
   }
@@ -580,13 +586,18 @@ class _InvoicesTableState extends State<InvoicesTable> {
 }
 
 class CellWrapper extends StatelessWidget {
-  const CellWrapper({Key key, this.child}) : super(key: key);
+  const CellWrapper({
+    Key key,
+    this.selected,
+    this.child,
+  }) : super(key: key);
 
+  final bool selected;
   final Widget child;
 
   @override
   Widget build(BuildContext context) {
-    return DecoratedBox(
+    Widget result = DecoratedBox(
       decoration: BoxDecoration(
         border: const Border(bottom: BorderSide(color: const Color(0xfff7f5ee))),
       ),
@@ -598,6 +609,16 @@ class CellWrapper extends StatelessWidget {
         ),
       ),
     );
+
+    if (selected) {
+      final TextStyle style = DefaultTextStyle.of(context).style;
+      result = DefaultTextStyle(
+        style: style.copyWith(color: const Color(0xffffffff)),
+        child: result,
+      );
+    }
+
+    return result;
   }
 }
 
@@ -638,7 +659,10 @@ class BillingPeriodCell extends StatelessWidget {
     int duration = invoice['billing_duration'];
     DateTime startDate = DateTime.parse(start);
     DateTime endDate = startDate.add(Duration(days: duration));
-    StringBuffer buf = StringBuffer()..write(format.format(startDate))..write(' - ')..write(format.format(endDate));
+    StringBuffer buf = StringBuffer()
+      ..write(format.format(startDate))
+      ..write(' - ')
+      ..write(format.format(endDate));
     return SingleLineText(data: buf.toString());
   }
 }
