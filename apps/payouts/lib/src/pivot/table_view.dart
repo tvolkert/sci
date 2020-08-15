@@ -1,7 +1,9 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/rendering.dart' hide TableColumnWidth;
+import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart' hide TableColumnWidth;
 import 'package:payouts/src/pivot/span.dart';
 
@@ -362,6 +364,7 @@ class TableView extends StatefulWidget {
     @required this.columns,
     this.selectionController,
     this.roundColumnWidthsToWholePixel = false,
+    this.platform,
   })  : assert(rowHeight != null),
         assert(length != null),
         assert(columns != null),
@@ -373,6 +376,7 @@ class TableView extends StatefulWidget {
   final List<TableColumnController> columns;
   final TableViewSelectionController selectionController;
   final bool roundColumnWidthsToWholePixel;
+  final TargetPlatform platform;
 
   @override
   _TableViewState createState() => _TableViewState();
@@ -402,6 +406,7 @@ class _TableViewState extends State<TableView> {
       selectionController: widget.selectionController,
       roundColumnWidthsToWholePixel: widget.roundColumnWidthsToWholePixel,
       pointerEvents: _pointerEvents.stream,
+      platform: widget.platform ?? defaultTargetPlatform,
     );
 
     if (widget.selectionController.selectMode != SelectMode.none) {
@@ -427,7 +432,9 @@ class RawTableView extends BasicTableView {
     bool roundColumnWidthsToWholePixel = false,
     this.selectionController,
     @required this.pointerEvents,
-  }) : super(
+    @required this.platform,
+  })  : assert(platform != null),
+        super(
           key: key,
           rowHeight: rowHeight,
           length: length,
@@ -437,6 +444,7 @@ class RawTableView extends BasicTableView {
 
   final TableViewSelectionController selectionController;
   final Stream<PointerEvent> pointerEvents;
+  final TargetPlatform platform;
 
   @override
   List<TableColumnController> get columns => super.columns as List<TableColumnController>;
@@ -453,6 +461,7 @@ class RawTableView extends BasicTableView {
       roundColumnWidthsToWholePixel: roundColumnWidthsToWholePixel,
       selectionController: selectionController,
       pointerEvents: pointerEvents,
+      platform: platform,
     );
   }
 
@@ -461,7 +470,8 @@ class RawTableView extends BasicTableView {
     super.updateRenderObject(context, renderObject);
     renderObject
       ..selectionController = selectionController
-      ..pointerEvents = pointerEvents;
+      ..pointerEvents = pointerEvents
+      ..platform = platform;
   }
 }
 
@@ -483,7 +493,7 @@ class TableViewElement extends BasicTableViewElement {
       rowIndex: rowIndex,
       columnIndex: columnIndex,
       rowHighlighted: renderObject.highlightedRow == rowIndex,
-      rowSelected: widget.selectionController.selectedIndex == rowIndex,
+      rowSelected: widget.selectionController.isRowSelected(rowIndex),
     );
   }
 }
@@ -497,6 +507,7 @@ class RenderTableView extends RenderBasicTableView with TableViewColumnListenerM
     bool roundColumnWidthsToWholePixel = false,
     TableViewSelectionController selectionController,
     Stream<PointerEvent> pointerEvents,
+    TargetPlatform platform,
   }) : super(
           rowHeight: rowHeight,
           length: length,
@@ -505,6 +516,7 @@ class RenderTableView extends RenderBasicTableView with TableViewColumnListenerM
         ) {
     this.selectionController = selectionController;
     this.pointerEvents = pointerEvents;
+    this.platform = platform;
   }
 
   TableViewSelectionController _selectionController;
@@ -540,6 +552,14 @@ class RenderTableView extends RenderBasicTableView with TableViewColumnListenerM
     }
     _pointerEvents = value;
     _pointerEventsSubscription = _pointerEvents.listen(_onPointerEvent);
+  }
+
+  TargetPlatform _platform;
+  TargetPlatform get platform => _platform;
+  set platform(TargetPlatform value) {
+    assert(value != null);
+    if (value == _platform) return;
+    _platform = value;
   }
 
   int _highlightedRow;
@@ -580,9 +600,72 @@ class RenderTableView extends RenderBasicTableView with TableViewColumnListenerM
     }
   }
 
+  int _selectIndex = -1;
+
+  static bool isShiftKeyPressed() {
+    final Set<LogicalKeyboardKey> keys = RawKeyboard.instance.keysPressed;
+    return keys.contains(LogicalKeyboardKey.shiftLeft) ||
+        keys.contains(LogicalKeyboardKey.shiftRight);
+  }
+
+  static bool isPlatformCommandKeyPressed([TargetPlatform platform]) {
+    platform ??= defaultTargetPlatform;
+    final Set<LogicalKeyboardKey> keys = RawKeyboard.instance.keysPressed;
+    switch (platform) {
+      case TargetPlatform.macOS:
+        return keys.contains(LogicalKeyboardKey.metaLeft) ||
+            keys.contains(LogicalKeyboardKey.metaRight);
+      default:
+        return keys.contains(LogicalKeyboardKey.controlLeft) ||
+            keys.contains(LogicalKeyboardKey.controlRight);
+    }
+  }
+
   void _onPointerDown(PointerDownEvent event) {
-    final TableCellOffset cellOffset = metrics.hitTest(event.localPosition);
-    selectionController.selectedIndex = cellOffset.rowIndex;
+    final SelectMode selectMode = selectionController.selectMode;
+    if (selectMode != SelectMode.none) {
+      final TableCellOffset cellOffset = metrics.hitTest(event.localPosition);
+      final int rowIndex = cellOffset.rowIndex;
+      if (cellOffset.rowIndex >= 0 && cellOffset.rowIndex < length) {
+        final Set<LogicalKeyboardKey> keys = RawKeyboard.instance.keysPressed;
+
+        if (isShiftKeyPressed() && selectMode == SelectMode.multi) {
+          final int startIndex = selectionController.firstSelectedIndex;
+          if (startIndex == -1) {
+            selectionController.addSelectedIndex(cellOffset.rowIndex);
+          } else {
+            final int endIndex = selectionController.lastSelectedIndex;
+            final Span range = Span(rowIndex, rowIndex > startIndex ? startIndex : endIndex);
+            selectionController.selectedRange = range;
+          }
+        } else if (isPlatformCommandKeyPressed(platform) && selectMode == SelectMode.multi) {
+          if (selectionController.isRowSelected(rowIndex)) {
+            selectionController.removeSelectedIndex(rowIndex);
+          } else {
+            selectionController.addSelectedIndex(rowIndex);
+          }
+        } else if (keys.contains(LogicalKeyboardKey.control) && selectMode == SelectMode.single) {
+          if (selectionController.isRowSelected(rowIndex)) {
+            selectionController.selectedIndex = -1;
+          } else {
+            selectionController.selectedIndex = rowIndex;
+          }
+        } else if (selectMode != SelectMode.none) {
+          if (!selectionController.isRowSelected(rowIndex)) {
+            selectionController.selectedIndex = rowIndex;
+          }
+          _selectIndex = rowIndex;
+        }
+      }
+    }
+  }
+
+  void _onPointerUp(PointerUpEvent event) {
+    if (_selectIndex != -1 &&
+        selectionController.firstSelectedIndex != selectionController.lastSelectedIndex) {
+      selectionController.selectedIndex = _selectIndex;
+    }
+    _selectIndex = -1;
   }
 
   void _onPointerEvent(PointerEvent event) {
@@ -590,6 +673,7 @@ class RenderTableView extends RenderBasicTableView with TableViewColumnListenerM
     if (event is PointerScrollEvent) return _onPointerScroll(event);
     if (event is PointerExitEvent) return _onPointerExit(event);
     if (event is PointerDownEvent) return _onPointerDown(event);
+    if (event is PointerUpEvent) return _onPointerUp(event);
   }
 
   @override
