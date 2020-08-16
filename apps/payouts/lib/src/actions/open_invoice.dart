@@ -59,6 +59,17 @@ class OpenInvoiceSheet extends StatefulWidget {
 
 class _OpenInvoiceSheetState extends State<OpenInvoiceSheet> {
   List<Map<String, dynamic>> invoices;
+  int _selectedInvoiceId;
+
+  void _handleInvoiceSelected(int invoiceId) {
+    setState(() {
+      _selectedInvoiceId = invoiceId;
+    });
+  }
+
+  void _handleOk() {
+    Navigator.of(context).pop(_selectedInvoiceId);
+  }
 
   @override
   void initState() {
@@ -386,7 +397,10 @@ class _OpenInvoiceSheetState extends State<OpenInvoiceSheet> {
                   ),
                   child: Padding(
                     padding: EdgeInsets.all(1),
-                    child: InvoicesView(invoices: invoices),
+                    child: InvoicesView(
+                      invoices: invoices,
+                      onInvoiceSelected: _handleInvoiceSelected,
+                    ),
                   ),
                 ),
               ),
@@ -412,9 +426,7 @@ class _OpenInvoiceSheetState extends State<OpenInvoiceSheet> {
                 ),
               pivot.CommandPushButton(
                 label: 'OK',
-                onPressed: invoices == null
-                    ? null
-                    : () => Navigator.of(context).pop(1 /* TODO: invoiceId */),
+                onPressed: _selectedInvoiceId != null ? _handleOk : null,
               ),
               SizedBox(width: 4),
               pivot.CommandPushButton(
@@ -433,9 +445,11 @@ class InvoicesView extends StatelessWidget {
   const InvoicesView({
     Key key,
     this.invoices,
+    this.onInvoiceSelected,
   }) : super(key: key);
 
   final List<Map<String, dynamic>> invoices;
+  final ValueChanged<int> onInvoiceSelected;
 
   @override
   Widget build(BuildContext context) {
@@ -445,7 +459,10 @@ class InvoicesView extends StatelessWidget {
       // TODO: what should this be?
       return Text('TODO');
     } else {
-      return InvoicesTable(invoices: invoices);
+      return InvoicesTable(
+        invoices: invoices,
+        onInvoiceSelected: onInvoiceSelected,
+      );
     }
   }
 }
@@ -454,9 +471,11 @@ class InvoicesTable extends StatefulWidget {
   const InvoicesTable({
     Key key,
     this.invoices,
+    this.onInvoiceSelected,
   }) : super(key: key);
 
   final List<Map<String, dynamic>> invoices;
+  final ValueChanged<int> onInvoiceSelected;
 
   @override
   _InvoicesTableState createState() => _InvoicesTableState();
@@ -469,12 +488,21 @@ class _InvoicesTableState extends State<InvoicesTable> {
   initState() {
     super.initState();
     _selectionController = pivot.TableViewSelectionController(selectMode: pivot.SelectMode.single);
+    _selectionController.addListener(_handleSelectionChanged);
   }
 
   @override
   dispose() {
+    _selectionController.removeListener(_handleSelectionChanged);
     _selectionController.dispose();
     super.dispose();
+  }
+
+  void _handleSelectionChanged() {
+    if (widget.onInvoiceSelected != null) {
+      final int rowIndex = _selectionController.selectedIndex;
+      widget.onInvoiceSelected(rowIndex >= 0 ? widget.invoices[rowIndex]['invoice_id'] : null);
+    }
   }
 
   Widget _renderBillingPeriodCell({
