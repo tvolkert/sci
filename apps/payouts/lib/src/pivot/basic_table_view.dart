@@ -6,6 +6,7 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter/widgets.dart';
 
 import 'debug.dart';
+import 'listener_list.dart';
 import 'segment.dart';
 
 const double _kDoublePrecisionTolerance = 0.001;
@@ -112,6 +113,7 @@ class BasicTableView extends RenderObjectWidget {
     @required this.columns,
     @required this.rowHeight,
     this.roundColumnWidthsToWholePixel = false,
+    this.metricsController,
   })  : assert(length != null),
         assert(columns != null),
         assert(rowHeight != null),
@@ -122,6 +124,7 @@ class BasicTableView extends RenderObjectWidget {
   final List<BasicTableColumn> columns;
   final double rowHeight;
   final bool roundColumnWidthsToWholePixel;
+  final TableViewMetricsController metricsController;
 
   @override
   BasicTableViewElement createElement() => BasicTableViewElement(this);
@@ -134,6 +137,7 @@ class BasicTableView extends RenderObjectWidget {
       length: length,
       columns: columns,
       roundColumnWidthsToWholePixel: roundColumnWidthsToWholePixel,
+      metricsController: metricsController,
     );
   }
 
@@ -144,7 +148,8 @@ class BasicTableView extends RenderObjectWidget {
       ..rowHeight = rowHeight
       ..length = length
       ..columns = columns
-      ..roundColumnWidthsToWholePixel = roundColumnWidthsToWholePixel;
+      ..roundColumnWidthsToWholePixel = roundColumnWidthsToWholePixel
+      ..metricsController = metricsController;
   }
 }
 
@@ -525,12 +530,14 @@ class RenderBasicTableView extends RenderSegment {
     int length,
     List<BasicTableColumn> columns,
     bool roundColumnWidthsToWholePixel = false,
+    TableViewMetricsController metricsController,
   }) {
     // Set in constructor body instead of initializers to trigger setters.
     this.rowHeight = rowHeight;
     this.length = length;
     this.columns = columns;
     this.roundColumnWidthsToWholePixel = roundColumnWidthsToWholePixel;
+    this.metricsController = metricsController;
   }
 
   double _rowHeight;
@@ -578,6 +585,16 @@ class RenderBasicTableView extends RenderSegment {
     // The fact that the cell constraints may change could affect the built
     // output (e.g. if the cell builder uses LayoutBuilder).
     markNeedsBuild();
+  }
+
+  TableViewMetricsController _metricsController;
+  TableViewMetricsController get metricsController => _metricsController;
+  set metricsController(TableViewMetricsController value) {
+    if (value == _metricsController) return;
+    _metricsController = value;
+    if (_metricsController != null && !_needsMetrics) {
+      _metricsController._setMetrics(_metrics);
+    }
   }
 
   Map<int, Map<int, RenderBox>> _children = <int, Map<int, RenderBox>>{};
@@ -776,6 +793,9 @@ class RenderBasicTableView extends RenderSegment {
         roundWidths: roundColumnWidthsToWholePixel,
       );
       _needsMetrics = false;
+      if (_metricsController != null) {
+        _metricsController._setMetrics(_metrics);
+      }
     }
   }
 
@@ -958,6 +978,29 @@ abstract class TableViewMetrics {
   /// (in bounds) values given the number of rows and columns in the table
   /// view.
   Rect getCellBounds(int rowIndex, int columnIndex);
+}
+
+typedef TableViewMetricsChangedHandler = void Function(TableViewMetricsController controller);
+
+class TableViewMetricsListener {
+  const TableViewMetricsListener({
+    @required this.onChanged,
+  }) : assert(onChanged != null);
+
+  final TableViewMetricsChangedHandler onChanged;
+}
+
+class TableViewMetricsController with ListenerNotifier<TableViewMetricsListener> {
+  TableViewMetrics _metrics;
+  TableViewMetrics get metrics => _metrics;
+  void _setMetrics(TableViewMetrics value) {
+    assert(value != null);
+    if (value == _metrics) return;
+    _metrics = value;
+    notifyListeners((TableViewMetricsListener listener) {
+      listener.onChanged(this);
+    });
+  }
 }
 
 /// Resolves column width specifications against [BoxConstraints].
