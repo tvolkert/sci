@@ -5,7 +5,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/rendering.dart' hide TableColumnWidth;
 import 'package:flutter/services.dart';
-import 'package:flutter/widgets.dart' hide TableColumnWidth;
+import 'package:flutter/widgets.dart' hide ScrollController, TableColumnWidth;
 import 'package:payouts/src/pivot/span.dart';
 
 import 'basic_table_view.dart';
@@ -412,6 +412,7 @@ class ScrollableTableView extends StatelessWidget {
     @required this.columns,
     this.selectionController,
     this.sortController,
+    this.scrollController,
     this.roundColumnWidthsToWholePixel = false,
   })  : assert(rowHeight != null),
         assert(length != null),
@@ -424,6 +425,7 @@ class ScrollableTableView extends StatelessWidget {
   final List<TableColumnController> columns;
   final TableViewSelectionController selectionController;
   final TableViewSortController sortController;
+  final ScrollController scrollController;
   final bool roundColumnWidthsToWholePixel;
 
   @override
@@ -431,6 +433,7 @@ class ScrollableTableView extends StatelessWidget {
     return ScrollPane(
       horizontalScrollBarPolicy: ScrollBarPolicy.expand,
       verticalScrollBarPolicy: ScrollBarPolicy.auto,
+      scrollController: scrollController,
       columnHeader: TableViewHeader(
         rowHeight: rowHeight,
         columns: columns,
