@@ -535,6 +535,7 @@ class _InvoicesTableState extends State<InvoicesTable> {
   pivot.TableViewSelectionController _selectionController;
   pivot.TableViewSortController _sortController;
   pivot.TableViewSortListener _sortListener;
+  pivot.ScrollController _scrollController;
 
   @override
   initState() {
@@ -544,6 +545,7 @@ class _InvoicesTableState extends State<InvoicesTable> {
     _sortListener = pivot.TableViewSortListener(onChanged: _handleSortChanged);
     _sortController = pivot.TableViewSortController(sortMode: pivot.TableViewSortMode.singleColumn);
     _sortController.addListener(_sortListener);
+    _scrollController = pivot.ScrollController();
   }
 
   @override
@@ -552,6 +554,7 @@ class _InvoicesTableState extends State<InvoicesTable> {
     _selectionController.dispose();
     _sortController.removeListener(_sortListener);
     _sortController.dispose();
+    _scrollController.dispose();
     super.dispose();
   }
 
@@ -669,6 +672,7 @@ class _InvoicesTableState extends State<InvoicesTable> {
         roundColumnWidthsToWholePixel: true,
         selectionController: _selectionController,
         sortController: _sortController,
+        scrollController: _scrollController,
         columns: <pivot.TableColumnController>[
           pivot.TableColumnController(
             key: 'billing_start',
