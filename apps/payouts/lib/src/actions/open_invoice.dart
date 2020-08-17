@@ -6,6 +6,7 @@ import 'package:flutter/rendering.dart';
 import 'package:intl/intl.dart';
 
 import 'package:payouts/src/pivot.dart' as pivot;
+import 'package:payouts/src/pivot/foundation.dart';
 
 //  static BuildContext _getRootNavigatorContext() {
 //    assert(WidgetsBinding.instance.isRootWidgetAttached);
@@ -21,6 +22,55 @@ import 'package:payouts/src/pivot.dart' as pivot;
 //    }
 //    return null;
 //  }
+
+typedef InvoiceComparator = int Function(Map<String, dynamic> a, Map<String, dynamic> b);
+
+int _compareInvoiceNumber(Map<String, dynamic> a, Map<String, dynamic> b) {
+  final String aVal = a['invoice_number'];
+  final String bVal = b['invoice_number'];
+  assert(aVal != null && bVal != null);
+  return aVal.compareTo(bVal);
+}
+
+int _compareBillingPeriod(Map<String, dynamic> a, Map<String, dynamic> b) {
+  final String aVal = a['billing_start'];
+  final String bVal = b['billing_start'];
+  // String comparison should work since we're using YYYY-MM-DD format.
+  return aVal.compareTo(bVal);
+}
+
+int _compareSubmitted(Map<String, dynamic> a, Map<String, dynamic> b) {
+  final int aVal = a['submitted'];
+  final int bVal = b['submitted'];
+  if (aVal == bVal) {
+    return 0;
+  } else if (aVal == null) {
+    return 1;
+  } else if (bVal == null) {
+    return -1;
+  } else {
+    return aVal.compareTo(bVal);
+  }
+}
+
+int _compareResubmit(Map<String, dynamic> a, Map<String, dynamic> b) {
+  final bool aVal = a['resubmit'];
+  final bool bVal = b['resubmit'];
+  if (aVal == bVal) {
+    return 0;
+  } else if (aVal) {
+    return -1;
+  } else {
+    return 1;
+  }
+}
+
+const Map<String, InvoiceComparator> _invoiceComparators = <String, InvoiceComparator>{
+  'invoice_number': _compareInvoiceNumber,
+  'billing_start': _compareBillingPeriod,
+  'submitted': _compareSubmitted,
+  'resubmit': _compareResubmit,
+};
 
 class OpenInvoiceIntent extends Intent {
   const OpenInvoiceIntent({this.context});
@@ -483,18 +533,25 @@ class InvoicesTable extends StatefulWidget {
 
 class _InvoicesTableState extends State<InvoicesTable> {
   pivot.TableViewSelectionController _selectionController;
+  pivot.TableViewSortController _sortController;
+  pivot.TableViewSortListener _sortListener;
 
   @override
   initState() {
     super.initState();
     _selectionController = pivot.TableViewSelectionController(selectMode: pivot.SelectMode.single);
     _selectionController.addListener(_handleSelectionChanged);
+    _sortListener = pivot.TableViewSortListener(onChanged: _handleSortChanged);
+    _sortController = pivot.TableViewSortController(sortMode: pivot.SortMode.singleColumn);
+    _sortController.addListener(_sortListener);
   }
 
   @override
   dispose() {
     _selectionController.removeListener(_handleSelectionChanged);
     _selectionController.dispose();
+    _sortController.removeListener(_sortListener);
+    _sortController.dispose();
     super.dispose();
   }
 
@@ -502,6 +559,35 @@ class _InvoicesTableState extends State<InvoicesTable> {
     if (widget.onInvoiceSelected != null) {
       final int rowIndex = _selectionController.selectedIndex;
       widget.onInvoiceSelected(rowIndex >= 0 ? widget.invoices[rowIndex]['invoice_id'] : null);
+    }
+  }
+
+  void _handleSortChanged(pivot.TableViewSortController controller) {
+    assert(controller == _sortController);
+    assert(controller.length == 1);
+
+    Map<String, dynamic> selectedItem;
+    if (_selectionController.selectedIndex != -1) {
+      selectedItem = widget.invoices[_selectionController.selectedIndex];
+    }
+
+    final String sortKey = controller.keys.first;
+    final pivot.SortDirection direction = controller[sortKey];
+    final InvoiceComparator basicComparator = _invoiceComparators[sortKey];
+    InvoiceComparator comparator = (Map<String, dynamic> a, Map<String, dynamic> b) {
+      int result = basicComparator(a, b);
+      if (direction == pivot.SortDirection.descending) {
+        result *= -1;
+      }
+      return result;
+    };
+    widget.invoices.sort(comparator);
+
+    if (selectedItem != null) {
+      int selectedIndex = binarySearch(widget.invoices, selectedItem, compare: comparator);
+      assert(selectedIndex >= 0);
+      _selectionController.selectedIndex = selectedIndex;
+      // TODO: scroll to visible.
     }
   }
 
@@ -582,27 +668,28 @@ class _InvoicesTableState extends State<InvoicesTable> {
         rowHeight: 19,
         roundColumnWidthsToWholePixel: true,
         selectionController: _selectionController,
+        sortController: _sortController,
         columns: <pivot.TableColumnController>[
           pivot.TableColumnController(
-            name: 'billing_period',
+            key: 'billing_start',
             width: pivot.ConstrainedTableColumnWidth(width: 150, minWidth: 50),
             cellRenderer: _renderBillingPeriodCell,
             headerRenderer: _renderBillingPeriodHeader,
           ),
           pivot.TableColumnController(
-            name: 'invoice_number',
+            key: 'invoice_number',
             width: pivot.ConstrainedTableColumnWidth(width: 125, minWidth: 50),
             cellRenderer: _renderInvoiceNumberCell,
             headerRenderer: _renderInvoiceNumberHeader,
           ),
           pivot.TableColumnController(
-            name: 'submitted',
+            key: 'submitted',
             width: pivot.ConstrainedTableColumnWidth(width: 125, minWidth: 50),
             cellRenderer: _renderSubmittedCell,
             headerRenderer: _renderSubmittedHeader,
           ),
           pivot.TableColumnController(
-            name: 'resubmit',
+            key: 'resubmit',
             width: pivot.FlexTableColumnWidth(),
             cellRenderer: _renderResubmitCell,
             headerRenderer: _renderResubmitHeader,
