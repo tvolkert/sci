@@ -542,7 +542,7 @@ class _InvoicesTableState extends State<InvoicesTable> {
     _selectionController = pivot.TableViewSelectionController(selectMode: pivot.SelectMode.single);
     _selectionController.addListener(_handleSelectionChanged);
     _sortListener = pivot.TableViewSortListener(onChanged: _handleSortChanged);
-    _sortController = pivot.TableViewSortController(sortMode: pivot.SortMode.singleColumn);
+    _sortController = pivot.TableViewSortController(sortMode: pivot.TableViewSortMode.singleColumn);
     _sortController.addListener(_sortListener);
   }
 
