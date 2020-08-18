@@ -539,6 +539,7 @@ class _InvoicesTableState extends State<InvoicesTable>
   pivot.TableViewSortListener _sortListener;
   pivot.ScrollController _scrollController;
   AnimationController _scrollAnimationController;
+  List<pivot.TableColumnController> _columns;
 
   @override
   initState() {
@@ -554,6 +555,32 @@ class _InvoicesTableState extends State<InvoicesTable>
       duration: const Duration(milliseconds: 250),
       vsync: this,
     );
+    _columns = <pivot.TableColumnController>[
+      pivot.TableColumnController(
+        key: 'billing_start',
+        width: pivot.ConstrainedTableColumnWidth(width: 150, minWidth: 50),
+        cellRenderer: _renderBillingPeriodCell,
+        headerRenderer: _renderBillingPeriodHeader,
+      ),
+      pivot.TableColumnController(
+        key: 'invoice_number',
+        width: pivot.ConstrainedTableColumnWidth(width: 125, minWidth: 50),
+        cellRenderer: _renderInvoiceNumberCell,
+        headerRenderer: _renderInvoiceNumberHeader,
+      ),
+      pivot.TableColumnController(
+        key: 'submitted',
+        width: pivot.ConstrainedTableColumnWidth(width: 125, minWidth: 50),
+        cellRenderer: _renderSubmittedCell,
+        headerRenderer: _renderSubmittedHeader,
+      ),
+      pivot.TableColumnController(
+        key: 'resubmit',
+        width: pivot.FlexTableColumnWidth(),
+        cellRenderer: _renderResubmitCell,
+        headerRenderer: _renderResubmitHeader,
+      ),
+    ];
   }
 
   @override
@@ -686,32 +713,7 @@ class _InvoicesTableState extends State<InvoicesTable>
         selectionController: _selectionController,
         sortController: _sortController,
         scrollController: _scrollController,
-        columns: <pivot.TableColumnController>[
-          pivot.TableColumnController(
-            key: 'billing_start',
-            width: pivot.ConstrainedTableColumnWidth(width: 150, minWidth: 50),
-            cellRenderer: _renderBillingPeriodCell,
-            headerRenderer: _renderBillingPeriodHeader,
-          ),
-          pivot.TableColumnController(
-            key: 'invoice_number',
-            width: pivot.ConstrainedTableColumnWidth(width: 125, minWidth: 50),
-            cellRenderer: _renderInvoiceNumberCell,
-            headerRenderer: _renderInvoiceNumberHeader,
-          ),
-          pivot.TableColumnController(
-            key: 'submitted',
-            width: pivot.ConstrainedTableColumnWidth(width: 125, minWidth: 50),
-            cellRenderer: _renderSubmittedCell,
-            headerRenderer: _renderSubmittedHeader,
-          ),
-          pivot.TableColumnController(
-            key: 'resubmit',
-            width: pivot.FlexTableColumnWidth(),
-            cellRenderer: _renderResubmitCell,
-            headerRenderer: _renderResubmitHeader,
-          ),
-        ],
+        columns: _columns,
       ),
     );
   }
