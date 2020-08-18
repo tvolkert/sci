@@ -1076,11 +1076,12 @@ mixin TableViewColumnListenerMixin on RenderBasicTableView {
 
   VoidCallback _listenerForColumn(int columnIndex) {
     return () {
+      final Rect viewport = constraints.viewportResolver.resolve(size);
       markCellsDirty(TableCellRect.fromLTRB(
         columnIndex,
-        constraints.viewport.top ~/ rowHeight,
+        viewport.top ~/ rowHeight,
         columnIndex,
-        constraints.viewport.bottom ~/ rowHeight,
+        viewport.bottom ~/ rowHeight,
       ));
       markNeedsMetrics();
     };
