@@ -531,30 +531,40 @@ class InvoicesTable extends StatefulWidget {
   _InvoicesTableState createState() => _InvoicesTableState();
 }
 
-class _InvoicesTableState extends State<InvoicesTable> {
+class _InvoicesTableState extends State<InvoicesTable>
+    with SingleTickerProviderStateMixin<InvoicesTable> {
+  pivot.TableViewMetricsController _metricsController;
   pivot.TableViewSelectionController _selectionController;
   pivot.TableViewSortController _sortController;
   pivot.TableViewSortListener _sortListener;
   pivot.ScrollController _scrollController;
+  AnimationController _scrollAnimationController;
 
   @override
   initState() {
     super.initState();
+    _metricsController = pivot.TableViewMetricsController();
     _selectionController = pivot.TableViewSelectionController(selectMode: pivot.SelectMode.single);
     _selectionController.addListener(_handleSelectionChanged);
     _sortListener = pivot.TableViewSortListener(onChanged: _handleSortChanged);
     _sortController = pivot.TableViewSortController(sortMode: pivot.TableViewSortMode.singleColumn);
     _sortController.addListener(_sortListener);
     _scrollController = pivot.ScrollController();
+    _scrollAnimationController = AnimationController(
+      duration: const Duration(milliseconds: 250),
+      vsync: this,
+    );
   }
 
   @override
   dispose() {
+    _metricsController.dispose();
     _selectionController.removeListener(_handleSelectionChanged);
     _selectionController.dispose();
     _sortController.removeListener(_sortListener);
     _sortController.dispose();
     _scrollController.dispose();
+    _scrollAnimationController.dispose();
     super.dispose();
   }
 
@@ -590,7 +600,9 @@ class _InvoicesTableState extends State<InvoicesTable> {
       int selectedIndex = binarySearch(widget.invoices, selectedItem, compare: comparator);
       assert(selectedIndex >= 0);
       _selectionController.selectedIndex = selectedIndex;
-      // TODO: scroll to visible.
+      assert(_metricsController.metrics != null);
+      final Rect rowBounds = _metricsController.metrics.getRowBounds(selectedIndex);
+      _scrollController.scrollToVisible(rowBounds, animation: _scrollAnimationController);
     }
   }
 
@@ -670,6 +682,7 @@ class _InvoicesTableState extends State<InvoicesTable> {
         length: widget.invoices.length,
         rowHeight: 19,
         roundColumnWidthsToWholePixel: true,
+        metricsController: _metricsController,
         selectionController: _selectionController,
         sortController: _sortController,
         scrollController: _scrollController,
