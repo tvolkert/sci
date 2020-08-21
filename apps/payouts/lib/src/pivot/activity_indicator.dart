@@ -1,6 +1,7 @@
 import 'dart:math' as math;
 
-import 'package:flutter/cupertino.dart';
+import 'package:flutter/rendering.dart';
+import 'package:flutter/widgets.dart';
 
 const Duration _duration = Duration(milliseconds: 1200);
 const double _defaultSize = 128;
@@ -10,22 +11,22 @@ class ActivityIndicator extends StatefulWidget {
   const ActivityIndicator({
     Key key,
     this.color = const Color(0xff000000),
-  }) : super(key: key);
+    this.animating = true,
+    this.semanticLabel = 'Loading',
+  })  : assert(color != null),
+        super(key: key);
 
   final Color color;
+  final bool animating;
+  final String semanticLabel;
 
   @override
   _ActivityIndicatorState createState() => _ActivityIndicatorState();
 }
 
-class _ActivityIndicatorState extends State<ActivityIndicator> with SingleTickerProviderStateMixin<ActivityIndicator> {
+class _ActivityIndicatorState extends State<ActivityIndicator>
+    with SingleTickerProviderStateMixin<ActivityIndicator> {
   AnimationController _controller;
-
-  static final Animatable<double> _rotationTween = _StepTween(
-    begin: 0,
-    end: 2 * math.pi,
-    step: 2 * math.pi / _spokes,
-  );
 
   @override
   void initState() {
@@ -34,7 +35,21 @@ class _ActivityIndicatorState extends State<ActivityIndicator> with SingleTicker
       duration: _duration,
       vsync: this,
     );
-    _controller.repeat();
+    if (widget.animating) {
+      _controller.repeat();
+    }
+  }
+
+  @override
+  void didUpdateWidget(ActivityIndicator oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.animating != oldWidget.animating) {
+      if (widget.animating) {
+        _controller.repeat();
+      } else {
+        _controller.stop();
+      }
+    }
   }
 
   @override
@@ -45,35 +60,30 @@ class _ActivityIndicatorState extends State<ActivityIndicator> with SingleTicker
 
   @override
   Widget build(BuildContext context) {
-    return AnimatedBuilder(
-      animation: _controller,
-      builder: (BuildContext context, Widget child) {
-        return Semantics(
-          label: 'Loading',
-          child: CustomPaint(
-            size: Size.square(_defaultSize),
-            painter: _ActivityIndicatorPainter(
-              baseColor: widget.color,
-              rotationValue: _rotationTween.evaluate(_controller),
-            ),
-          ),
-        );
-      },
+    return Semantics(
+      label: widget.semanticLabel,
+      child: CustomPaint(
+        size: Size.square(_defaultSize),
+        painter: ActivityIndicatorPainter(
+          baseColor: widget.color,
+          animation: _controller,
+        ),
+      ),
     );
   }
 }
 
-class _ActivityIndicatorPainter extends CustomPainter {
-  _ActivityIndicatorPainter({
+class ActivityIndicatorPainter extends CustomPainter {
+  ActivityIndicatorPainter({
     this.baseColor,
-    this.rotationValue,
+    this.animation,
   })  : assert(baseColor != null),
-        assert(rotationValue != null),
-        colors = _splitColor(baseColor);
+        colors = _splitColor(baseColor),
+        super(repaint: animation);
 
   final Color baseColor;
   final List<Color> colors;
-  final double rotationValue;
+  final Animation<double> animation;
 
   static List<Color> _splitColor(Color color) {
     return List<Color>.generate(_spokes, (int index) {
@@ -81,6 +91,12 @@ class _ActivityIndicatorPainter extends CustomPainter {
       return color.withAlpha(alpha);
     });
   }
+
+  static final Tween<double> _rotationTween = _StepTween(
+    begin: 0,
+    end: 2 * math.pi,
+    step: 2 * math.pi / _spokes,
+  );
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -94,7 +110,8 @@ class _ActivityIndicatorPainter extends CustomPainter {
       canvas.scale(scale);
     }
 
-    canvas.translate(64, 64);
+    final double rotationValue = _rotationTween.evaluate(animation);
+    canvas.translate(_defaultSize / 2, _defaultSize / 2);
     canvas.rotate(rotationValue);
 
     final double increment = 2 * math.pi / _spokes;
@@ -107,8 +124,8 @@ class _ActivityIndicatorPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(_ActivityIndicatorPainter oldPainter) {
-    return oldPainter.baseColor != baseColor || oldPainter.rotationValue != rotationValue;
+  bool shouldRepaint(ActivityIndicatorPainter oldPainter) {
+    return oldPainter.baseColor != baseColor || oldPainter.animation.value != animation.value;
   }
 }
 

@@ -155,28 +155,27 @@ class BasicTableView extends RenderObjectWidget {
 
 @immutable
 class TableViewSlot with Diagnosticable {
-  const TableViewSlot(this.row, this.column);
+  const TableViewSlot(this.rowIndex, this.columnIndex);
 
-  final int row;
-  final int column;
+  final int rowIndex;
+  final int columnIndex;
 
   @override
   bool operator ==(Object other) {
-    if (other.runtimeType != runtimeType) {
-      return false;
-    }
-    return other is TableViewSlot && row == other.row && column == other.column;
+    if (identical(this, other)) return true;
+    if (runtimeType != other.runtimeType) return false;
+    return other is TableViewSlot && rowIndex == other.rowIndex && columnIndex == other.columnIndex;
   }
 
   @override
-  int get hashCode => hashValues(row, column);
+  int get hashCode => hashValues(rowIndex, columnIndex);
 
   @override
   @protected
   void debugFillProperties(DiagnosticPropertiesBuilder properties) {
     super.debugFillProperties(properties);
-    properties.add(IntProperty('row', row));
-    properties.add(IntProperty('column', column));
+    properties.add(IntProperty('row', rowIndex));
+    properties.add(IntProperty('column', columnIndex));
   }
 }
 
@@ -347,9 +346,6 @@ class BasicTableViewElement extends RenderObjectElement {
   RenderBasicTableView get renderObject => super.renderObject as RenderBasicTableView;
 
   Map<int, Map<int, Element>> _children;
-  // We keep a set of forgotten children to avoid O(n^2) work walking _children
-  // repeatedly to remove children.
-  final Set<Element> _forgottenChildren = HashSet<Element>();
 
   @override
   void update(BasicTableView newWidget) {
@@ -489,30 +485,39 @@ class BasicTableViewElement extends RenderObjectElement {
     for (final Map<int, Element> row in _children.values) {
       for (final Element child in row.values) {
         assert(child != null);
-        if (!_forgottenChildren.contains(child)) {
-          visitor(child);
-        }
+        visitor(child);
       }
     }
   }
 
   @override
   void forgetChild(Element child) {
-    _forgottenChildren.add(child);
+    assert(child != null);
+    assert(child.slot is TableViewSlot);
+    final TableViewSlot slot = child.slot;
+    assert(_children != null);
+    assert(_children.containsKey(slot.rowIndex));
+    final Map<int, Element> row = _children[slot.rowIndex];
+    assert(row.containsKey(slot.columnIndex));
+    assert(row[slot.columnIndex] == child);
+    row.remove(slot.columnIndex);
+    if (row.isEmpty) {
+      _children.remove(slot.rowIndex);
+    }
     super.forgetChild(child);
   }
 
   @override
   void insertRenderObjectChild(RenderObject child, TableViewSlot slot) {
     assert(child.parent == null);
-    renderObject.insert(child, rowIndex: slot.row, columnIndex: slot.column);
+    renderObject.insert(child, rowIndex: slot.rowIndex, columnIndex: slot.columnIndex);
     assert(child.parent == renderObject);
   }
 
   @override
   void moveRenderObjectChild(RenderObject child, TableViewSlot oldSlot, TableViewSlot newSlot) {
     assert(child.parent == renderObject);
-    renderObject.move(child, rowIndex: oldSlot.row, columnIndex: oldSlot.column);
+    renderObject.move(child, rowIndex: newSlot.rowIndex, columnIndex: newSlot.columnIndex);
     assert(child.parent == renderObject);
   }
 
@@ -639,6 +644,7 @@ class RenderBasicTableView extends RenderSegment {
   TableViewLayoutCallback _layoutCallback;
 
   /// Change the layout callback.
+  @protected
   void updateCallback(TableViewLayoutCallback value) {
     if (value == _layoutCallback) return;
     _layoutCallback = value;
@@ -656,7 +662,6 @@ class RenderBasicTableView extends RenderSegment {
   @protected
   void markNeedsBuild() {
     _needsBuild = true;
-    // TODO: does build really necessitate layout? It's not clear that it does...
     markNeedsLayout();
   }
 
@@ -693,6 +698,7 @@ class RenderBasicTableView extends RenderSegment {
     });
   }
 
+  @protected
   void visitTableCells(TableCellChildVisitor visitor, {bool allowMutations = false}) {
     Iterable<MapEntry<int, Map<int, RenderBox>>> rows = _children.entries;
     if (allowMutations) rows = rows.toList(growable: false);
@@ -801,9 +807,10 @@ class RenderBasicTableView extends RenderSegment {
   }
 
   @override
+  @protected
   void performLayout() {
     calculateMetricsIfNecessary();
-    size = constraints.constrainDimensions(metrics.totalWidth, length * rowHeight);
+    size = constraints.constrainDimensions(metrics.totalWidth, metrics.totalHeight);
 
     // Relies on size being set.
     rebuildIfNecessary();
@@ -829,7 +836,8 @@ class RenderBasicTableView extends RenderSegment {
     return !_children.containsKey(rowIndex) || !_children[rowIndex].containsKey(columnIndex);
   }
 
-  TableCellRange allCells() {
+  @protected
+  TableCellRange builtCells() {
     return ProxyTableCellRange((TableCellVisitor visitor) {
       visitTableCells((RenderBox child, int rowIndex, int columnIndex) {
         visitor(rowIndex, columnIndex);
@@ -848,7 +856,7 @@ class RenderBasicTableView extends RenderSegment {
     }
 
     final TableCellRect viewportCellRect = metrics.intersect(_viewport);
-    TableCellRange removeCells = allCells().subtract(viewportCellRect);
+    TableCellRange removeCells = builtCells().subtract(viewportCellRect);
     TableCellRange buildCells;
 
     if (_needsBuild) {
@@ -900,9 +908,7 @@ class RenderBasicTableView extends RenderSegment {
   List<DiagnosticsNode> debugDescribeChildren() {
     final List<DiagnosticsNode> result = <DiagnosticsNode>[];
     visitTableCells((RenderBox child, int rowIndex, int columnIndex) {
-      if (child != null) {
-        result.add(child.toDiagnosticsNode(name: 'child $rowIndex,$columnIndex'));
-      }
+      result.add(child.toDiagnosticsNode(name: 'child $rowIndex,$columnIndex'));
     });
     return result;
   }
@@ -983,7 +989,10 @@ abstract class TableViewMetrics {
   Rect getCellBounds(int rowIndex, int columnIndex);
 }
 
-typedef TableViewMetricsChangedHandler = void Function(TableViewMetricsController controller);
+typedef TableViewMetricsChangedHandler = void Function(
+  TableViewMetricsController controller,
+  TableViewMetrics oldMetrics,
+);
 
 class TableViewMetricsListener {
   const TableViewMetricsListener({
@@ -999,9 +1008,10 @@ class TableViewMetricsController with ListenerNotifier<TableViewMetricsListener>
   void _setMetrics(TableViewMetrics value) {
     assert(value != null);
     if (value == _metrics) return;
+    final TableViewMetrics oldValue = _metrics;
     _metrics = value;
     notifyListeners((TableViewMetricsListener listener) {
-      listener.onChanged(this);
+      listener.onChanged(this, oldValue);
     });
   }
 }
@@ -1148,6 +1158,8 @@ class TableViewMetricsResolver implements TableViewMetrics {
   /// The total column width of the table view.
   double get totalWidth => columnBounds.isEmpty ? 0 : columnBounds.last.end;
 
+  double get totalHeight => length * rowHeight;
+
   TableCellRect intersect(Rect rect) {
     assert(rect != null);
     if (rect.isEmpty) {
@@ -1160,6 +1172,7 @@ class TableViewMetricsResolver implements TableViewMetrics {
     } else {
       int bottomIndex = rect.bottom ~/ rowHeight;
       if (rect.bottom.remainder(rowHeight) == 0) {
+        // The rect goes *right up* to the cell but doesn't actually overlap it.
         bottomIndex -= 1;
       }
       return TableCellRect.fromLTRB(

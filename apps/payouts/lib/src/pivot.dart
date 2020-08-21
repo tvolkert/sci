@@ -2,6 +2,7 @@ export 'pivot/activity_indicator.dart';
 export 'pivot/basic_table_view.dart';
 export 'pivot/border.dart';
 export 'pivot/colors.dart';
+export 'pivot/hover_builder.dart';
 export 'pivot/link_button.dart';
 export 'pivot/listener_list.dart';
 export 'pivot/push_button.dart';
