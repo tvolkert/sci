@@ -227,7 +227,10 @@ class PayoutsHome extends StatelessWidget {
                           offset: Offset(0, -1),
                           child: Text(
                             'FOO',
-                            style: Theme.of(context).textTheme.bodyText2.copyWith(fontWeight: FontWeight.bold),
+                            style: Theme.of(context)
+                                .textTheme
+                                .bodyText2
+                                .copyWith(fontWeight: FontWeight.bold),
                           ),
                         ),
                         HoverPushButton(
@@ -921,73 +924,6 @@ class Accomplishments extends StatelessWidget {
   }
 }
 
-class TableHeaderCell extends StatelessWidget {
-  const TableHeaderCell({
-    Key key,
-    @required this.label,
-    this.width,
-    this.sortDirection,
-  }) : super(key: key);
-
-  final String label;
-  final double width;
-  final pivot.SortDirection sortDirection;
-
-  @override
-  Widget build(BuildContext context) {
-    Widget content = Text(label);
-    if (sortDirection != null) {
-      content = Row(
-        children: [
-          content,
-          Expanded(
-            child: Align(
-              alignment: Alignment.centerRight,
-              child: Padding(
-                padding: EdgeInsets.only(right: 2),
-                child: CustomPaint(
-                  size: Size(7, 4),
-                  painter: pivot.SortIndicatorPainter(sortDirection: sortDirection),
-                ),
-              ),
-            ),
-          ),
-        ],
-      );
-    }
-
-    final Widget box = DecoratedBox(
-      decoration: BoxDecoration(
-        border: Border(
-          top: BorderSide(color: Color(0xff999999)),
-          right: BorderSide(color: Color(0xff999999)),
-          bottom: BorderSide(color: Color(0xff999999)),
-        ),
-        gradient: LinearGradient(
-          begin: Alignment(0, 0.8),
-          end: Alignment(0, -0.8),
-          colors: <Color>[Color(0xffdfded7), Color(0xfff6f4ed)],
-        ),
-      ),
-      child: Padding(
-        padding: EdgeInsets.fromLTRB(3, 2, 3, 3),
-        child: content,
-      ),
-    );
-
-    if (width != null) {
-      return SizedBox(
-        width: width,
-        child: box,
-      );
-    } else {
-      return Expanded(
-        child: box,
-      );
-    }
-  }
-}
-
 class CheckMarkPainter extends CustomPainter {
   const CheckMarkPainter({
     @required this.checked,
@@ -1356,7 +1292,8 @@ class BillableHours extends StatelessWidget {
                     _buildRow('Loral - T14R', r'0 hrs @$110.00/hr ($0.00)'),
                     _buildRow('Sirius FM 6', r'5 hrs @$120.00/hr ($600.00)'),
                     TableRow(
-                      decoration: BoxDecoration(border: Border(bottom: BorderSide(color: Color(0xff999999)))),
+                      decoration: BoxDecoration(
+                          border: Border(bottom: BorderSide(color: Color(0xff999999)))),
                       children: [
                         SizedBox(height: 5),
                         Container(),
@@ -1379,7 +1316,8 @@ class BillableHours extends StatelessWidget {
                     ),
                     TableRow(
                       children: [
-                        Text('Daily Totals', maxLines: 1, style: TextStyle(fontStyle: FontStyle.italic)),
+                        Text('Daily Totals',
+                            maxLines: 1, style: TextStyle(fontStyle: FontStyle.italic)),
                         Padding(
                           padding: EdgeInsets.only(top: 5, left: 2),
                           child: Text('6', style: TextStyle(fontStyle: FontStyle.italic)),
@@ -1433,48 +1371,41 @@ class BillableHours extends StatelessWidget {
   }
 }
 
-class ExpenseReports extends StatelessWidget {
-  List<TableRow> _buildExpenseRows() {
-    List<List<String>> data = [
-      ['2015-10-12', 'Lodging', r'$219.05', 'Hotel'],
-      ['2015-10-13', 'Car Rental', r'$34.50', 'Test'],
-      ['2015-10-13', 'Parking', r'$12.00', ''],
-      ['2015-10-13', 'Lodging', r'$219.05', 'Hotel'],
-      ['2015-10-14', 'Car Rental', r'$23.43', 'foo'],
-      ['2015-10-14', 'Lodging', r'$219.05', 'Hotel'],
-      ['2015-10-15', 'Lodging', r'$219.05', 'Hotel'],
-      ['2015-10-16', 'Lodging', r'$219.05', 'Hotel'],
-      ['2015-10-17', 'Lodging', r'$219.05', 'Hotel'],
-      ['2015-10-18', 'Lodging', r'$219.05', 'Hotel'],
-      ['2015-10-19', 'Lodging', r'$219.05', 'Hotel'],
-      ['2015-10-20', 'Lodging', r'$219.05', 'Hotel'],
-      ['2015-10-21', 'Lodging', r'$219.05', 'Hotel'],
-      ['2015-10-22', 'Lodging', r'$219.05', 'Hotel'],
-      ['2015-10-23', 'Lodging', r'$219.05', 'Hotel'],
-      ['2015-10-24', 'Lodging', r'$219.05', 'Hotel'],
-      ['2015-10-25', 'Lodging', r'$219.05', 'Hotel'],
-    ];
+class ExpenseCellWrapper extends StatelessWidget {
+  const ExpenseCellWrapper({
+    Key key,
+    this.rowIndex = 0,
+    this.rowHighlighted = false,
+    this.rowSelected = false,
+    this.child,
+  }) : assert(rowIndex != null), super(key: key);
 
-    List<Color> colors = <Color>[Colors.white, Color(0xfff7f5ee)];
-    int colorIndex = 1;
-    return data.map<TableRow>((List<String> row) {
-      colorIndex = 1 - colorIndex;
-      return TableRow(
-        decoration: BoxDecoration(color: colors[colorIndex]),
-        children: row.map<Widget>((String value) {
-          return Padding(
-            padding: EdgeInsets.fromLTRB(2, 3, 2, 3),
-            child: Text(
-              value,
-              maxLines: 1,
-              overflow: TextOverflow.clip,
-            ),
-          );
-        }).toList(),
+  final int rowIndex;
+  final bool rowHighlighted;
+  final bool rowSelected;
+  final Widget child;
+
+  static const List<Color> colors = <Color>[Colors.white, Color(0xfff7f5ee)];
+
+  @override
+  Widget build(BuildContext context) {
+    Widget result = Padding(
+      padding: EdgeInsets.fromLTRB(2, 3, 2, 3),
+      child: child,
+    );
+
+    if (!rowHighlighted && !rowSelected) {
+      result = ColoredBox(
+        color: colors[rowIndex % 2],
+        child: result,
       );
-    }).toList();
-  }
+    }
 
+    return result;
+  }
+}
+
+class ExpenseReports extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
@@ -1507,7 +1438,8 @@ class ExpenseReports extends StatelessWidget {
                         Padding(
                           padding: EdgeInsets.fromLTRB(11, 11, 11, 9),
                           child: DefaultTextStyle(
-                            style: Theme.of(context).textTheme.bodyText2.copyWith(color: Colors.black),
+                            style:
+                                Theme.of(context).textTheme.bodyText2.copyWith(color: Colors.black),
                             child: Table(
                               columnWidths: {
                                 0: IntrinsicColumnWidth(),
@@ -1516,33 +1448,50 @@ class ExpenseReports extends StatelessWidget {
                               children: [
                                 TableRow(
                                   children: [
-                                    Padding(padding: EdgeInsets.only(bottom: 4), child: Text('Program:')),
-                                    Padding(padding: EdgeInsets.only(bottom: 4), child: Text('Orbital Sciences')),
-                                  ],
-                                ),
-                                TableRow(
-                                  children: [
-                                    Padding(padding: EdgeInsets.only(bottom: 4), child: Text('Charge number:')),
-                                    Padding(padding: EdgeInsets.only(bottom: 4), child: Text('123')),
-                                  ],
-                                ),
-                                TableRow(
-                                  children: [
-                                    Padding(padding: EdgeInsets.only(bottom: 4), child: Text('Dates:')),
                                     Padding(
-                                        padding: EdgeInsets.only(bottom: 4), child: Text('2015-10-12 to 2015-10-25')),
+                                        padding: EdgeInsets.only(bottom: 4),
+                                        child: Text('Program:')),
+                                    Padding(
+                                        padding: EdgeInsets.only(bottom: 4),
+                                        child: Text('Orbital Sciences')),
                                   ],
                                 ),
                                 TableRow(
                                   children: [
-                                    Padding(padding: EdgeInsets.only(bottom: 4), child: Text('Purpose of travel:')),
-                                    Padding(padding: EdgeInsets.only(bottom: 4), child: Text('None of your business')),
+                                    Padding(
+                                        padding: EdgeInsets.only(bottom: 4),
+                                        child: Text('Charge number:')),
+                                    Padding(
+                                        padding: EdgeInsets.only(bottom: 4), child: Text('123')),
                                   ],
                                 ),
                                 TableRow(
                                   children: [
-                                    Padding(padding: EdgeInsets.only(bottom: 4), child: Text('Destination (city):')),
-                                    Padding(padding: EdgeInsets.only(bottom: 4), child: Text('Vancouver')),
+                                    Padding(
+                                        padding: EdgeInsets.only(bottom: 4), child: Text('Dates:')),
+                                    Padding(
+                                        padding: EdgeInsets.only(bottom: 4),
+                                        child: Text('2015-10-12 to 2015-10-25')),
+                                  ],
+                                ),
+                                TableRow(
+                                  children: [
+                                    Padding(
+                                        padding: EdgeInsets.only(bottom: 4),
+                                        child: Text('Purpose of travel:')),
+                                    Padding(
+                                        padding: EdgeInsets.only(bottom: 4),
+                                        child: Text('None of your business')),
+                                  ],
+                                ),
+                                TableRow(
+                                  children: [
+                                    Padding(
+                                        padding: EdgeInsets.only(bottom: 4),
+                                        child: Text('Destination (city):')),
+                                    Padding(
+                                        padding: EdgeInsets.only(bottom: 4),
+                                        child: Text('Vancouver')),
                                   ],
                                 ),
                                 TableRow(
@@ -1550,7 +1499,8 @@ class ExpenseReports extends StatelessWidget {
                                     Padding(
                                         padding: EdgeInsets.only(bottom: 4, right: 6),
                                         child: Text('Party or parties visited:')),
-                                    Padding(padding: EdgeInsets.only(bottom: 4), child: Text('Jimbo')),
+                                    Padding(
+                                        padding: EdgeInsets.only(bottom: 4), child: Text('Jimbo')),
                                   ],
                                 ),
                               ],
@@ -1569,46 +1519,15 @@ class ExpenseReports extends StatelessWidget {
                             ],
                           ),
                         ),
+                        Divider(
+                          height: 1,
+                          thickness: 1,
+                          color: const Color(0xff999999),
+                        ),
                         Expanded(
                           child: Padding(
                             padding: EdgeInsets.all(1),
-                            child: pivot.ScrollPane(
-                              horizontalScrollBarPolicy: pivot.ScrollBarPolicy.stretch,
-                              topRightCorner: DecoratedBox(
-                                decoration: BoxDecoration(
-                                  color: Color(0xfff0ece7),
-                                  border: Border(
-                                    top: BorderSide(color: Color(0xff999999)),
-                                  ),
-                                ),
-                              ),
-                              columnHeader: Row(
-                                children: [
-                                  TableHeaderCell(
-                                      width: 120, label: 'Date', sortDirection: pivot.SortDirection.ascending),
-                                  TableHeaderCell(width: 120, label: 'Type'),
-                                  TableHeaderCell(width: 100, label: 'Amount'),
-                                  TableHeaderCell(label: 'Description'),
-                                ],
-                              ),
-                              view: Table(
-                                border: TableBorder.symmetric(
-                                  inside: BorderSide(
-                                    width: 0,
-                                    color: Color(0xfff7f5ee),
-                                  ),
-                                ),
-                                columnWidths: <int, TableColumnWidth>{
-                                  0: FixedColumnWidth(120),
-                                  1: FixedColumnWidth(120),
-                                  2: FixedColumnWidth(100),
-                                  3: FlexColumnWidth(),
-                                },
-                                defaultVerticalAlignment: TableCellVerticalAlignment.baseline,
-                                textBaseline: TextBaseline.alphabetic,
-                                children: _buildExpenseRows(),
-                              ),
-                            ),
+                            child: ExpensesTableView(),
                           ),
                         ),
                       ],
@@ -1620,6 +1539,241 @@ class ExpenseReports extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+}
+
+class ExpensesTableView extends StatefulWidget {
+  @override
+  _ExpensesTableViewState createState() => _ExpensesTableViewState();
+}
+
+class _ExpensesTableViewState extends State<ExpensesTableView> {
+  pivot.TableViewSelectionController _selectionController;
+  pivot.TableViewSortController _sortController;
+  pivot.TableViewEditorController _editorcontroller;
+
+  final List<List<String>> data = [
+    ['2015-10-12', 'Lodging', r'$219.05', 'Hotel'],
+    ['2015-10-13', 'Car Rental', r'$34.50', 'Test'],
+    ['2015-10-13', 'Parking', r'$12.00', ''],
+    ['2015-10-13', 'Lodging', r'$219.05', 'Hotel'],
+    ['2015-10-14', 'Car Rental', r'$23.43', 'foo'],
+    ['2015-10-14', 'Lodging', r'$219.05', 'Hotel'],
+    ['2015-10-15', 'Lodging', r'$219.05', 'Hotel'],
+    ['2015-10-16', 'Lodging', r'$219.05', 'Hotel'],
+    ['2015-10-17', 'Lodging', r'$219.05', 'Hotel'],
+    ['2015-10-18', 'Lodging', r'$219.05', 'Hotel'],
+    ['2015-10-19', 'Lodging', r'$219.05', 'Hotel'],
+    ['2015-10-20', 'Lodging', r'$219.05', 'Hotel'],
+    ['2015-10-21', 'Lodging', r'$219.05', 'Hotel'],
+    ['2015-10-22', 'Lodging', r'$219.05', 'Hotel'],
+    ['2015-10-23', 'Lodging', r'$219.05', 'Hotel'],
+    ['2015-10-24', 'Lodging', r'$219.05', 'Hotel'],
+    ['2015-10-25', 'Lodging', r'$219.05', 'Hotel'],
+  ];
+
+  static final intl.DateFormat dateFormat = intl.DateFormat('yyyy-MM-dd');
+
+  pivot.TableHeaderRenderer _renderHeader(String name) {
+    return ({
+      BuildContext context,
+      int columnIndex,
+    }) {
+      return Text(
+        name,
+        maxLines: 1,
+        softWrap: false,
+        overflow: TextOverflow.clip,
+      );
+    };
+  }
+
+  Widget _renderDate({
+    BuildContext context,
+    int rowIndex,
+    int columnIndex,
+    bool rowSelected,
+    bool rowHighlighted,
+    bool isEditing,
+  }) {
+    final String date = data[rowIndex][0];
+    final DateTime dateTime = DateTime.parse(date);
+    final String formattedDate = dateFormat.format(dateTime);
+    TextStyle style = DefaultTextStyle.of(context).style;
+    if (rowSelected) {
+      style = style.copyWith(color: Colors.white);
+    }
+    return ExpenseCellWrapper(
+      rowIndex: rowIndex,
+      rowHighlighted: rowHighlighted,
+      rowSelected: rowSelected,
+      child: Text(
+        formattedDate,
+        maxLines: 1,
+        softWrap: false,
+        overflow: TextOverflow.clip,
+        style: style,
+      ),
+    );
+  }
+
+  Widget _renderType({
+    BuildContext context,
+    int rowIndex,
+    int columnIndex,
+    bool rowSelected,
+    bool rowHighlighted,
+    bool isEditing,
+  }) {
+    final String type = data[rowIndex][1];
+    if (isEditing) {
+      return _renderTypeEditor(type);
+    }
+    TextStyle style = DefaultTextStyle.of(context).style;
+    if (rowSelected) {
+      style = style.copyWith(color: Colors.white);
+    }
+    return ExpenseCellWrapper(
+      rowIndex: rowIndex,
+      rowHighlighted: rowHighlighted,
+      rowSelected: rowSelected,
+      child: Text(
+        type,
+        maxLines: 1,
+        softWrap: false,
+        overflow: TextOverflow.clip,
+        style: style,
+      ),
+    );
+  }
+
+  Widget _renderTypeEditor(String type) {
+    return pivot.PushButton<String>(
+      onPressed: () {},
+      label: type,
+      menuItems: <PopupMenuEntry<String>>[
+        PopupMenuItem<String>(
+          value: 'type1',
+          height: 22,
+          child: Text('Another type'),
+        ),
+        PopupMenuItem<String>(
+          value: 'type2',
+          height: 22,
+          child: Text('Yet another type'),
+        ),
+      ],
+      onMenuItemSelected: (String value) {
+      },
+    );
+  }
+
+  Widget _renderAmount({
+    BuildContext context,
+    int rowIndex,
+    int columnIndex,
+    bool rowSelected,
+    bool rowHighlighted,
+    bool isEditing,
+  }) {
+    final String amount = data[rowIndex][2];
+    TextStyle style = DefaultTextStyle.of(context).style;
+    if (rowSelected) {
+      style = style.copyWith(color: Colors.white);
+    }
+    return ExpenseCellWrapper(
+      rowIndex: rowIndex,
+      rowHighlighted: rowHighlighted,
+      rowSelected: rowSelected,
+      child: Text(
+        amount,
+        maxLines: 1,
+        softWrap: false,
+        overflow: TextOverflow.clip,
+        style: style,
+      ),
+    );
+  }
+
+  Widget _renderDescription({
+    BuildContext context,
+    int rowIndex,
+    int columnIndex,
+    bool rowSelected,
+    bool rowHighlighted,
+    bool isEditing,
+  }) {
+    final String description = data[rowIndex][3];
+    TextStyle style = DefaultTextStyle.of(context).style;
+    if (rowSelected) {
+      style = style.copyWith(color: Colors.white);
+    }
+    return ExpenseCellWrapper(
+      rowIndex: rowIndex,
+      rowHighlighted: rowHighlighted,
+      rowSelected: rowSelected,
+      child: Text(
+        description,
+        maxLines: 1,
+        softWrap: false,
+        overflow: TextOverflow.clip,
+        style: style,
+      ),
+    );
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _selectionController = pivot.TableViewSelectionController(selectMode: pivot.SelectMode.multi);
+    _sortController = pivot.TableViewSortController(sortMode: pivot.TableViewSortMode.singleColumn);
+    _editorcontroller = pivot.TableViewEditorController();
+  }
+
+  @override
+  void dispose() {
+    _selectionController.dispose();
+    _sortController.dispose();
+    _editorcontroller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return pivot.ScrollableTableView(
+      rowHeight: 19,
+      length: data.length,
+      selectionController: _selectionController,
+      sortController: _sortController,
+      editorController: _editorcontroller,
+      roundColumnWidthsToWholePixel: false,
+      columns: <pivot.TableColumnController>[
+        pivot.TableColumnController(
+          key: 'date',
+          width: pivot.FixedTableColumnWidth(120),
+          cellRenderer: _renderDate,
+          headerRenderer: _renderHeader('Date'),
+        ),
+        pivot.TableColumnController(
+          key: 'type',
+          width: pivot.FixedTableColumnWidth(120),
+          cellRenderer: _renderType,
+          headerRenderer: _renderHeader('Type'),
+        ),
+        pivot.TableColumnController(
+          key: 'amount',
+          width: pivot.FixedTableColumnWidth(100),
+          cellRenderer: _renderAmount,
+          headerRenderer: _renderHeader('Amount'),
+        ),
+        pivot.TableColumnController(
+          key: 'description',
+          width: pivot.FlexTableColumnWidth(),
+          cellRenderer: _renderDescription,
+          headerRenderer: _renderHeader('Description'),
+        ),
+      ],
     );
   }
 }
@@ -1715,8 +1869,9 @@ class TestBorder extends TableBorder {
     assert(rows != null);
     assert(rows.isEmpty || (rows.first >= 0.0 && rows.last <= rect.height));
     assert(columns != null);
-    assert(
-        columns.isEmpty || (columns.first >= 0.0 && rect.width - columns.last >= -Tolerance.defaultTolerance.distance));
+    assert(columns.isEmpty ||
+        (columns.first >= 0.0 &&
+            rect.width - columns.last >= -Tolerance.defaultTolerance.distance));
 
     final List<double> rowsList = List<double>.from(rows, growable: false);
     final List<double> columnsList = List<double>.from(columns, growable: false);
@@ -1803,7 +1958,8 @@ class TestBorder extends TableBorder {
   }
 
   @override
-  int get hashCode => hashValues(top, right, bottom, left, horizontalInside, verticalInside, aggregateColumns);
+  int get hashCode =>
+      hashValues(top, right, bottom, left, horizontalInside, verticalInside, aggregateColumns);
 
   @override
   String toString() =>
