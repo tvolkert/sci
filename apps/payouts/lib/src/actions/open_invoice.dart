@@ -639,6 +639,7 @@ class _InvoicesTableState extends State<InvoicesTable>
     int columnIndex,
     bool rowHighlighted,
     bool rowSelected,
+    bool isEditing,
   }) {
     return CellWrapper(
       selected: rowSelected,
@@ -656,6 +657,7 @@ class _InvoicesTableState extends State<InvoicesTable>
     int columnIndex,
     bool rowHighlighted,
     bool rowSelected,
+    bool isEditing,
   }) {
     return CellWrapper(
       selected: rowSelected,
@@ -673,6 +675,7 @@ class _InvoicesTableState extends State<InvoicesTable>
     int columnIndex,
     bool rowHighlighted,
     bool rowSelected,
+    bool isEditing,
   }) {
     return CellWrapper(
       selected: rowSelected,
@@ -690,6 +693,7 @@ class _InvoicesTableState extends State<InvoicesTable>
     int columnIndex,
     bool rowHighlighted,
     bool rowSelected,
+    bool isEditing,
   }) {
     return CellWrapper(
       selected: rowSelected,
