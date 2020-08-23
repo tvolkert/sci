@@ -1751,7 +1751,7 @@ class _ExpensesTableViewState extends State<ExpensesTableView> {
       columns: <pivot.TableColumnController>[
         pivot.TableColumnController(
           key: 'date',
-          width: pivot.FixedTableColumnWidth(120),
+          width: pivot.ConstrainedTableColumnWidth(width: 120),
           cellRenderer: _renderDate,
           headerRenderer: _renderHeader('Date'),
         ),
