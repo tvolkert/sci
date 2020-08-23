@@ -1378,6 +1378,7 @@ class _TableViewHeaderEnvelopeState extends State<TableViewHeaderEnvelope> {
           Expanded(
             child: renderedHeader,
           ),
+          // TODO: fixed-width column should still paint dividers, but they aren't
           if (isColumnResizable)
             SizedBox(
               width: _kResizeHandleTargetPixels,
