@@ -1,6 +1,6 @@
 import 'package:flutter/widgets.dart';
 
-import 'package:payouts/model/user.dart';
+import 'package:payouts/src/model/user.dart';
 
 class UserBinding extends StatefulWidget {
   const UserBinding({
@@ -28,14 +28,14 @@ class UserBinding extends StatefulWidget {
     int lastInvoiceId,
     bool passwordRequiresReset = false,
   }) {
-    _UserBindingScope scope = context.inheritFromWidgetOfExactType(_UserBindingScope);
-    assert(scope != null, 'UserBinding not found in ancestry');
-    scope.userBindingState._updateUser(User(
-      username,
-      password,
-      lastInvoiceId,
-      passwordRequiresReset,
-    ));
+//    _UserBindingScope scope = context.inheritFromWidgetOfExactType(_UserBindingScope);
+//    assert(scope != null, 'UserBinding not found in ancestry');
+//    scope.userBindingState._updateUser(User(
+//      username,
+//      password,
+//      lastInvoiceId,
+//      passwordRequiresReset,
+//    ));
   }
 
   static void clear(BuildContext context) {

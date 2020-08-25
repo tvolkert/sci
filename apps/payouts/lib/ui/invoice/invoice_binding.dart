@@ -4,9 +4,9 @@ import 'package:http/http.dart' as http;
 import 'package:flutter/widgets.dart';
 
 import 'package:payouts/model/invoice.dart';
-import 'package:payouts/model/user.dart';
+import 'package:payouts/src/model/user.dart';
 import 'package:payouts/ui/loading.dart';
-import 'package:payouts/ui/auth/user_binding.dart';
+import 'package:payouts/ui/auth/user_binding.dart' as ub;
 
 class InvoiceBinding extends StatefulWidget {
   const InvoiceBinding({
@@ -54,7 +54,7 @@ class _InvoiceBindingState extends State<InvoiceBinding> implements InvoiceConte
       return;
     }
 
-    User user = UserBinding.of(context);
+    User user = ub.UserBinding.of(context);
     assert(user != null, 'Attempt to load an invoice while the user was logged out');
 
     Uri uri = Uri(
@@ -65,7 +65,7 @@ class _InvoiceBindingState extends State<InvoiceBinding> implements InvoiceConte
         'invoiceId': '$invoiceId',
       },
     );
-    Future<http.Response> responseFuture = http.get(uri, headers: user.authHeaders);
+    final Future<http.Response> responseFuture = user.authenticate().get(uri);
     debugPrint('sending request');
     responseFuture.then<http.Response>((http.Response response) {
       if (response.statusCode == 200) {

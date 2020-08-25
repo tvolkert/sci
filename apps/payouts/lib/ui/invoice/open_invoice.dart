@@ -4,9 +4,9 @@ import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
 
 import 'package:payouts/model/invoice.dart';
-import 'package:payouts/model/user.dart';
+import 'package:payouts/src/model/user.dart';
 import 'package:payouts/ui/loading.dart';
-import 'package:payouts/ui/auth/user_binding.dart';
+import 'package:payouts/ui/auth/user_binding.dart' as ub;
 
 class OpenInvoicePage extends StatefulWidget {
   @override
@@ -32,7 +32,7 @@ class _OpenInvoicePageState extends State<OpenInvoicePage> {
     }
     initialized = true;
 
-    User user = UserBinding.of(context);
+    User user = ub.UserBinding.of(context);
     assert(user != null, 'User not logged in');
 
     Uri uri = Uri(
@@ -40,10 +40,7 @@ class _OpenInvoicePageState extends State<OpenInvoicePage> {
       host: 'www.satelliteconsulting.com',
       path: 'invoices',
     );
-    Future<http.Response> response = http.get(
-      uri,
-      headers: user.authHeaders,
-    );
+    Future<http.Response> response = user.authenticate().get(uri);
     response.then<http.Response>((http.Response response) {
       if (response.statusCode == 200) {
         setState(() {
