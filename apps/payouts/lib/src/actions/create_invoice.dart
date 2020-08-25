@@ -80,6 +80,7 @@ class _CreateInvoiceSheetState extends State<CreateInvoiceSheet> {
     int columnIndex,
     bool rowSelected,
     bool rowHighlighted,
+    bool isEditing,
   }) {
     final Map<String, dynamic> row = billingPeriods[rowIndex];
     final String startDateValue = row['billing_period'];
