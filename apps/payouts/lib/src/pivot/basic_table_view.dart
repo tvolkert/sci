@@ -381,7 +381,7 @@ class BasicTableViewElement extends RenderObjectElement {
     assert(widget != newWidget);
     super.update(newWidget);
     assert(widget == newWidget);
-    renderObject.updateCallback(_layout);
+    renderObject.updateLayoutCallback(_layout);
   }
 
   @protected
@@ -500,12 +500,12 @@ class BasicTableViewElement extends RenderObjectElement {
   void mount(Element parent, dynamic newSlot) {
     super.mount(parent, newSlot);
     _children = <int, Map<int, Element>>{};
-    renderObject.updateCallback(_layout);
+    renderObject.updateLayoutCallback(_layout);
   }
 
   @override
   void unmount() {
-    renderObject.updateCallback(null);
+    renderObject.updateLayoutCallback(null);
     super.unmount();
   }
 
@@ -674,7 +674,7 @@ class RenderBasicTableView extends RenderSegment {
 
   /// Change the layout callback.
   @protected
-  void updateCallback(TableViewLayoutCallback value) {
+  void updateLayoutCallback(TableViewLayoutCallback value) {
     if (value == _layoutCallback) return;
     _layoutCallback = value;
     markNeedsBuild();
