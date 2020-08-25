@@ -3,7 +3,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
 
-import 'package:payouts/model/invoice.dart';
+import 'package:payouts/src/model/invoice.dart';
 import 'package:payouts/src/model/user.dart';
 import 'package:payouts/ui/loading.dart';
 import 'package:payouts/ui/auth/user_binding.dart' as ub;

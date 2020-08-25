@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 
-import 'package:payouts/model/invoice.dart';
+import 'package:payouts/src/model/invoice.dart';
 import 'package:payouts/ui/common/payouts_drawer.dart';
-import 'package:payouts/ui/invoice/invoice_binding.dart';
+import 'package:payouts/ui/invoice/invoice_binding.dart' as ib;
 import 'package:payouts/ui/invoice/invoice_home.dart';
 import 'package:payouts/ui/invoice/open_invoice.dart';
 
@@ -29,7 +29,7 @@ class InvoiceScaffold extends StatefulWidget {
 class _InvoiceScaffoldState extends State<InvoiceScaffold> {
   @override
   Widget build(BuildContext context) {
-    Invoice invoice = InvoiceBinding.of(context).invoice;
+    Invoice invoice = ib.InvoiceBinding.of(context).invoice;
     return Scaffold(
       appBar: AppBar(
         title: Text(invoice.data['invoice_number']),

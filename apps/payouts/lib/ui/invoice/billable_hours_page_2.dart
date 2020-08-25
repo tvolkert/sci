@@ -5,8 +5,8 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 
-import 'package:payouts/model/invoice.dart';
-import 'package:payouts/ui/invoice/invoice_binding.dart';
+import 'package:payouts/src/model/invoice.dart';
+import 'package:payouts/ui/invoice/invoice_binding.dart' as ib;
 import 'package:payouts/ui/invoice/invoice_scaffold.dart';
 
 class BillableHoursPage2 extends StatelessWidget {
@@ -31,7 +31,7 @@ class _BillableHoursTable extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    Invoice invoice = InvoiceBinding.of(context).invoice;
+    Invoice invoice = ib.InvoiceBinding.of(context).invoice;
     DateTime billingStart = DateTime.parse(invoice.data['billing_start']);
     int billingDuration = invoice.data['billing_duration'];
     List<Map<String, dynamic>> timesheets = invoice.data['timesheets'].cast<Map<String, dynamic>>();

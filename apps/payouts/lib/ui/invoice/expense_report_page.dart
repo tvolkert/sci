@@ -1,7 +1,7 @@
 import 'package:intl/intl.dart';
 import 'package:flutter/material.dart';
 
-import 'package:payouts/model/invoice.dart';
+import 'package:payouts/src/model/invoice.dart';
 import 'package:payouts/ui/invoice/invoice_binding.dart';
 import 'package:payouts/ui/invoice/invoice_scaffold.dart';
 import 'package:payouts/ui/invoice/timesheet_page.dart';

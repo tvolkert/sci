@@ -1,5 +1,16 @@
 const String _idKey = 'invoice_id';
 
+class InvoiceBinding {
+  InvoiceBinding._();
+
+  /// The singleton binding instance.
+  static final InvoiceBinding instance = InvoiceBinding._();
+
+  /// The currently open invoice, or null if no invoice is opened.
+  Invoice _invoice;
+  Invoice get invoice => _invoice;
+}
+
 class Invoice {
   Invoice(this.id, this.data)
       : assert(id != null),
