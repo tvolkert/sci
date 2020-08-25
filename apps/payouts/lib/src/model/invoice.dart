@@ -7,8 +7,6 @@ import 'constants.dart';
 import 'http.dart';
 import 'user.dart';
 
-const String _idKey = 'invoice_id';
-
 class InvoiceBinding {
   InvoiceBinding._();
 
@@ -21,7 +19,8 @@ class InvoiceBinding {
 
   Future<Invoice> openInvoice({int invoiceId, Duration timeout = httpTimeout}) async {
     final Uri uri = Server.uri(Server.invoiceUrl);
-    final http.Response response = await UserBinding.instance.user.authenticate().get(uri).timeout(timeout);
+    final http.Response response =
+        await UserBinding.instance.user.authenticate().get(uri).timeout(timeout);
     if (response.statusCode == HttpStatus.ok) {
       Map<String, dynamic> invoiceData = json.decode(response.body).cast<String, dynamic>();
       _invoice = Invoice(invoiceId, invoiceData);
@@ -37,7 +36,7 @@ class InvoiceBinding {
 class Invoice {
   Invoice(this.id, this.data)
       : assert(id != null),
-        assert(data[_idKey] == id);
+        assert(data[Keys.invoiceId] == id);
 
   final int id;
   final Map<String, dynamic> data;

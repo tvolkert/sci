@@ -3,6 +3,7 @@ import 'dart:io' show HttpStatus;
 class Keys {
   const Keys._();
 
+  static const String invoiceId = 'invoice_id';
   static const String lastInvoiceId = 'last_invoice_id';
   static const String passwordRequiresReset = 'password_temporary';
 }
