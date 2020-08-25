@@ -42,7 +42,7 @@ class UserBinding {
   Future<User> login({
     String username,
     String password,
-    Duration timeout = const Duration(seconds: 10),
+    Duration timeout = httpTimeout,
   }) async {
     final Uri uri = Server.uri(Server.loginUrl);
     final http.Response response =
@@ -51,8 +51,8 @@ class UserBinding {
       Map<String, dynamic> loginData = json.decode(response.body).cast<String, dynamic>();
       int lastInvoiceId = loginData[Keys.lastInvoiceId];
       bool passwordRequiresReset = loginData[Keys.passwordRequiresReset];
-      UserBinding.instance._user = User._(username, password, lastInvoiceId, passwordRequiresReset);
-      return UserBinding.instance.user;
+      _user = User._(username, password, lastInvoiceId, passwordRequiresReset);
+      return _user;
     } else if (response.statusCode == HttpStatus.forbidden) {
       throw const InvalidCredentials();
     } else {

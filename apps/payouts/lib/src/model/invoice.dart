@@ -1,3 +1,12 @@
+import 'dart:convert';
+import 'dart:io' show HttpStatus;
+
+import 'package:http/http.dart' as http;
+
+import 'constants.dart';
+import 'http.dart';
+import 'user.dart';
+
 const String _idKey = 'invoice_id';
 
 class InvoiceBinding {
@@ -9,6 +18,20 @@ class InvoiceBinding {
   /// The currently open invoice, or null if no invoice is opened.
   Invoice _invoice;
   Invoice get invoice => _invoice;
+
+  Future<Invoice> openInvoice({int invoiceId, Duration timeout = httpTimeout}) async {
+    final Uri uri = Server.uri(Server.invoiceUrl);
+    final http.Response response = await UserBinding.instance.user.authenticate().get(uri).timeout(timeout);
+    if (response.statusCode == HttpStatus.ok) {
+      Map<String, dynamic> invoiceData = json.decode(response.body).cast<String, dynamic>();
+      _invoice = Invoice(invoiceId, invoiceData);
+      return _invoice;
+    } else if (response.statusCode == HttpStatus.forbidden) {
+      throw const InvalidCredentials();
+    } else {
+      throw HttpStatusException(response.statusCode);
+    }
+  }
 }
 
 class Invoice {
@@ -21,17 +44,8 @@ class Invoice {
 
   @override
   bool operator ==(Object other) {
-    if (identical(this, other)) {
-      return true;
-    }
-    if (other == null) {
-      return false;
-    }
-    if (other.runtimeType != runtimeType) {
-      return false;
-    }
-    Invoice invoice = other;
-    return invoice.id == id;
+    if (identical(this, other)) return true;
+    return other is Invoice && other.id == id;
   }
 
   @override

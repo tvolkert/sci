@@ -12,9 +12,12 @@ class Server {
   static const String host = 'www.satelliteconsulting.com';
 
   static const String loginUrl = 'payoutsLogin';
+  static const String invoiceUrl = 'invoice';
 
   static Uri uri(String path) => Uri(scheme: scheme, host: host, path: path);
 }
+
+const Duration httpTimeout = Duration(seconds: 20);
 
 const Map<int, String> httpStatusCodes = <int, String>{
   HttpStatus.badRequest: 'bad request',
