@@ -31,7 +31,10 @@ void main() {
   runApp(
 //    BugReport(),
     pivot.NavigatorListener(
-      child: PayoutsApp(),
+      child: ColoredBox(
+        color: const Color(0xffc8c8bb),
+        child: PayoutsApp(),
+      ),
     ),
   );
 }
@@ -108,13 +111,9 @@ class PayoutsScaffold extends StatelessWidget {
   Widget build(BuildContext context) {
     return Material(
       type: MaterialType.transparency,
-      child: ColoredBox(
-        // TODO set the alpha on this color to ff
-        color: const Color(0x00c8c8bb),
-        child: TaskMonitor(
-          child: RequireUser(
-            child: PayoutsHome(),
-          ),
+      child: TaskMonitor(
+        child: RequireUser(
+          child: PayoutsHome(),
         ),
       ),
     );
@@ -1391,7 +1390,8 @@ class ExpenseCellWrapper extends StatelessWidget {
     this.rowHighlighted = false,
     this.rowSelected = false,
     this.child,
-  }) : assert(rowIndex != null), super(key: key);
+  })  : assert(rowIndex != null),
+        super(key: key);
 
   final int rowIndex;
   final bool rowHighlighted;
@@ -1677,8 +1677,7 @@ class _ExpensesTableViewState extends State<ExpensesTableView> {
           child: Text('Yet another type'),
         ),
       ],
-      onMenuItemSelected: (String value) {
-      },
+      onMenuItemSelected: (String value) {},
     );
   }
 
