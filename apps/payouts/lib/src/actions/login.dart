@@ -82,13 +82,17 @@ class _LoginSheetState extends State<LoginSheet> with SingleTickerProviderStateM
     final String password = _passwordController.text;
     try {
       final User user = await UserBinding.instance.login(username, password);
-      final int invoiceId = user.lastInvoiceId;
-      if (invoiceId != null) {
-        phase = _LoginPhase.loadingInvoice;
-        await InvoiceBinding.instance.openInvoice(invoiceId);
+      if (user.passwordRequiresReset) {
+        // TODO: handle reset password
+      } else {
+        final int invoiceId = user.lastInvoiceId;
+        if (invoiceId != null) {
+          phase = _LoginPhase.loadingInvoice;
+          await InvoiceBinding.instance.openInvoice(invoiceId);
+        }
+        Navigator.of(context).pop<void>();
+        return;
       }
-      Navigator.of(context).pop<void>();
-      return;
     } on InvalidCredentials {
       errorText = 'Invalid ID or password.';
     } on TimeoutException {
