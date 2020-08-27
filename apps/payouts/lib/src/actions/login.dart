@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:payouts/src/model/http.dart';
+import 'package:payouts/src/model/invoice.dart';
 import 'package:payouts/src/model/user.dart';
 
 import 'package:payouts/src/pivot.dart' as pivot;
@@ -45,6 +46,12 @@ class LoginSheet extends StatefulWidget {
   }
 }
 
+enum _LoginPhase {
+  idle,
+  authenticating,
+  loadingInvoice,
+}
+
 class _LoginSheetState extends State<LoginSheet> with SingleTickerProviderStateMixin {
   TextEditingController _usernameController;
   TextEditingController _passwordController;
@@ -59,22 +66,27 @@ class _LoginSheetState extends State<LoginSheet> with SingleTickerProviderStateM
     }
   }
 
-  bool _attemptingLogin = false;
-  bool get attemptingLogin => _attemptingLogin;
-  set attemptingLogin(bool value) {
-    if (value != _attemptingLogin) {
+  _LoginPhase _phase = _LoginPhase.idle;
+  _LoginPhase get phase => _phase;
+  set phase(_LoginPhase value) {
+    if (value != _phase) {
       setState(() {
-        _attemptingLogin = value;
+        _phase = value;
       });
     }
   }
 
   Future<void> _handleAttemptLogin() async {
-    attemptingLogin = true;
+    phase = _LoginPhase.authenticating;
     final String username = _usernameController.text;
     final String password = _passwordController.text;
     try {
-      await UserBinding.instance.login(username, password);
+      final User user = await UserBinding.instance.login(username, password);
+      final int invoiceId = user.lastInvoiceId;
+      if (invoiceId != null) {
+        phase = _LoginPhase.loadingInvoice;
+        await InvoiceBinding.instance.openInvoice(invoiceId);
+      }
       Navigator.of(context).pop<void>();
       return;
     } on InvalidCredentials {
@@ -91,7 +103,7 @@ class _LoginSheetState extends State<LoginSheet> with SingleTickerProviderStateM
         ]);
       errorText = buf.toString();
     }
-    attemptingLogin = false;
+    _phase = _LoginPhase.idle;
   }
 
   @override
@@ -242,9 +254,23 @@ class _LoginSheetState extends State<LoginSheet> with SingleTickerProviderStateM
           Row(
             mainAxisAlignment: MainAxisAlignment.end,
             children: [
+              if (_phase != _LoginPhase.idle)
+                Expanded(
+                  child: Row(
+                    children: [
+                      SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: pivot.ActivityIndicator(),
+                      ),
+                      SizedBox(width: 4),
+                      Text(_phase == _LoginPhase.authenticating ? 'Logging In...' : 'Initializing...'),
+                    ],
+                  ),
+                ),
               pivot.CommandPushButton(
                 label: 'Log In',
-                onPressed: attemptingLogin ? null : _handleAttemptLogin,
+                onPressed: _phase == _LoginPhase.idle ? _handleAttemptLogin : null,
               ),
             ],
           ),

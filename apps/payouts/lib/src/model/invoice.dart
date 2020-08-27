@@ -17,7 +17,7 @@ class InvoiceBinding {
   Invoice _invoice;
   Invoice get invoice => _invoice;
 
-  Future<Invoice> openInvoice({int invoiceId, Duration timeout = httpTimeout}) async {
+  Future<Invoice> openInvoice(int invoiceId, {Duration timeout = httpTimeout}) async {
     final Uri uri = Server.uri(Server.invoiceUrl);
     final http.Response response =
         await UserBinding.instance.user.authenticate().get(uri).timeout(timeout);
