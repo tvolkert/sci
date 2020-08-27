@@ -8,21 +8,6 @@ import 'package:intl/intl.dart';
 import 'package:payouts/src/pivot.dart' as pivot;
 import 'package:payouts/src/pivot/foundation.dart';
 
-//  static BuildContext _getRootNavigatorContext() {
-//    assert(WidgetsBinding.instance.isRootWidgetAttached);
-//    final List<Element> queue = [WidgetsBinding.instance.renderViewElement];
-//    while (queue.isNotEmpty) {
-//      Element element = queue.removeLast();
-//      element.visitChildren((Element child) {
-//        if (child is StatefulElement && child.state is NavigatorState) {
-//          return child;
-//        }
-//        queue.insert(0, child);
-//      });
-//    }
-//    return null;
-//  }
-
 typedef InvoiceComparator = int Function(Map<String, dynamic> a, Map<String, dynamic> b);
 
 int _compareInvoiceNumber(Map<String, dynamic> a, Map<String, dynamic> b) {
