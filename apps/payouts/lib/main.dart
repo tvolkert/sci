@@ -30,7 +30,9 @@ void main() {
       FlutterError.dumpErrorToConsole(details, forceReport: true);
   runApp(
 //    BugReport(),
-    PayoutsApp(),
+    pivot.NavigatorListener(
+      child: PayoutsApp(),
+    ),
   );
 }
 
@@ -75,6 +77,9 @@ class PayoutsApp extends StatelessWidget {
           LogicalKeySet(LogicalKeyboardKey.meta, LogicalKeyboardKey.keyO): OpenInvoiceIntent(),
           LogicalKeySet(LogicalKeyboardKey.meta, LogicalKeyboardKey.keyS): SaveInvoiceIntent(),
         },
+        navigatorObservers: [
+          pivot.NavigatorListener.of(context).observer,
+        ],
         home: PayoutsScaffold(),
       );
     } else {
