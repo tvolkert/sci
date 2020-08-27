@@ -31,10 +31,7 @@ void main() {
   runApp(
 //    BugReport(),
     pivot.NavigatorListener(
-      child: ColoredBox(
-        color: const Color(0xffc8c8bb),
-        child: PayoutsApp(),
-      ),
+      child: PayoutsApp(),
     ),
   );
 }

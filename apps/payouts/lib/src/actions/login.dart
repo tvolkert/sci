@@ -107,7 +107,7 @@ class _LoginSheetState extends State<LoginSheet> with SingleTickerProviderStateM
         ]);
       errorText = buf.toString();
     }
-    _phase = _LoginPhase.idle;
+    phase = _LoginPhase.idle;
   }
 
   @override

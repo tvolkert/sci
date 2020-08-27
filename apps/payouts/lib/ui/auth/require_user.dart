@@ -18,7 +18,8 @@ class _RequireUserState extends State<RequireUser> {
 
   @override
   Widget build(BuildContext context) {
-    if (UserBinding.instance.user == null) {
+    final User user = UserBinding.instance.user;
+    if (user == null || user.passwordRequiresReset) {
       if (!_isLoginDialogOpen) {
         _isLoginDialogOpen = true;
         SchedulerBinding.instance.addPostFrameCallback((Duration timeStamp) {
@@ -28,7 +29,7 @@ class _RequireUserState extends State<RequireUser> {
           }));
         });
       }
-      return Container();
+      return ColoredBox(color: const Color(0xffc8c8bb));
     }
     return widget.child;
   }
