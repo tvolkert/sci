@@ -59,9 +59,11 @@ class PayoutsApp extends StatelessWidget {
         actions: <Type, Action<Intent>>{
           ...WidgetsApp.defaultActions,
           AboutIntent: AboutAction(),
+          AddTimesheetIntent: AddTimesheetAction(),
           CreateInvoiceIntent: CreateInvoiceAction(),
           DeleteInvoiceIntent: DeleteInvoiceAction(),
           ExportInvoiceIntent: ExportInvoiceAction(),
+          LoginIntent: LoginAction(),
           OpenInvoiceIntent: OpenInvoiceAction(),
           SaveInvoiceIntent: SaveInvoiceAction(),
         },
@@ -101,8 +103,14 @@ class PayoutsScaffold extends StatelessWidget {
   Widget build(BuildContext context) {
     return Material(
       type: MaterialType.transparency,
-      child: TaskMonitor(
-        child: PayoutsHome(),
+      child: ColoredBox(
+        // TODO set the alpha on this color to ff
+        color: const Color(0x00c8c8bb),
+        child: TaskMonitor(
+          child: RequireUser(
+            child: PayoutsHome(),
+          ),
+        ),
       ),
     );
   }

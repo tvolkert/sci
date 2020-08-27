@@ -39,14 +39,15 @@ class UserBinding {
   ///
   /// If an unexpected HTTP status code is returned, then a [HttpStatusException]
   /// error will be thrown.
-  Future<User> login({
+  Future<User> login(
     String username,
-    String password,
+    String password, {
     Duration timeout = httpTimeout,
   }) async {
     final Uri uri = Server.uri(Server.loginUrl);
-    final http.Response response =
-        await http.get(uri, headers: _authHeaders(username, password)).timeout(timeout);
+    final http.Response response = await HttpBinding.instance.client
+        .get(uri, headers: _authHeaders(username, password))
+        .timeout(timeout);
     if (response.statusCode == HttpStatus.ok) {
       Map<String, dynamic> loginData = json.decode(response.body).cast<String, dynamic>();
       int lastInvoiceId = loginData[Keys.lastInvoiceId];
@@ -56,7 +57,7 @@ class UserBinding {
     } else if (response.statusCode == HttpStatus.forbidden) {
       throw const InvalidCredentials();
     } else {
-      throw HttpStatusException(response.statusCode);
+      throw HttpStatusException(response.statusCode, response.body);
     }
   }
 
@@ -97,7 +98,7 @@ class User {
   Map<String, String> get _authHeaders => UserBinding._authHeaders(username, _password);
 
   http.BaseClient authenticate([http.BaseClient client]) {
-    return _AuthenticatedClient._(client ?? http.Client(), this);
+    return _AuthenticatedClient._(client ?? HttpBinding.instance.client, this);
   }
 
   @override
