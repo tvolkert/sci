@@ -3,6 +3,7 @@ import 'dart:io' show HttpStatus;
 
 import 'package:http/http.dart' as http;
 
+import 'collections.dart';
 import 'constants.dart';
 import 'http.dart';
 import 'user.dart';
@@ -34,12 +35,48 @@ class InvoiceBinding {
 }
 
 class Invoice {
-  Invoice(this.id, this.data)
+  Invoice(this.id, Map<String, dynamic> data)
       : assert(id != null),
-        assert(data[Keys.invoiceId] == id);
+        assert(data != null),
+        assert(data[Keys.invoiceId] == id),
+        _data = NotifyingMap(data),
+        _timesheets = _extractTimesheets(data) {
+    _data.addListener(MapListener<String, dynamic>(
+      onValueAdded: null,
+      onValueRemoved: null,
+      onValueUpdated: null,
+      onCleared: null,
+    ));
+    _timesheets.addListener(ListListener<NotifyingMap<String, dynamic>>(
+      onItemsUpdated: null,
+      onCleared: null,
+      onReordered: null,
+    ));
+    for (NotifyingMap<String, dynamic> timesheet in _timesheets) {
+      timesheet.addListener(MapListener<String, dynamic>(
+        onValueAdded: null,
+        onValueRemoved: null,
+        onValueUpdated: null,
+        onCleared: null,
+      ));
+    }
+  }
 
   final int id;
-  final Map<String, dynamic> data;
+  final NotifyingMap<String, dynamic> _data;
+  final NotifyingList<NotifyingMap<String, dynamic>> _timesheets;
+
+  static List<NotifyingMap<String, dynamic>> _extractTimesheets(Map<String, dynamic> data) {
+    final List<dynamic> timesheets = data[Keys.timesheets];
+    final List<NotifyingMap<String, dynamic>> notifyingTimesheet = timesheets
+        .cast<Map<String, dynamic>>()
+        .map((Map<String, dynamic> timesheet) => NotifyingMap<String, dynamic>(timesheet))
+        .toList();
+    return NotifyingList<NotifyingMap<String, dynamic>>(notifyingTimesheet);
+  }
+
+  // TODO: remove
+  Map<String, dynamic> get data => _data.delegate;
 
   @override
   bool operator ==(Object other) {
