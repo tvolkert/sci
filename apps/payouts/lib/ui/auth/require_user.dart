@@ -19,7 +19,7 @@ class _RequireUserState extends State<RequireUser> {
   @override
   Widget build(BuildContext context) {
     final User user = UserBinding.instance.user;
-    if (user == null || user.passwordRequiresReset) {
+    if (user == null || _isLoginDialogOpen || user.passwordRequiresReset) {
       if (!_isLoginDialogOpen) {
         _isLoginDialogOpen = true;
         SchedulerBinding.instance.addPostFrameCallback((Duration timeStamp) {

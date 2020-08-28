@@ -7,6 +7,12 @@ import 'package:http/http.dart' as http;
 import 'constants.dart';
 import 'http.dart';
 
+const Map<int, String> _loginSpecificErrorMessages = <int, String>{
+  HttpStatus.movedTemporarily:
+      'It appears that your Internet connection requires activation. Please open an Internet browser and follow the instructions to activate your connection.',
+  HttpStatus.forbidden: 'Invalid ID or password.',
+};
+
 class UserBinding {
   UserBinding._();
 
@@ -59,6 +65,24 @@ class UserBinding {
     } else {
       throw HttpStatusException(response.statusCode, response.body);
     }
+    // TODO: handle no route to host, unknown host, socket exception, conection exception
+  }
+
+  /// Updates the password of the currently logged-in user.
+  ///
+  /// Returns a new User with the updated password. The new user will also be
+  /// set as the value of this binding's [user].
+  Future<User> updatePassword(String password, {Duration timeout = httpTimeout}) async {
+    assert(user != null);
+    final Uri url = Server.uri(Server.passwordUrl);
+    final http.Response response =
+        await user.authenticate().put(url, body: password).timeout(timeout);
+    if (response.statusCode == HttpStatus.ok) {
+      _user = _user._withNewPassword(password);
+      return _user;
+    } else {
+      throw HttpStatusException(response.statusCode, response.body);
+    }
   }
 
   /// Logs the current user out.
@@ -99,6 +123,10 @@ class User {
 
   http.BaseClient authenticate([http.BaseClient client]) {
     return _AuthenticatedClient._(client ?? HttpBinding.instance.client, this);
+  }
+
+  User _withNewPassword(String password) {
+    return User._(username, password, lastInvoiceId, false);
   }
 
   @override

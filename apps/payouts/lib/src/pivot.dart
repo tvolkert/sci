@@ -1,6 +1,7 @@
 export 'pivot/activity_indicator.dart';
 export 'pivot/basic_table_view.dart';
 export 'pivot/border.dart';
+export 'pivot/checkbox.dart';
 export 'pivot/colors.dart';
 export 'pivot/hover_builder.dart';
 export 'pivot/link_button.dart';
