@@ -18,26 +18,26 @@ class _ExpenseReportsPageState extends State<ExpenseReportsPage> {
   @override
   Widget build(BuildContext context) {
     Invoice invoice = ib.InvoiceBinding.of(context).invoice;
-    List<Map<String, dynamic>> expenseReports = invoice.data['expense_reports'].cast<Map<String, dynamic>>();
+    ExpenseReports expenseReports = invoice.expenseReports;
 
     return InvoiceScaffold(
       body: ListView.builder(
         itemCount: expenseReports.length,
         itemBuilder: (BuildContext context, int index) {
-          Map<String, dynamic> expenseReport = expenseReports[index];
-          Map<String, dynamic> program = expenseReport['program'];
-          bool requiresChargeNumber = program['requires_charge_number'];
-          String chargeNumber = expenseReport['charge_number'];
-          String taskDescription = expenseReport['task_description'];
-          List<Map<String, dynamic>> expenses = expenseReport['expenses'].cast<Map<String, dynamic>>();
-          num totalExpenses = expenses
-              .map<num>((Map<String, dynamic> expense) => expense['amount'])
-              .fold<num>(0, (num previousValue, num element) => previousValue + element);
+          ExpenseReport expenseReport = expenseReports[index];
+          Program program = expenseReport.program;
+          bool requiresChargeNumber = program.requiresChargeNumber;
+          String chargeNumber = expenseReport.chargeNumber;
+          String taskDescription = expenseReport.task;
+          Expenses expenses = expenseReport.expenses;
+          double totalExpenses = expenses
+              .map<double>((Expense expense) => expense.amount)
+              .fold<double>(0.0, (double previousValue, double element) => previousValue + element);
           NumberFormat currencyFormat = NumberFormat.currency(symbol: r'$');
           return ListTile(
             title: Row(
               children: <Widget>[
-                Text(program['name']),
+                Text(program.name),
                 Expanded(child: Container()),
                 DefaultTextStyle(
                   style: DefaultTextStyle.of(context).style.copyWith(

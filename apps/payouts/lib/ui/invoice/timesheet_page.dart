@@ -20,8 +20,8 @@ class _TimesheetPageState extends State<TimesheetPage> {
   @override
   Widget build(BuildContext context) {
     Invoice invoice = ib.InvoiceBinding.of(context).invoice;
-    DateTime billingStart = DateTime.parse(invoice.data['billing_start']);
-    int billingDuration = invoice.data['billing_duration'];
+    DateTime billingStart = invoice.billingPeriod.start;
+    int billingDuration = invoice.billingPeriod.duration.inDays;
     return InvoiceScaffold(
       body: ListView.builder(
         //itemExtent: 60,

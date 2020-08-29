@@ -6,6 +6,10 @@ class DateFormats {
   static final intl.DateFormat iso8601Short = intl.DateFormat('yyyy-MM-dd');
 }
 
+class NumberFormats {
+  static final intl.NumberFormat currency = intl.NumberFormat.currency(symbol: r'$');
+}
+
 class Keys {
   const Keys._();
 

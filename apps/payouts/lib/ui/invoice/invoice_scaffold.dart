@@ -3,8 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:payouts/src/model/invoice.dart';
 import 'package:payouts/ui/common/payouts_drawer.dart';
 import 'package:payouts/ui/invoice/invoice_binding.dart' as ib;
-import 'package:payouts/ui/invoice/invoice_home.dart';
-import 'package:payouts/ui/invoice/open_invoice.dart';
 
 class InvoiceScaffold extends StatefulWidget {
   InvoiceScaffold({
@@ -32,7 +30,7 @@ class _InvoiceScaffoldState extends State<InvoiceScaffold> {
     Invoice invoice = ib.InvoiceBinding.of(context).invoice;
     return Scaffold(
       appBar: AppBar(
-        title: Text(invoice.data['invoice_number']),
+        title: Text(invoice.invoiceNumber),
       ),
       drawer: widget.includeDrawer ? PayoutsDrawer() : null,
       body: SafeArea(child: widget.body),

@@ -129,7 +129,7 @@ class _LoginSheetState extends State<LoginSheet> {
     final int invoiceId = user.lastInvoiceId;
     if (invoiceId != null) {
       phase = _LoginPhase.loadingInvoice;
-      await InvoiceBinding.instance.openInvoice(invoiceId);
+      await InvoiceBinding.instance.loadInvoice(invoiceId);
     }
     Navigator.of(context).pop<void>();
   }

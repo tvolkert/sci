@@ -32,9 +32,8 @@ class _BillableHoursTable extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     Invoice invoice = ib.InvoiceBinding.of(context).invoice;
-    DateTime billingStart = DateTime.parse(invoice.data['billing_start']);
-    int billingDuration = invoice.data['billing_duration'];
-    List<Map<String, dynamic>> timesheets = invoice.data['timesheets'].cast<Map<String, dynamic>>();
+    DateTime billingStart = invoice.billingPeriod.start;
+    int billingDuration = invoice.billingPeriod.duration.inDays;
     TextStyle textStyle = DefaultTextStyle.of(context).style;
     TextStyle dateCellStyle = textStyle.copyWith(fontWeight: FontWeight.bold, fontSize: 18);
 
@@ -45,14 +44,14 @@ class _BillableHoursTable extends StatelessWidget {
     double dateCellWidth = paragraph.getMaxIntrinsicWidth(100) + 1;
 
     List<Widget> rows = <Widget>[
-      HeaderRow(dateCellWidth: dateCellWidth, timesheets: timesheets),
+      HeaderRow(dateCellWidth: dateCellWidth, timesheets: invoice.timesheets),
       Divider(height: 8),
       Expanded(
         child: SingleChildScrollView(
           child: Column(
             children: Iterable<int>.generate(billingDuration).map<Widget>((int offset) {
               return BodyRow(
-                timesheets: timesheets,
+                timesheets: invoice.timesheets,
                 billingStart: billingStart,
                 dayOffset: offset,
                 dateCellWidth: dateCellWidth,
@@ -78,7 +77,7 @@ class HeaderRow extends StatelessWidget {
   }) : super(key: key);
 
   final double dateCellWidth;
-  final List<Map<String, dynamic>> timesheets;
+  final Timesheets timesheets;
 
   @override
   Widget build(BuildContext context) {
@@ -86,12 +85,12 @@ class HeaderRow extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.end,
       children: <Widget>[
         Container(width: dateCellWidth),
-        ...timesheets.map<Widget>((Map<String, dynamic> timesheet) {
-          String program = timesheet['program']['name'];
+        ...timesheets.map<Widget>((Timesheet timesheet) {
+          String program = timesheet.program.name;
           Uid uid = Uid(
-            timesheet['program']['assignment_id'],
-            timesheet['charge_number'],
-            timesheet['requestor'],
+            timesheet.program.assignmentId,
+            timesheet.chargeNumber,
+            timesheet.requestor,
           );
           return ProgramHeader(program: program, tag: uid);
         }),
@@ -115,7 +114,7 @@ class BodyRow extends StatefulWidget {
         assert(dateCellStyle != null),
         super(key: key);
 
-  final List<Map<String, dynamic>> timesheets;
+  final Timesheets timesheets;
   final DateTime billingStart;
   final int dayOffset;
   final double dateCellWidth;
@@ -131,9 +130,8 @@ class _BodyRowState extends State<BodyRow> {
   Widget build(BuildContext context) {
     // bool isWeekend = day.weekday > 5;
     DateTime day = widget.billingStart.add(Duration(days: widget.dayOffset));
-    num sum = widget.timesheets.fold<num>(0, (num previous, Map<String, dynamic> timesheet) {
-      List<num> hours = timesheet['hours'].cast<num>();
-      return previous + hours[widget.dayOffset];
+    num sum = widget.timesheets.fold<num>(0, (num previous, Timesheet timesheet) {
+      return previous + timesheet.hours[widget.dayOffset];
     });
 
     return Row(
@@ -144,11 +142,11 @@ class _BodyRowState extends State<BodyRow> {
           width: widget.dateCellWidth,
           style: widget.dateCellStyle,
         ),
-        ...widget.timesheets.map<Widget>((Map<String, dynamic> timesheet) {
-          List<num> hours = timesheet['hours'].cast<num>();
-          int assignmentId = timesheet['program']['assignment_id'];
-          String chargeNumber = timesheet['charge_number'];
-          String requestor = timesheet['requestor'];
+        ...widget.timesheets.map<Widget>((Timesheet timesheet) {
+          Hours hours = timesheet.hours;
+          int assignmentId = timesheet.program.assignmentId;
+          String chargeNumber = timesheet.chargeNumber;
+          String requestor = timesheet.requestor;
           TimeValue value = TimeValue.fromValue(hours[widget.dayOffset]);
           Uid uid = Uid(assignmentId, chargeNumber, requestor);
 

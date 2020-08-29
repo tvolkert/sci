@@ -44,9 +44,9 @@ class _BillableHoursTableState extends State<_BillableHoursTable> {
   @override
   Widget build(BuildContext context) {
     Invoice invoice = ib.InvoiceBinding.of(context).invoice;
-    DateTime billingStart = DateTime.parse(invoice.data['billing_start']);
-    int billingDuration = invoice.data['billing_duration'];
-    List<Map<String, dynamic>> timesheets = invoice.data['timesheets'].cast<Map<String, dynamic>>();
+    DateTime billingStart = invoice.billingPeriod.start;
+    int billingDuration = invoice.billingPeriod.duration.inDays;
+    Timesheets timesheets = invoice.timesheets;
     TextStyle textStyle = DefaultTextStyle.of(context).style;
     TextStyle dateCellStyle = textStyle.copyWith(fontWeight: FontWeight.bold, fontSize: 18);
 
@@ -97,7 +97,7 @@ class BodyRow extends StatefulWidget {
         assert(dateCellStyle != null),
         super(key: key);
 
-  final List<Map<String, dynamic>> timesheets;
+  final Timesheets timesheets;
   final DateTime billingStart;
   final int dayOffset;
   final double dateCellWidth;
@@ -112,9 +112,8 @@ class _BodyRowState extends State<BodyRow> {
   Widget build(BuildContext context) {
     // bool isWeekend = day.weekday > 5;
     DateTime day = widget.billingStart.add(Duration(days: widget.dayOffset));
-    num sum = widget.timesheets.fold<num>(0, (num previous, Map<String, dynamic> timesheet) {
-      List<num> hours = timesheet['hours'].cast<num>();
-      return previous + hours[widget.dayOffset];
+    num sum = widget.timesheets.fold<num>(0, (num previous, Timesheet timesheet) {
+      return previous + timesheet.hours[widget.dayOffset];
     });
 
     return Row(
@@ -126,12 +125,11 @@ class _BodyRowState extends State<BodyRow> {
           style: widget.dateCellStyle,
           stacked: true,
         ),
-        ...widget.timesheets.map<Widget>((Map<String, dynamic> timesheet) {
-          List<num> hours = timesheet['hours'].cast<num>();
-          int assignmentId = timesheet['program']['assignment_id'];
-          String chargeNumber = timesheet['charge_number'];
-          String requestor = timesheet['requestor'];
-          num value = hours[widget.dayOffset];
+        ...widget.timesheets.map<Widget>((Timesheet timesheet) {
+          int assignmentId = timesheet.program.assignmentId;
+          String chargeNumber = timesheet.chargeNumber;
+          String requestor = timesheet.requestor;
+          num value = timesheet.hours[widget.dayOffset];
           Uid uid = Uid(assignmentId, chargeNumber, requestor);
 
           return Padding(
@@ -145,7 +143,7 @@ class _BodyRowState extends State<BodyRow> {
                       dateCellWidth: widget.dateCellWidth,
                       dateCellStyle: widget.dateCellStyle,
                       programTag: uid,
-                      program: timesheet['program']['name'],
+                      program: timesheet.program.name,
                       hoursTag: uid.copyWith(dayOffset: widget.dayOffset),
                       hoursValue: value,
                     );
@@ -156,7 +154,7 @@ class _BodyRowState extends State<BodyRow> {
                     return;
                   }
                   setState(() {
-                    hours[widget.dayOffset] = newValue;
+                    timesheet.hours[widget.dayOffset] = newValue;
                   });
                 });
               },
@@ -338,7 +336,7 @@ class HeaderRow extends StatelessWidget {
   }) : super(key: key);
 
   final double dateCellWidth;
-  final List<Map<String, dynamic>> timesheets;
+  final Timesheets timesheets;
 
   @override
   Widget build(BuildContext context) {
@@ -346,12 +344,12 @@ class HeaderRow extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.end,
       children: <Widget>[
         Container(width: dateCellWidth),
-        ...timesheets.map<Widget>((Map<String, dynamic> timesheet) {
-          String program = timesheet['program']['name'];
+        ...timesheets.map<Widget>((Timesheet timesheet) {
+          String program = timesheet.program.name;
           Uid uid = Uid(
-            timesheet['program']['assignment_id'],
-            timesheet['charge_number'],
-            timesheet['requestor'],
+            timesheet.program.assignmentId,
+            timesheet.chargeNumber,
+            timesheet.requestor,
           );
           return ProgramHeader(program: program, tag: uid);
         }),

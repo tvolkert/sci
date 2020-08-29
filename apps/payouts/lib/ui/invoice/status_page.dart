@@ -14,6 +14,6 @@ class _StatusPageState extends State<StatusPage> {
   @override
   Widget build(BuildContext context) {
     Invoice invoice = ib.InvoiceBinding.of(context).invoice;
-    return Text('${invoice.data["tasks"]}');
+    return Text('${invoice.accomplishments}');
   }
 }

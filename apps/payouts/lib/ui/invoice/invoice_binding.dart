@@ -4,6 +4,7 @@ import 'package:http/http.dart' as http;
 import 'package:flutter/widgets.dart';
 
 import 'package:payouts/src/model/invoice.dart';
+import 'package:payouts/src/model/invoice.dart' as ib show InvoiceBinding;
 import 'package:payouts/src/model/user.dart';
 import 'package:payouts/ui/loading.dart';
 import 'package:payouts/ui/auth/user_binding.dart' as ub;
@@ -57,36 +58,12 @@ class _InvoiceBindingState extends State<InvoiceBinding> implements InvoiceConte
     User user = ub.UserBinding.of(context);
     assert(user != null, 'Attempt to load an invoice while the user was logged out');
 
-    Uri uri = Uri(
-      scheme: 'https',
-      host: 'www.satelliteconsulting.com',
-      path: 'invoice',
-      queryParameters: <String, String>{
-        'invoiceId': '$invoiceId',
-      },
-    );
-    final Future<http.Response> responseFuture = user.authenticate().get(uri);
-    debugPrint('sending request');
-    responseFuture.then<http.Response>((http.Response response) {
-      if (response.statusCode == 200) {
-        debugPrint('received 200 invoice response');
-        Map<String, dynamic> invoice = json.decode(response.body).cast<String, dynamic>();
-        assert(invoice['invoice_id'] == invoiceId);
-        if (invoice['invoice_id'] != _invoiceId) {
-          debugPrint('${invoice['invoice_id']} versus $_invoiceId');
-          // The current invoice has already been changed. Normally we would
-          // have canceled the HTTP request, but since we have no facility by
-          // which to cancel requests, we simply drop the response on the floor
-          // here.
-          return;
-        }
+    ib.InvoiceBinding.instance.loadInvoice(invoiceId).then<void>((Invoice invoice) {
+      if (mounted) {
         setState(() {
-          this._invoice = Invoice(invoiceId, invoice);
+          this._invoice = invoice;
         });
       }
-    }).catchError((dynamic error, StackTrace stackTrace) {
-      // TODO: notify the user?
-      debugPrint('$error\n$stackTrace');
     });
   }
 
