@@ -1,5 +1,11 @@
 import 'dart:io' show HttpStatus;
 
+import 'package:intl/intl.dart' as intl;
+
+class DateFormats {
+  static final intl.DateFormat iso8601Short = intl.DateFormat('yyyy-MM-dd');
+}
+
 class Keys {
   const Keys._();
 
@@ -60,7 +66,7 @@ class Keys {
   static const String passwordRequiresReset = 'password_temporary';
   static const String billable = 'billable';
   static const String reimbursable = 'reimbursable';
-  static const String parentExpenseType = 'parent_expense_type_id';
+  static const String parentExpenseTypeId = 'parent_expense_type_id';
   static const String comment = 'comment';
   static const String depth = 'depth';
   static const String ordinal = 'ordinal';
@@ -89,7 +95,13 @@ class Server {
   static const String invoicesUrl = 'invoices';
   static const String newInvoiceParametersUrl = 'newInvoiceParameters';
 
-  static Uri uri(String path) => Uri(scheme: scheme, host: host, path: path);
+  static Uri uri(String path, {Map<String, String> query}) {
+    return Uri(scheme: scheme, host: host, path: path, queryParameters: query);
+  }
+}
+
+class QueryParameters {
+  static const String invoiceId = 'invoiceId';
 }
 
 const Duration httpTimeout = Duration(seconds: 20);
