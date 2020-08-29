@@ -16,7 +16,7 @@ class BugReport extends StatelessWidget {
     }) {
       return Padding(
         padding: EdgeInsets.all(2),
-        child: Text('${columnName}_${rowIndex}'),
+        child: Text('${columnName}_$rowIndex'),
       );
     };
   }

@@ -216,8 +216,6 @@ class EditHoursDialog extends StatefulWidget {
 class _EditHoursDialogState extends State<EditHoursDialog> {
   TimeValue value;
 
-  static final intl.NumberFormat format = intl.NumberFormat(r'#,##0.00');
-
   @override
   void initState() {
     super.initState();

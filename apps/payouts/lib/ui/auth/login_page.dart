@@ -5,11 +5,8 @@ import 'package:http/http.dart' as http;
 
 import 'package:payouts/ui/loading.dart';
 import 'package:payouts/ui/auth/persistent_credentials.dart';
-import 'package:payouts/ui/auth/require_user.dart';
 import 'package:payouts/ui/auth/user_binding.dart';
 import 'package:payouts/ui/invoice/invoice_binding.dart';
-import 'package:payouts/ui/invoice/invoice_route.dart';
-import 'package:payouts/ui/invoice/invoice_home.dart';
 
 const String _authUrl = 'https://www.satelliteconsulting.com/payoutsLogin';
 
@@ -226,95 +223,6 @@ class _LoginPageState extends State<LoginPage> {
           ),
         );
       },
-    );
-    return Material(
-      child: SafeArea(
-        child: SingleChildScrollView(
-          child: IntrinsicHeight(
-            child: Padding(
-              padding: EdgeInsets.only(top: 40),
-              child: Column(
-                children: <Widget>[
-                  SizedBox(
-                    height: 200,
-                    child: Image.asset('assets/logo.png'),
-                  ),
-                  Text(
-                    'SCI Payouts',
-                    style: TextStyle(
-                      fontSize: 48,
-                      fontWeight: FontWeight.bold,
-                      color: Color.fromARGB(255, 0x2f, 0x4e, 0x6f),
-                      letterSpacing: 2.0,
-                      fontFamily: 'AF Battersea',
-                    ),
-                  ),
-                  SizedBox(height: 24),
-                  errorMessage == null ? Container() : Text(errorMessage, style: TextStyle(color: Colors.red)),
-                  Expanded(
-                    child: Form(
-                      key: _formKey,
-                      child: Padding(
-                        padding: EdgeInsets.all(20),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: <Widget>[
-                            TextFormField(
-                              initialValue: username,
-                              textCapitalization: TextCapitalization.words,
-                              keyboardType: TextInputType.emailAddress,
-                              decoration: const InputDecoration(
-                                border: UnderlineInputBorder(),
-                                filled: true,
-                                icon: Icon(Icons.person),
-                                labelText: 'Username',
-                              ),
-                              onSaved: (String value) => username = value,
-                              validator: (String input) {
-                                if (RegExp(r'^[a-zA-Z]+$').hasMatch(input)) {
-                                  return null;
-                                }
-                                return 'Invalid username';
-                              },
-                            ),
-                            SizedBox(height: 24),
-                            TextFormField(
-                              initialValue: password,
-                              obscureText: true,
-                              textCapitalization: TextCapitalization.words,
-                              decoration: const InputDecoration(
-                                border: UnderlineInputBorder(),
-                                filled: true,
-                                icon: Icon(Icons.verified_user),
-                                labelText: 'Password',
-                              ),
-                              onSaved: (String value) => password = value,
-                              validator: null,
-                            ),
-                            SizedBox(height: 24),
-                            Row(
-                              children: <Widget>[
-                                SizedBox(width: 40),
-                                RaisedButton(
-                                  child: Text('Log In'),
-                                  onPressed: () {
-                                    final FormState form = _formKey.currentState;
-                                    form.save();
-                                  },
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ),
-      ),
     );
   }
 }

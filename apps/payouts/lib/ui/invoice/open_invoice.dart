@@ -3,7 +3,6 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
 
-import 'package:payouts/src/model/invoice.dart';
 import 'package:payouts/src/model/user.dart';
 import 'package:payouts/ui/loading.dart';
 import 'package:payouts/ui/auth/user_binding.dart' as ub;
@@ -41,7 +40,7 @@ class _OpenInvoicePageState extends State<OpenInvoicePage> {
       path: 'invoices',
     );
     Future<http.Response> response = user.authenticate().get(uri);
-    response.then<http.Response>((http.Response response) {
+    response.then<void>((http.Response response) {
       if (response.statusCode == 200) {
         setState(() {
           List<dynamic> rawInvoices = json.decode(response.body);

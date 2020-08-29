@@ -5,7 +5,6 @@ import 'package:payouts/src/model/invoice.dart';
 import 'package:payouts/ui/invoice/expense_report_page.dart';
 import 'package:payouts/ui/invoice/invoice_binding.dart' as ib;
 import 'package:payouts/ui/invoice/invoice_scaffold.dart';
-import 'package:payouts/ui/invoice/timesheet_page.dart';
 
 class ExpenseReportsPage extends StatefulWidget {
   @override
