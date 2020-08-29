@@ -1,8 +1,469 @@
-import 'package:flutter/widgets.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:intl/intl.dart' as intl;
+
+import 'package:payouts/splitter.dart';
+import 'package:payouts/src/pivot.dart' as pivot;
+
+class ExpenseReports extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: EdgeInsets.all(6),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: <Widget>[
+          Padding(
+            padding: EdgeInsets.fromLTRB(0, 0, 7, 5),
+            child: pivot.LinkButton(
+              image: AssetImage('assets/money_add.png'),
+              text: 'Add expense report',
+              onPressed: () {},
+            ),
+          ),
+          Expanded(
+            child: Padding(
+              padding: EdgeInsets.only(top: 5),
+              child: Split(
+                axis: Axis.horizontal,
+                initialFractions: [0.25, 0.75],
+                children: [
+                  ExpenseReportListView(),
+                  DecoratedBox(
+                    decoration: BoxDecoration(border: Border.all(color: Color(0xFF999999))),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        Padding(
+                          padding: EdgeInsets.fromLTRB(11, 11, 11, 9),
+                          child: DefaultTextStyle(
+                            style:
+                            Theme.of(context).textTheme.bodyText2.copyWith(color: Colors.black),
+                            child: Table(
+                              columnWidths: {
+                                0: IntrinsicColumnWidth(),
+                                1: FlexColumnWidth(),
+                              },
+                              children: [
+                                TableRow(
+                                  children: [
+                                    Padding(
+                                        padding: EdgeInsets.only(bottom: 4),
+                                        child: Text('Program:')),
+                                    Padding(
+                                        padding: EdgeInsets.only(bottom: 4),
+                                        child: Text('Orbital Sciences')),
+                                  ],
+                                ),
+                                TableRow(
+                                  children: [
+                                    Padding(
+                                        padding: EdgeInsets.only(bottom: 4),
+                                        child: Text('Charge number:')),
+                                    Padding(
+                                        padding: EdgeInsets.only(bottom: 4), child: Text('123')),
+                                  ],
+                                ),
+                                TableRow(
+                                  children: [
+                                    Padding(
+                                        padding: EdgeInsets.only(bottom: 4), child: Text('Dates:')),
+                                    Padding(
+                                        padding: EdgeInsets.only(bottom: 4),
+                                        child: Text('2015-10-12 to 2015-10-25')),
+                                  ],
+                                ),
+                                TableRow(
+                                  children: [
+                                    Padding(
+                                        padding: EdgeInsets.only(bottom: 4),
+                                        child: Text('Purpose of travel:')),
+                                    Padding(
+                                        padding: EdgeInsets.only(bottom: 4),
+                                        child: Text('None of your business')),
+                                  ],
+                                ),
+                                TableRow(
+                                  children: [
+                                    Padding(
+                                        padding: EdgeInsets.only(bottom: 4),
+                                        child: Text('Destination (city):')),
+                                    Padding(
+                                        padding: EdgeInsets.only(bottom: 4),
+                                        child: Text('Vancouver')),
+                                  ],
+                                ),
+                                TableRow(
+                                  children: [
+                                    Padding(
+                                        padding: EdgeInsets.only(bottom: 4, right: 6),
+                                        child: Text('Party or parties visited:')),
+                                    Padding(
+                                        padding: EdgeInsets.only(bottom: 4), child: Text('Jimbo')),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                        Padding(
+                          padding: EdgeInsets.only(bottom: 9, left: 11),
+                          child: Row(
+                            children: [
+                              pivot.LinkButton(
+                                image: AssetImage('assets/money_add.png'),
+                                text: 'Add expense line item',
+                                onPressed: () {},
+                              ),
+                            ],
+                          ),
+                        ),
+                        Divider(
+                          height: 1,
+                          thickness: 1,
+                          color: const Color(0xff999999),
+                        ),
+                        Expanded(
+                          child: Padding(
+                            padding: EdgeInsets.all(1),
+                            child: ExpensesTableView(),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class ExpensesTableView extends StatefulWidget {
+  @override
+  _ExpensesTableViewState createState() => _ExpensesTableViewState();
+}
+
+class _ExpensesTableViewState extends State<ExpensesTableView> {
+  pivot.TableViewSelectionController _selectionController;
+  pivot.TableViewSortController _sortController;
+  pivot.TableViewEditorController _editorcontroller;
+
+  final List<List<String>> data = [
+    ['2015-10-12', 'Lodging', r'$219.05', 'Hotel'],
+    ['2015-10-13', 'Car Rental', r'$34.50', 'Test'],
+    ['2015-10-13', 'Parking', r'$12.00', ''],
+    ['2015-10-13', 'Lodging', r'$219.05', 'Hotel'],
+    ['2015-10-14', 'Car Rental', r'$23.43', 'foo'],
+    ['2015-10-14', 'Lodging', r'$219.05', 'Hotel'],
+    ['2015-10-15', 'Lodging', r'$219.05', 'Hotel'],
+    ['2015-10-16', 'Lodging', r'$219.05', 'Hotel'],
+    ['2015-10-17', 'Lodging', r'$219.05', 'Hotel'],
+    ['2015-10-18', 'Lodging', r'$219.05', 'Hotel'],
+    ['2015-10-19', 'Lodging', r'$219.05', 'Hotel'],
+    ['2015-10-20', 'Lodging', r'$219.05', 'Hotel'],
+    ['2015-10-21', 'Lodging', r'$219.05', 'Hotel'],
+    ['2015-10-22', 'Lodging', r'$219.05', 'Hotel'],
+    ['2015-10-23', 'Lodging', r'$219.05', 'Hotel'],
+    ['2015-10-24', 'Lodging', r'$219.05', 'Hotel'],
+    ['2015-10-25', 'Lodging', r'$219.05', 'Hotel'],
+  ];
+
+  static final intl.DateFormat dateFormat = intl.DateFormat('yyyy-MM-dd');
+
+  pivot.TableHeaderRenderer _renderHeader(String name) {
+    return ({
+      BuildContext context,
+      int columnIndex,
+    }) {
+      return Text(
+        name,
+        maxLines: 1,
+        softWrap: false,
+        overflow: TextOverflow.clip,
+      );
+    };
+  }
+
+  Widget _renderDate({
+    BuildContext context,
+    int rowIndex,
+    int columnIndex,
+    bool rowSelected,
+    bool rowHighlighted,
+    bool isEditing,
+  }) {
+    final String date = data[rowIndex][0];
+    final DateTime dateTime = DateTime.parse(date);
+    final String formattedDate = dateFormat.format(dateTime);
+    TextStyle style = DefaultTextStyle.of(context).style;
+    if (rowSelected) {
+      style = style.copyWith(color: Colors.white);
+    }
+    return ExpenseCellWrapper(
+      rowIndex: rowIndex,
+      rowHighlighted: rowHighlighted,
+      rowSelected: rowSelected,
+      child: Text(
+        formattedDate,
+        maxLines: 1,
+        softWrap: false,
+        overflow: TextOverflow.clip,
+        style: style,
+      ),
+    );
+  }
+
+  Widget _renderType({
+    BuildContext context,
+    int rowIndex,
+    int columnIndex,
+    bool rowSelected,
+    bool rowHighlighted,
+    bool isEditing,
+  }) {
+    final String type = data[rowIndex][1];
+    if (isEditing) {
+      return _renderTypeEditor(type);
+    }
+    TextStyle style = DefaultTextStyle.of(context).style;
+    if (rowSelected) {
+      style = style.copyWith(color: Colors.white);
+    }
+    return ExpenseCellWrapper(
+      rowIndex: rowIndex,
+      rowHighlighted: rowHighlighted,
+      rowSelected: rowSelected,
+      child: Text(
+        type,
+        maxLines: 1,
+        softWrap: false,
+        overflow: TextOverflow.clip,
+        style: style,
+      ),
+    );
+  }
+
+  Widget _renderTypeEditor(String type) {
+    return pivot.PushButton<String>(
+      onPressed: () {},
+      label: type,
+      menuItems: <PopupMenuEntry<String>>[
+        PopupMenuItem<String>(
+          value: 'type1',
+          height: 22,
+          child: Text('Another type'),
+        ),
+        PopupMenuItem<String>(
+          value: 'type2',
+          height: 22,
+          child: Text('Yet another type'),
+        ),
+      ],
+      onMenuItemSelected: (String value) {},
+    );
+  }
+
+  Widget _renderAmount({
+    BuildContext context,
+    int rowIndex,
+    int columnIndex,
+    bool rowSelected,
+    bool rowHighlighted,
+    bool isEditing,
+  }) {
+    final String amount = data[rowIndex][2];
+    TextStyle style = DefaultTextStyle.of(context).style;
+    if (rowSelected) {
+      style = style.copyWith(color: Colors.white);
+    }
+    return ExpenseCellWrapper(
+      rowIndex: rowIndex,
+      rowHighlighted: rowHighlighted,
+      rowSelected: rowSelected,
+      child: Text(
+        amount,
+        maxLines: 1,
+        softWrap: false,
+        overflow: TextOverflow.clip,
+        style: style,
+      ),
+    );
+  }
+
+  Widget _renderDescription({
+    BuildContext context,
+    int rowIndex,
+    int columnIndex,
+    bool rowSelected,
+    bool rowHighlighted,
+    bool isEditing,
+  }) {
+    final String description = data[rowIndex][3];
+    TextStyle style = DefaultTextStyle.of(context).style;
+    if (rowSelected) {
+      style = style.copyWith(color: Colors.white);
+    }
+    return ExpenseCellWrapper(
+      rowIndex: rowIndex,
+      rowHighlighted: rowHighlighted,
+      rowSelected: rowSelected,
+      child: Text(
+        description,
+        maxLines: 1,
+        softWrap: false,
+        overflow: TextOverflow.clip,
+        style: style,
+      ),
+    );
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _selectionController = pivot.TableViewSelectionController(selectMode: pivot.SelectMode.multi);
+    _sortController = pivot.TableViewSortController(sortMode: pivot.TableViewSortMode.singleColumn);
+    _editorcontroller = pivot.TableViewEditorController();
+  }
+
+  @override
+  void dispose() {
+    _selectionController.dispose();
+    _sortController.dispose();
+    _editorcontroller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return pivot.ScrollableTableView(
+      rowHeight: 19,
+      length: data.length,
+      selectionController: _selectionController,
+      sortController: _sortController,
+      editorController: _editorcontroller,
+      roundColumnWidthsToWholePixel: false,
+      columns: <pivot.TableColumnController>[
+        pivot.TableColumnController(
+          key: 'date',
+          width: pivot.ConstrainedTableColumnWidth(width: 120),
+          cellRenderer: _renderDate,
+          headerRenderer: _renderHeader('Date'),
+        ),
+        pivot.TableColumnController(
+          key: 'type',
+          width: pivot.FixedTableColumnWidth(120),
+          cellRenderer: _renderType,
+          headerRenderer: _renderHeader('Type'),
+        ),
+        pivot.TableColumnController(
+          key: 'amount',
+          width: pivot.FixedTableColumnWidth(100),
+          cellRenderer: _renderAmount,
+          headerRenderer: _renderHeader('Amount'),
+        ),
+        pivot.TableColumnController(
+          key: 'description',
+          width: pivot.FlexTableColumnWidth(),
+          cellRenderer: _renderDescription,
+          headerRenderer: _renderHeader('Description'),
+        ),
+      ],
+    );
+  }
+}
+
+class ExpenseCellWrapper extends StatelessWidget {
+  const ExpenseCellWrapper({
+    Key key,
+    this.rowIndex = 0,
+    this.rowHighlighted = false,
+    this.rowSelected = false,
+    this.child,
+  })  : assert(rowIndex != null),
+        super(key: key);
+
+  final int rowIndex;
+  final bool rowHighlighted;
+  final bool rowSelected;
+  final Widget child;
+
+  static const List<Color> colors = <Color>[Colors.white, Color(0xfff7f5ee)];
+
+  @override
+  Widget build(BuildContext context) {
+    Widget result = Padding(
+      padding: EdgeInsets.fromLTRB(2, 3, 2, 3),
+      child: child,
+    );
+
+    if (!rowHighlighted && !rowSelected) {
+      result = ColoredBox(
+        color: colors[rowIndex % 2],
+        child: result,
+      );
+    }
+
+    return result;
+  }
+}
+
+class ExpenseReportData {
+  const ExpenseReportData({
+    this.title,
+    this.amount,
+  });
+  final String title;
+  final double amount;
+}
+
+class ExpenseReportListView extends StatefulWidget {
+  @override
+  _ExpenseReportListViewState createState() => _ExpenseReportListViewState();
+}
+
+class _ExpenseReportListViewState extends State<ExpenseReportListView> {
+  int selectedIndex = 1;
+
+  static const List<ExpenseReportData> expenseReports = <ExpenseReportData>[
+    ExpenseReportData(title: 'SCI - Overhead', amount: 0),
+    ExpenseReportData(title: 'Orbital Sciences (123)', amount: 3136.63),
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    // TODO: use ink?
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        border: Border.all(color: Color(0xFF999999)),
+      ),
+      child: ListView.builder(
+        itemExtent: 18,
+        shrinkWrap: true,
+        itemCount: expenseReports.length,
+        itemBuilder: (BuildContext context, int index) {
+          final ExpenseReportData data = expenseReports[index];
+          return ExpenseReportListTile(
+            title: data.title,
+            amount: data.amount,
+            hoverColor: Color(0xffdddcd5),
+            selected: index == selectedIndex,
+            onTap: () {
+              setState(() {
+                selectedIndex = index;
+              });
+            },
+          );
+        },
+      ),
+    );
+  }
+}
 
 class ExpenseReportListTile extends StatelessWidget {
   /// Creates a list tile.
