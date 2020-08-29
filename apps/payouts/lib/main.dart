@@ -5,10 +5,13 @@ import 'package:flutter/services.dart';
 
 import 'package:payouts/src/actions.dart';
 import 'package:payouts/src/pivot.dart' as pivot;
+import 'package:payouts/src/ui/asset_image_precache.dart';
 import 'package:payouts/src/ui/home.dart';
 
 import 'package:payouts/ui/auth/require_user.dart';
 import 'package:payouts/ui/common/task_monitor.dart';
+
+const LogicalKeyboardKey _meta = LogicalKeyboardKey.meta;
 
 void main() {
   FlutterError.onError = (FlutterErrorDetails details, {bool forceReport = false}) {
@@ -30,11 +33,11 @@ class PayoutsApp extends StatelessWidget {
       theme: ThemeData(
         brightness: Brightness.light,
         visualDensity: VisualDensity.compact,
-        primaryColor: Color(0xFFC8C8BB),
-        accentColor: Color(0xFFF7F5EE),
-        scaffoldBackgroundColor: Color(0xFFF7F5EE),
+        primaryColor: const Color(0xFFC8C8BB),
+        accentColor: const Color(0xFFF7F5EE),
+        scaffoldBackgroundColor: const Color(0xFFF7F5EE),
         fontFamily: 'Dialog',
-        textTheme: TextTheme(
+        textTheme: const TextTheme(
           headline1: TextStyle(fontSize: 72.0, fontWeight: FontWeight.bold),
           headline6: TextStyle(fontSize: 36.0, fontStyle: FontStyle.italic),
           bodyText2: TextStyle(fontSize: 11.0, fontFamily: 'Verdana'),
@@ -54,24 +57,36 @@ class PayoutsApp extends StatelessWidget {
       },
       shortcuts: <LogicalKeySet, Intent>{
         ...WidgetsApp.defaultShortcuts,
-        LogicalKeySet(LogicalKeyboardKey.meta, LogicalKeyboardKey.keyN): CreateInvoiceIntent(),
-        LogicalKeySet(LogicalKeyboardKey.meta, LogicalKeyboardKey.keyD): DeleteInvoiceIntent(),
-        LogicalKeySet(LogicalKeyboardKey.meta, LogicalKeyboardKey.keyE): ExportInvoiceIntent(),
-        LogicalKeySet(LogicalKeyboardKey.meta, LogicalKeyboardKey.keyO): OpenInvoiceIntent(),
-        LogicalKeySet(LogicalKeyboardKey.meta, LogicalKeyboardKey.keyS): SaveInvoiceIntent(),
+        LogicalKeySet(_meta, LogicalKeyboardKey.keyN): const CreateInvoiceIntent(),
+        LogicalKeySet(_meta, LogicalKeyboardKey.keyD): const DeleteInvoiceIntent(),
+        LogicalKeySet(_meta, LogicalKeyboardKey.keyE): const ExportInvoiceIntent(),
+        LogicalKeySet(_meta, LogicalKeyboardKey.keyO): const OpenInvoiceIntent(),
+        LogicalKeySet(_meta, LogicalKeyboardKey.keyS): const SaveInvoiceIntent(),
       },
-      navigatorObservers: [
+      navigatorObservers: <NavigatorObserver>[
         pivot.NavigatorListener.of(context).observer,
       ],
-      home: PayoutsScaffold(),
+      home: const AssetImagePrecache(
+        child: PayoutsScaffold(),
+        paths: <String>[
+          'assets/document-new.png',
+          'assets/document-open.png',
+          'assets/media-floppy.png',
+          'assets/dialog-cancel.png',
+          'assets/x-office-presentation.png',
+        ],
+      ),
     );
   }
 }
 
 class PayoutsScaffold extends StatelessWidget {
+  const PayoutsScaffold({Key key}) : super(key: key);
+
   @override
   Widget build(BuildContext context) {
-    return Material(
+    // TODO: remove Material if and when it is no longer needed
+    return const Material(
       type: MaterialType.transparency,
       child: TaskMonitor(
         child: RequireUser(

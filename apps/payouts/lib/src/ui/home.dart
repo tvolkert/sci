@@ -8,6 +8,8 @@ import 'invoice_builder.dart';
 import 'toolbar.dart';
 
 class PayoutsHome extends StatelessWidget {
+  const PayoutsHome({Key key}) : super(key: key);
+
   static Widget _buildInvoiceArea(BuildContext context, Invoice invoice) {
     if (invoice != null) {
       return const InvoiceView();
