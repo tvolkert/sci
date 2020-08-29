@@ -5,6 +5,8 @@ import 'package:payouts/src/actions.dart';
 import 'package:payouts/src/pivot.dart' as pivot;
 
 class Toolbar extends StatelessWidget {
+  const Toolbar({Key key}) : super(key: key);
+
   void _onMenuItemSelected(BuildContext context, String value) {
     switch (value) {
       case 'about':

@@ -4,33 +4,17 @@ import 'package:flutter/widgets.dart';
 import 'package:payouts/src/model/invoice.dart';
 
 import 'invoice.dart';
+import 'invoice_builder.dart';
 import 'toolbar.dart';
 
-class PayoutsHome extends StatefulWidget {
-  @override
-  _PayoutsHomeState createState() => _PayoutsHomeState();
-}
-
-class _PayoutsHomeState extends State<PayoutsHome> {
-  InvoiceBindingListener _listener;
-
-  void _handleInvoiceChanged(Invoice oldInvoice) {
-    setState(() {});
-  }
-
-  bool get _shouldShowInvoice => InvoiceBinding.instance.invoice != null;
-
-  @override
-  void initState() {
-    super.initState();
-    _listener = InvoiceBindingListener(onInvoiceChanged: _handleInvoiceChanged);
-    InvoiceBinding.instance.addListener(_listener);
-  }
-
-  @override
-  void dispose() {
-    InvoiceBinding.instance.removeListener(_listener);
-    super.dispose();
+class PayoutsHome extends StatelessWidget {
+  static Widget _buildInvoiceArea(BuildContext context, Invoice invoice) {
+    if (invoice != null) {
+      return const InvoiceView();
+    }
+    return const DecoratedBox(
+      decoration: BoxDecoration(color: Color(0xffc8c8bb)),
+    );
   }
 
   @override
@@ -38,27 +22,18 @@ class _PayoutsHomeState extends State<PayoutsHome> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Toolbar(),
-        Divider(
+        const Toolbar(),
+        const Divider(
           height: 1,
           thickness: 1,
           color: Color(0xff999999),
         ),
-        Expanded(
-          child: _shouldShowInvoice ? InvoiceView() : _InvoiceArea(),
+        const Expanded(
+          child: InvoiceBindingListenerBuilder(
+            builder: _buildInvoiceArea,
+          ),
         ),
       ],
-    );
-  }
-}
-
-class _InvoiceArea extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return const DecoratedBox(
-      decoration: BoxDecoration(
-        color: Color(0xffc8c8bb)
-      ),
     );
   }
 }
