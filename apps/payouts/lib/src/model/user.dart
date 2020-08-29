@@ -7,12 +7,6 @@ import 'package:http/http.dart' as http;
 import 'constants.dart';
 import 'http.dart';
 
-const Map<int, String> _loginSpecificErrorMessages = <int, String>{
-  HttpStatus.movedTemporarily:
-      'It appears that your Internet connection requires activation. Please open an Internet browser and follow the instructions to activate your connection.',
-  HttpStatus.forbidden: 'Invalid ID or password.',
-};
-
 class UserBinding {
   UserBinding._();
 

@@ -737,7 +737,7 @@ class _ListTileElement extends RenderObjectElement {
   }
 
   @override
-  void insertChildRenderObject(RenderObject child, dynamic slotValue) {
+  void insertRenderObjectChild(RenderObject child, dynamic slotValue) {
     assert(child is RenderBox);
     assert(slotValue is _ListTileSlot);
     final _ListTileSlot slot = slotValue as _ListTileSlot;
@@ -747,7 +747,7 @@ class _ListTileElement extends RenderObjectElement {
   }
 
   @override
-  void removeChildRenderObject(RenderObject child) {
+  void removeRenderObjectChild(RenderObject child, dynamic slot) {
     assert(child is RenderBox);
     assert(renderObject.childToSlot.keys.contains(child));
     _updateRenderObject(null, renderObject.childToSlot[child]);
@@ -756,7 +756,7 @@ class _ListTileElement extends RenderObjectElement {
   }
 
   @override
-  void moveChildRenderObject(RenderObject child, dynamic slotValue) {
+  void moveRenderObjectChild(RenderObject child, dynamic oldSlot, dynamic newSlot) {
     assert(false, 'not reachable');
   }
 }
