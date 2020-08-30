@@ -3,8 +3,8 @@ import 'package:flutter/widgets.dart';
 
 import 'package:payouts/src/model/invoice.dart';
 
-import 'invoice.dart';
 import 'invoice_builder.dart';
+import 'invoice_view.dart';
 import 'toolbar.dart';
 
 class PayoutsHome extends StatelessWidget {
