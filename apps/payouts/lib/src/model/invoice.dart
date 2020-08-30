@@ -87,6 +87,8 @@ typedef InvoiceChangedHandler = void Function(Invoice oldInvoice);
 
 typedef InvoiceNumberChangedHandler = void Function(String previousInvoiceNumber);
 
+typedef InvoiceTotalChangedHandler = void Function(double previousTotal);
+
 typedef InvoiceSubmittedHandler = void Function();
 
 typedef InvoiceTimesheetInsertedHandler = void Function(int timesheetsIndex);
@@ -149,6 +151,7 @@ class InvoiceListener {
   const InvoiceListener({
     this.onInvoiceChanged,
     this.onInvoiceNumberChanged,
+    this.onInvoiceTotalChanged,
     this.onSubmitted,
     this.onTimesheetInserted,
     this.onTimesheetsRemoved,
@@ -165,6 +168,7 @@ class InvoiceListener {
 
   final InvoiceChangedHandler onInvoiceChanged;
   final InvoiceNumberChangedHandler onInvoiceNumberChanged;
+  final InvoiceTotalChangedHandler onInvoiceTotalChanged;
   final InvoiceSubmittedHandler onSubmitted;
   final InvoiceTimesheetInsertedHandler onTimesheetInserted;
   final InvoiceTimesheetsRemovedHandler onTimesheetsRemoved;
@@ -194,6 +198,15 @@ mixin InvoiceListenerNotifier on ListenerNotifier<InvoiceListener> {
     notifyListeners((InvoiceListener listener) {
       if (listener.onInvoiceNumberChanged != null) {
         listener.onInvoiceNumberChanged(previousInvoiceNumber);
+      }
+    });
+  }
+
+  @protected
+  void onInvoiceTotalChanged(double previousTotal) {
+    notifyListeners((InvoiceListener listener) {
+      if (listener.onInvoiceTotalChanged != null) {
+        listener.onInvoiceTotalChanged(previousTotal);
       }
     });
   }
@@ -347,6 +360,27 @@ class Invoice {
     }
     return null;
   }
+
+  double _total;
+  double get total {
+    _checkDisposed();
+    return _total ??= computeTotal();
+  }
+
+  @protected
+  set total(double value) {
+    assert(value != null);
+    double previousValue = total;
+    if (value != previousValue) {
+      _total = value;
+      _owner.onInvoiceTotalChanged(previousValue);
+    }
+  }
+
+  /// Computes the total dollar amount for this invoice.
+  @protected
+  @visibleForTesting
+  double computeTotal() => expenseReports.computeTotal() + timesheets.computeTotal();
 
   /// The invoice vendor (e.g. "Todd Volkert" or "RES Consulting").
   String get vendor => _checkDisposed(() => _data[Keys.vendor]);
@@ -539,6 +573,13 @@ class Timesheets with ForwardingIterable<Timesheet>, DisallowCollectionConversio
   @protected
   Iterable<Timesheet> get delegate => _data;
 
+  /// Computes the total dollar amount for this expense report.
+  @protected
+  @visibleForTesting
+  double computeTotal() {
+    return fold<double>(0, (double sum, Timesheet timesheet) => sum + timesheet.total);
+  }
+
   /// Adds a timesheet with the specified metadata to this invoice's list of
   /// timesheets.
   ///
@@ -613,6 +654,28 @@ class Timesheet {
 
   /// The index of this timesheet in the invoice's list of timesheets.
   int get _index => _owner.timesheets._data.indexOf(this);
+
+  double _total;
+  double get total {
+    _owner._checkDisposed();
+    if (_total == null) {
+      final double rate = program.rate;
+      _total ??= hours.fold<double>(0, (double sum, double value) => sum + value) * rate;
+    }
+    return _total;
+  }
+
+  @protected
+  set total(double value) {
+    double previousValue = total;
+    if (value != previousValue) {
+      // Order is important here; set this first to force the parent to run its
+      // lazy total calculation before updating our total.
+      final double previousInvoiceTotal = _owner.total;
+      _total = value;
+      _owner.total = previousInvoiceTotal + (value - previousValue);
+    }
+  }
 
   /// The program (assignment data) against which this timesheet is to be
   /// billed.
@@ -721,8 +784,12 @@ class Hours with ForwardingIterable<double>, DisallowCollectionConversion<double
     _owner._checkDisposed();
     double previousValue = this[index];
     if (value != previousValue) {
+      // Order is important here; set this first to force the parent to run its
+      // lazy total calculation before updating the hours value.
+      final double previousTotal = _parent.total;
       _data[index] = value;
       _owner._owner.onTimesheetHoursUpdated(_parent._index, index, previousValue);
+      _parent.total = previousTotal + (value - previousValue) * _parent.program.rate;
     }
   }
 }
@@ -750,6 +817,13 @@ class ExpenseReports
   @override
   @protected
   Iterable<ExpenseReport> get delegate => _data;
+
+  /// Computes the total dollar amount for this expense report.
+  @protected
+  @visibleForTesting
+  double computeTotal() {
+    return fold<double>(0, (double sum, ExpenseReport report) => sum + report.total);
+  }
 
   /// Gets the expense report at the specified index.
   ExpenseReport operator [](int index) => _owner._checkDisposed(() => _data[index]);
@@ -852,6 +926,24 @@ class ExpenseReport {
   /// The index of this expense report in the list of expense reports.
   int get _index => _owner.expenseReports._data.indexOf(this);
 
+  double _total;
+  double get total {
+    _owner._checkDisposed();
+    return _total ??= expenses.fold<double>(0, (double sum, Expense exp) => sum + exp.amount);
+  }
+
+  @protected
+  set total(double value) {
+    double previousValue = total;
+    if (value != previousValue) {
+      // Order is important here; set this first to force the parent to run its
+      // lazy total calculation before updating our total.
+      final double previousInvoiceTotal = _owner.total;
+      _total = value;
+      _owner.total = previousInvoiceTotal + (value - previousValue);
+    }
+  }
+
   /// The program (assignment) against which this expense report is to be
   /// billed.
   Program _program;
@@ -937,6 +1029,9 @@ class Expenses with ForwardingIterable<Expense>, DisallowCollectionConversion<Ex
 
   Expense add({DateTime date, ExpenseType type, double amount, String description}) {
     _owner._checkDisposed();
+    // Order is important here; set this first to force the parent to run its
+    // lazy total calculation before adding the expense to _data.
+    final double previousTotal = _parent.total;
     // TODO: this list should probably be sorted.
     final int insertIndex = _data.length - 1;
     final Expense expense = Expense._fromParts(
@@ -949,13 +1044,18 @@ class Expenses with ForwardingIterable<Expense>, DisallowCollectionConversion<Ex
     );
     _data.insert(insertIndex, expense);
     _owner._owner.onExpenseInserted(_parent._index, insertIndex);
+    _parent.total = previousTotal + amount;
     return expense;
   }
 
   Expense removeAt(int index) {
     _owner._checkDisposed();
+    // Order is important here; set this first to force the parent to run its
+    // lazy total calculation before removing the expense from _data.
+    final double previousTotal = _parent.total;
     final Expense removed = _data.removeAt(index);
     _owner._owner.onExpensesRemoved(_parent._index, index, <Expense>[removed]);
+    _parent.total = previousTotal - removed.amount;
     return removed;
   }
 
@@ -1008,6 +1108,7 @@ class Expense {
     _owner._checkDisposed();
     return _date ??= DateTime.parse(_data[Keys.date]);
   }
+
   set date(DateTime value) {
     _owner._checkDisposed();
     DateTime previousValue = date;
@@ -1026,6 +1127,7 @@ class Expense {
     _owner._checkDisposed();
     return _type ??= ExpenseType._(_data[Keys.expenseType]);
   }
+
   set type(ExpenseType value) {
     _owner._checkDisposed();
     ExpenseType previousValue = type;
@@ -1044,8 +1146,12 @@ class Expense {
     _owner._checkDisposed();
     double previousAmount = amount;
     if (value != previousAmount) {
+      // Order is important here; set this first to force the parent to run its
+      // lazy total calculation before updating the amount.
+      final double previousTotal = _parent.total;
       _data[Keys.amount] = value;
       _owner._owner.onExpenseUpdated(_parent._index, _index, Keys.amount, previousAmount);
+      _parent.total = previousTotal + (value - previousAmount);
     }
   }
 
