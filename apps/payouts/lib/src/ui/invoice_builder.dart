@@ -17,7 +17,7 @@ class InvoiceBindingListenerBuilder extends StatefulWidget {
 }
 
 class _InvoiceBindingListenerBuilderState extends State<InvoiceBindingListenerBuilder> {
-  InvoiceBindingListener _listener;
+  InvoiceListener _listener;
   Invoice _invoice;
 
   void _handleInvoiceChanged(Invoice oldInvoice) {
@@ -30,7 +30,7 @@ class _InvoiceBindingListenerBuilderState extends State<InvoiceBindingListenerBu
   void initState() {
     super.initState();
     _invoice = InvoiceBinding.instance.invoice;
-    _listener = InvoiceBindingListener(onInvoiceChanged: _handleInvoiceChanged);
+    _listener = InvoiceListener(onInvoiceChanged: _handleInvoiceChanged);
     InvoiceBinding.instance.addListener(_listener);
   }
 
