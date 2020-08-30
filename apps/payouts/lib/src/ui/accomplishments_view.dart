@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 
 import 'package:payouts/src/pivot.dart' as pivot;
 
-class Accomplishments extends StatelessWidget {
-  const Accomplishments({
+class AccomplishmentsView extends StatelessWidget {
+  const AccomplishmentsView({
     Key key,
   }) : super(key: key);
 

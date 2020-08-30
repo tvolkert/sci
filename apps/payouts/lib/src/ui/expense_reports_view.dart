@@ -5,7 +5,7 @@ import 'package:intl/intl.dart' as intl;
 import 'package:payouts/splitter.dart';
 import 'package:payouts/src/pivot.dart' as pivot;
 
-class ExpenseReports extends StatelessWidget {
+class ExpenseReportsView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(

@@ -8,7 +8,7 @@ import 'package:intl/intl.dart' as intl;
 
 import 'package:payouts/src/pivot.dart' as pivot;
 
-import 'accomplishments.dart';
+import 'accomplishments_view.dart';
 import 'rotated_text.dart';
 
 class ReviewAndSubmit extends StatelessWidget {

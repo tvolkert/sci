@@ -7,7 +7,7 @@ import 'package:payouts/src/pivot.dart' as pivot;
 
 import 'rotated_text.dart';
 
-class BillableHours extends StatelessWidget {
+class TimesheetsView extends StatelessWidget {
   TableRow _buildRow(String assignment, String footer) {
     return TableRow(
       children: <Widget>[
