@@ -7,6 +7,7 @@ import 'package:payouts/src/pivot.dart';
 
 import 'collections.dart';
 import 'constants.dart';
+import 'debug.dart';
 import 'http.dart';
 import 'user.dart';
 
@@ -295,7 +296,7 @@ class Invoice with ListenerNotifier<InvoiceListener>, InvoiceListenerNotifier {
   Invoice._(this.id, this._data)
       : assert(id != null),
         assert(_data != null),
-        assert(_data[Keys.invoiceId] == id);
+        assert(debugUseFakeHttpLayer || _data[Keys.invoiceId] == id);
 
   /// The invoice identifier, unique across all invoices.
   final int id;
