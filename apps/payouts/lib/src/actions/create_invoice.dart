@@ -1,10 +1,17 @@
 import 'dart:async';
+import 'dart:convert';
+import 'dart:io' show HttpStatus;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
+import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart' as intl;
+import 'package:payouts/src/model/constants.dart';
+import 'package:payouts/src/model/invoice.dart';
+import 'package:payouts/src/model/user.dart';
 
 import 'package:payouts/src/pivot.dart' as pivot;
+import 'package:payouts/ui/common/task_monitor.dart';
 
 class CreateInvoiceIntent extends Intent {
   const CreateInvoiceIntent({this.context});
@@ -20,8 +27,12 @@ class CreateInvoiceAction extends ContextAction<CreateInvoiceIntent> {
       throw StateError('No context in which to invoke $runtimeType');
     }
 
-    await CreateInvoiceSheet.open(context: context);
-    print('TODO: create invoice');
+    final NewInvoiceProperties properties = await CreateInvoiceSheet.open(context: context);
+    await TaskMonitor.of(context).monitor(
+      future: InvoiceBinding.instance.createInvoice(properties),
+      inProgressMessage: 'Creating invoice',
+      completedMessage: 'Invoice created',
+    );
   }
 }
 
@@ -31,8 +42,8 @@ class CreateInvoiceSheet extends StatefulWidget {
   @override
   _CreateInvoiceSheetState createState() => _CreateInvoiceSheetState();
 
-  static Future<void> open({BuildContext context}) {
-    return pivot.Sheet.open<void>(
+  static Future<NewInvoiceProperties> open({BuildContext context}) {
+    return pivot.Sheet.open<NewInvoiceProperties>(
       context: context,
       content: CreateInvoiceSheet(),
     );
@@ -40,36 +51,64 @@ class CreateInvoiceSheet extends StatefulWidget {
 }
 
 class _CreateInvoiceSheetState extends State<CreateInvoiceSheet> {
-  List<Map<String, dynamic>> billingPeriods;
-  String invoiceNumber;
+  List<Map<String, dynamic>> _billingPeriods;
+  TextEditingController _invoiceNumberController;
+  pivot.TableViewSelectionController _selectionController;
+
+  bool _canProceed = false;
+  bool get canProceed => _canProceed;
+  set canProceed(bool value) {
+    if (value != _canProceed) {
+      setState(() {
+        _canProceed = value;
+      });
+    }
+  }
+
+  void _checkCanProceed() {
+    // TODO: max length for Quickbooks
+    final bool isValidInvoiceNumber = _invoiceNumberController.text.trim().isNotEmpty;
+    final bool isBillingPeriodSelected = _selectionController.selectedIndex != -1;
+    canProceed = isValidInvoiceNumber && isBillingPeriodSelected;
+  }
+
+  void _handleOk() {
+    final Map<String, dynamic> selectedItem = _billingPeriods[_selectionController.selectedIndex];
+    final String billingStart = selectedItem[Keys.billingPeriod];
+    Navigator.of(context).pop(NewInvoiceProperties(
+      invoiceNumber: _invoiceNumberController.text,
+      billingStart: billingStart,
+    ));
+  }
 
   @override
   void initState() {
     super.initState();
-    // TODO: Really fetch `/newInvoiceParameters`
-    Timer(const Duration(seconds: 1), () {
+    _selectionController = pivot.TableViewSelectionController();
+    _invoiceNumberController = TextEditingController();
+    _invoiceNumberController.addListener(_checkCanProceed);
+
+    final Uri url = Server.uri(Server.newInvoiceParametersUrl);
+    UserBinding.instance.user.authenticate().get(url).then((http.Response response) {
       if (!mounted) {
         return;
       }
-      setState(() {
-        billingPeriods = [
-          {"billing_period": "2020-02-24"},
-          {"billing_period": "2020-03-09"},
-          {"billing_period": "2020-03-23"},
-          {"billing_period": "2020-04-06"},
-          {"billing_period": "2020-04-20"},
-          {"billing_period": "2020-05-04"},
-          {"billing_period": "2020-05-18"},
-          {"billing_period": "2020-06-01"},
-          {"billing_period": "2020-06-15"},
-          {"billing_period": "2020-06-29"},
-          {"billing_period": "2020-07-13"},
-          {"billing_period": "2020-07-27"},
-          {"billing_period": "2020-08-10"},
-        ];
-        invoiceNumber = '';
-      });
+      if (response.statusCode == HttpStatus.ok) {
+        setState(() {
+          final Map<String, dynamic> parameters = json.decode(response.body);
+          _billingPeriods = parameters[Keys.billingPeriods].cast<Map<String, dynamic>>();
+          _invoiceNumberController.text = parameters[Keys.invoiceNumber];
+        });
+      }
     });
+  }
+
+  @override
+  void dispose() {
+    _invoiceNumberController.removeListener(_checkCanProceed);
+    _invoiceNumberController.dispose();
+    _selectionController.dispose();
+    super.dispose();
   }
 
   static final intl.DateFormat dateFormat = intl.DateFormat('M/d/yyyy');
@@ -82,7 +121,7 @@ class _CreateInvoiceSheetState extends State<CreateInvoiceSheet> {
     bool rowHighlighted,
     bool isEditing,
   }) {
-    final Map<String, dynamic> row = billingPeriods[rowIndex];
+    final Map<String, dynamic> row = _billingPeriods[rowIndex];
     final String startDateValue = row['billing_period'];
     final DateTime startDate = DateTime.parse(startDateValue);
     final DateTime endDate = startDate.add(const Duration(days: 14));
@@ -129,6 +168,7 @@ class _CreateInvoiceSheetState extends State<CreateInvoiceSheet> {
                     children: <Widget>[
                       Text('Invoice number:'),
                       TextField(
+                        controller: _invoiceNumberController,
                         cursorWidth: 1,
                         cursorColor: Colors.black,
                         style: TextStyle(fontFamily: 'Verdana', fontSize: 11),
@@ -172,8 +212,9 @@ class _CreateInvoiceSheetState extends State<CreateInvoiceSheet> {
                             padding: EdgeInsets.all(1),
                             child: pivot.ScrollableTableView(
                               rowHeight: 19,
-                              length: billingPeriods?.length ?? 0,
+                              length: _billingPeriods?.length ?? 0,
                               includeHeader: false,
+                              selectionController: _selectionController,
                               columns: [
                                 pivot.TableColumnController(
                                   key: 'billing_period',
@@ -195,7 +236,7 @@ class _CreateInvoiceSheetState extends State<CreateInvoiceSheet> {
           Row(
             mainAxisAlignment: MainAxisAlignment.end,
             children: [
-              if (billingPeriods == null)
+              if (_billingPeriods == null)
                 Expanded(
                   child: Row(
                     children: [
@@ -211,7 +252,7 @@ class _CreateInvoiceSheetState extends State<CreateInvoiceSheet> {
                 ),
               pivot.CommandPushButton(
                 label: 'OK',
-                onPressed: () => Navigator.of(context).pop(),
+                onPressed: canProceed ? _handleOk : null,
               ),
               SizedBox(width: 4),
               pivot.CommandPushButton(

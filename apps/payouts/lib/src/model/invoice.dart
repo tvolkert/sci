@@ -1,5 +1,5 @@
 import 'dart:convert';
-import 'dart:io' show HttpStatus;
+import 'dart:io' show HttpHeaders, HttpStatus;
 
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
@@ -9,6 +9,7 @@ import 'collections.dart';
 import 'constants.dart';
 import 'debug.dart';
 import 'http.dart';
+import 'pair.dart';
 import 'user.dart';
 
 typedef InvoiceChangedHandler = void Function(Invoice oldInvoice);
@@ -64,6 +65,44 @@ class InvoiceBinding with ListenerNotifier<InvoiceBindingListener>, InvoiceBindi
       throw HttpStatusException(response.statusCode);
     }
   }
+
+  Future<Invoice> createInvoice(NewInvoiceProperties properties) async {
+    final Uri url = Server.uri(Server.invoiceUrl);
+    final http.Client client = UserBinding.instance.user.authenticate();
+    final Map<String, dynamic> body = <String, dynamic>{
+      Keys.invoiceNumber: properties.invoiceNumber,
+      Keys.billingStart: properties.billingStart,
+      Keys.billingDuration: properties.billingDuration.inDays,
+    };
+    final http.Response response = await client.post(url, body: json.encode(body));
+    if (response.statusCode == HttpStatus.created) {
+      final String location = response.headers[HttpHeaders.locationHeader];
+      final String fragment = Uri.parse(location).fragment;
+      Pair<String> pair = Pair<String>.fromIterable(fragment.split('='));
+      assert(pair.first == QueryParameters.invoiceId);
+      final int invoiceId = int.parse(pair.second);
+      return await loadInvoice(invoiceId);
+    } else if (response.statusCode == HttpStatus.forbidden) {
+      throw const InvalidCredentials();
+    } else {
+      throw HttpStatusException(response.statusCode);
+    }
+  }
+}
+
+@immutable
+class NewInvoiceProperties {
+  const NewInvoiceProperties({
+    @required this.invoiceNumber,
+    @required this.billingStart,
+    this.billingDuration = const Duration(days: 14),
+  })  : assert(invoiceNumber != null),
+        assert(billingStart != null),
+        assert(billingDuration != null);
+
+  final String invoiceNumber;
+  final String billingStart;
+  final Duration billingDuration;
 }
 
 typedef InvoiceNumberChangedHandler = void Function(String previousInvoiceNumber);
