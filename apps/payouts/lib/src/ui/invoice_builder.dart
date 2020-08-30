@@ -4,8 +4,8 @@ import 'package:payouts/src/model/invoice.dart';
 
 typedef InvoiceBuilder = Widget Function(BuildContext context, Invoice invoice);
 
-class InvoiceBindingListenerBuilder extends StatefulWidget {
-  const InvoiceBindingListenerBuilder({
+class InvoiceListenerBuilder extends StatefulWidget {
+  const InvoiceListenerBuilder({
     Key key,
     this.builder,
   }) : super(key: key);
@@ -13,10 +13,10 @@ class InvoiceBindingListenerBuilder extends StatefulWidget {
   final InvoiceBuilder builder;
 
   @override
-  _InvoiceBindingListenerBuilderState createState() => _InvoiceBindingListenerBuilderState();
+  _InvoiceListenerBuilderState createState() => _InvoiceListenerBuilderState();
 }
 
-class _InvoiceBindingListenerBuilderState extends State<InvoiceBindingListenerBuilder> {
+class _InvoiceListenerBuilderState extends State<InvoiceListenerBuilder> {
   InvoiceListener _listener;
   Invoice _invoice;
 

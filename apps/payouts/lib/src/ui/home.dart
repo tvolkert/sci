@@ -31,7 +31,7 @@ class PayoutsHome extends StatelessWidget {
           color: Color(0xff999999),
         ),
         const Expanded(
-          child: InvoiceBindingListenerBuilder(
+          child: InvoiceListenerBuilder(
             builder: _buildInvoiceArea,
           ),
         ),
