@@ -91,6 +91,8 @@ typedef InvoiceTotalChangedHandler = void Function(double previousTotal);
 
 typedef InvoiceSubmittedHandler = void Function();
 
+typedef InvoiceDirtyChangedHandler = void Function();
+
 typedef InvoiceTimesheetInsertedHandler = void Function(int timesheetsIndex);
 
 typedef InvoiceTimesheetsRemovedHandler = void Function(
@@ -153,6 +155,7 @@ class InvoiceListener {
     this.onInvoiceNumberChanged,
     this.onInvoiceTotalChanged,
     this.onSubmitted,
+    this.onInvoiceDirtyChanged,
     this.onTimesheetInserted,
     this.onTimesheetsRemoved,
     this.onTimesheetUpdated,
@@ -170,6 +173,7 @@ class InvoiceListener {
   final InvoiceNumberChangedHandler onInvoiceNumberChanged;
   final InvoiceTotalChangedHandler onInvoiceTotalChanged;
   final InvoiceSubmittedHandler onSubmitted;
+  final InvoiceDirtyChangedHandler onInvoiceDirtyChanged;
   final InvoiceTimesheetInsertedHandler onTimesheetInserted;
   final InvoiceTimesheetsRemovedHandler onTimesheetsRemoved;
   final InvoiceTimesheetUpdatedHandler onTimesheetUpdated;
@@ -216,6 +220,15 @@ mixin InvoiceListenerNotifier on ListenerNotifier<InvoiceListener> {
     notifyListeners((InvoiceListener listener) {
       if (listener.onSubmitted != null) {
         listener.onSubmitted();
+      }
+    });
+  }
+
+  @protected
+  void onInvoiceDirtyChanged() {
+    notifyListeners((InvoiceListener listener) {
+      if (listener.onInvoiceDirtyChanged != null) {
+        listener.onInvoiceDirtyChanged();
       }
     });
   }
@@ -374,6 +387,7 @@ class Invoice {
     if (value != previousValue) {
       _total = value;
       _owner.onInvoiceTotalChanged(previousValue);
+      _setDirty(true);
     }
   }
 
@@ -381,6 +395,16 @@ class Invoice {
   @protected
   @visibleForTesting
   double computeTotal() => expenseReports.computeTotal() + timesheets.computeTotal();
+
+  /// Whether this invoice has been modified since it was last saved.
+  bool _dirty = false;
+  bool get dirty => _dirty;
+  void _setDirty(bool value) {
+    if (value != _dirty) {
+      _dirty = value;
+      _owner.onInvoiceDirtyChanged();
+    }
+  }
 
   /// The invoice vendor (e.g. "Todd Volkert" or "RES Consulting").
   String get vendor => _checkDisposed(() => _data[Keys.vendor]);
@@ -397,6 +421,7 @@ class Invoice {
     if (value != previousValue) {
       _data[Keys.invoiceNumber] = value;
       _owner.onInvoiceNumberChanged(previousValue);
+      _setDirty(true);
     }
   }
 
@@ -598,6 +623,7 @@ class Timesheets with ForwardingIterable<Timesheet>, DisallowCollectionConversio
     );
     _data.insert(insertIndex, timesheet);
     _owner._owner.onTimesheetInserted(insertIndex);
+    _owner._setDirty(true);
     return timesheet;
   }
 
@@ -609,6 +635,7 @@ class Timesheets with ForwardingIterable<Timesheet>, DisallowCollectionConversio
     _owner._checkDisposed();
     final Timesheet removed = _data.removeAt(index);
     _owner._owner.onTimesheetsRemoved(index, <Timesheet>[removed]);
+    _owner._setDirty(true);
     return removed;
   }
 
@@ -732,6 +759,7 @@ class Timesheet {
       if (chargeNumber != previousValue) {
         _data[Keys.chargeNumber] = chargeNumber;
         _owner._owner.onTimesheetUpdated(timesheetsIndex, Keys.chargeNumber, previousValue);
+        _owner._setDirty(true);
       }
     }
     if (requestor != null) {
@@ -739,6 +767,7 @@ class Timesheet {
       if (requestor != previousValue) {
         _data[Keys.requestor] = requestor;
         _owner._owner.onTimesheetUpdated(timesheetsIndex, Keys.requestor, previousValue);
+        _owner._setDirty(true);
       }
     }
     if (taskDescription != null) {
@@ -746,6 +775,7 @@ class Timesheet {
       if (taskDescription != previousValue) {
         _data[Keys.taskDescription] = taskDescription;
         _owner._owner.onTimesheetUpdated(timesheetsIndex, Keys.taskDescription, previousValue);
+        _owner._setDirty(true);
       }
     }
   }
@@ -789,6 +819,7 @@ class Hours with ForwardingIterable<double>, DisallowCollectionConversion<double
       final double previousTotal = _parent.total;
       _data[index] = value;
       _owner._owner.onTimesheetHoursUpdated(_parent._index, index, previousValue);
+      _owner._setDirty(true);
       _parent.total = previousTotal + (value - previousValue) * _parent.program.rate;
     }
   }
@@ -859,6 +890,7 @@ class ExpenseReports
     );
     _data.insert(insertIndex, expenseReport);
     _owner._owner.onExpenseReportInserted(insertIndex);
+    _owner._setDirty(true);
     return expenseReport;
   }
 
@@ -870,6 +902,7 @@ class ExpenseReports
     _owner._checkDisposed();
     final ExpenseReport removed = _data.removeAt(index);
     _owner._owner.onExpenseReportsRemoved(index, <ExpenseReport>[removed]);
+    _owner._setDirty(true);
     return removed;
   }
 
@@ -1044,6 +1077,7 @@ class Expenses with ForwardingIterable<Expense>, DisallowCollectionConversion<Ex
     );
     _data.insert(insertIndex, expense);
     _owner._owner.onExpenseInserted(_parent._index, insertIndex);
+    _owner._setDirty(true);
     _parent.total = previousTotal + amount;
     return expense;
   }
@@ -1055,6 +1089,7 @@ class Expenses with ForwardingIterable<Expense>, DisallowCollectionConversion<Ex
     final double previousTotal = _parent.total;
     final Expense removed = _data.removeAt(index);
     _owner._owner.onExpensesRemoved(_parent._index, index, <Expense>[removed]);
+    _owner._setDirty(true);
     _parent.total = previousTotal - removed.amount;
     return removed;
   }
@@ -1115,6 +1150,7 @@ class Expense {
     if (value != previousValue) {
       _data[Keys.date] = value;
       _owner._owner.onExpenseUpdated(_parent._index, _index, Keys.date, previousValue);
+      _owner._setDirty(true);
     }
   }
 
@@ -1134,6 +1170,7 @@ class Expense {
     if (value != previousValue) {
       _data[Keys.expenseType] = value;
       _owner._owner.onExpenseUpdated(_parent._index, _index, Keys.expenseType, previousValue);
+      _owner._setDirty(true);
     }
   }
 
@@ -1151,6 +1188,7 @@ class Expense {
       final double previousTotal = _parent.total;
       _data[Keys.amount] = value;
       _owner._owner.onExpenseUpdated(_parent._index, _index, Keys.amount, previousAmount);
+      _owner._setDirty(true);
       _parent.total = previousTotal + (value - previousAmount);
     }
   }
@@ -1166,6 +1204,7 @@ class Expense {
     if (value != previousValue) {
       _data[Keys.description] = value;
       _owner._owner.onExpenseUpdated(_parent._index, _index, Keys.description, previousValue);
+      _owner._setDirty(true);
     }
   }
 
@@ -1265,6 +1304,7 @@ class Accomplishments
     );
     _data.insert(insertIndex, accomplishment);
     _owner._owner.onAccomplishmentInserted(insertIndex);
+    _owner._setDirty(true);
     return accomplishment;
   }
 }
@@ -1307,6 +1347,7 @@ class Accomplishment {
     if (value != previousValue) {
       _data[Keys.description] = value;
       _owner._owner.onAccomplishmentTextUpdated(_index, previousValue);
+      _owner._setDirty(true);
     }
   }
 }
