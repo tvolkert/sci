@@ -26,7 +26,6 @@ class InvoiceView extends StatefulWidget {
 class _InvoiceViewState extends State<InvoiceView> {
   InvoiceListener _listener;
   bool _isSubmitted; // ignore: unused_field
-  String _billingPeriod;
   double _total;
 
   Invoice get invoice {
@@ -43,16 +42,6 @@ class _InvoiceViewState extends State<InvoiceView> {
     setState(() => _isSubmitted = invoice.isSubmitted);
   }
 
-  String _getBillingPeriodDisplay(DateRange billingPeriod) {
-    StringBuffer buf = StringBuffer()
-      ..write('(')
-      ..write(DateFormats.mmddyyyy.format(billingPeriod.start))
-      ..write(' - ')
-      ..write(DateFormats.mmddyyyy.format(billingPeriod.end))
-      ..write(')');
-    return buf.toString();
-  }
-
   @override
   void initState() {
     super.initState();
@@ -62,7 +51,6 @@ class _InvoiceViewState extends State<InvoiceView> {
     );
     final Invoice invoice = this.invoice;
     _isSubmitted = invoice.isSubmitted;
-    _billingPeriod = _getBillingPeriodDisplay(invoice.billingPeriod);
     _total = invoice.total;
     InvoiceBinding.instance.addListener(_listener);
   }
@@ -79,37 +67,25 @@ class _InvoiceViewState extends State<InvoiceView> {
       builder: (BuildContext context, Invoice invoice) {
         // TODO: Remove Ink when it's no longer needed.
         return Ink(
-          decoration: BoxDecoration(color: Color(0xffc8c8bb)),
+          decoration: const BoxDecoration(color: Color(0xffc8c8bb)),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Padding(
-                padding: EdgeInsets.fromLTRB(5, 5, 5.5, 5),
+                padding: const EdgeInsets.fromLTRB(5, 5, 5.5, 5),
                 child: SizedBox(
-                  height: 22,
+                  height: 32,
                   child: Row(
                     children: [
-                      InvoiceNumberEditor(),
-                      Transform.translate(
-                        offset: Offset(0, -1),
-                        child: Padding(
-                          padding: EdgeInsets.only(left: 10),
-                          child: Text(_billingPeriod),
-                        ),
-                      ),
-                      Spacer(),
-                      Transform.translate(
-                        offset: Offset(0, -1),
-                        child: CurrencyText(
-                          prefix: 'Total Check Amount: ',
-                          amount: _total,
-                        ),
-                      ),
+                      const InvoiceNumberEditor(),
+                      BillingPeriodView(invoice.billingPeriod),
+                      const Spacer(),
+                      InvoiceTotalView(total: _total),
                     ],
                   ),
                 ),
               ),
-              Expanded(
+              const Expanded(
                 child: Padding(
                   padding: EdgeInsets.fromLTRB(5, 0, 6, 4),
                   child: pivot.TabPane(
@@ -144,6 +120,8 @@ class _InvoiceViewState extends State<InvoiceView> {
 }
 
 class InvoiceNumberEditor extends StatefulWidget {
+  const InvoiceNumberEditor({Key key}) : super(key: key);
+
   @override
   _InvoiceNumberEditorState createState() => _InvoiceNumberEditorState();
 }
@@ -243,6 +221,53 @@ class _InvoiceNumberEditorState extends State<InvoiceNumberEditor> {
           onPressed: _isSubmitted && false ? null : _handleToggleEdit,
         ),
       ],
+    );
+  }
+}
+
+class BillingPeriodView extends StatelessWidget {
+  BillingPeriodView(DateRange billingPeriod) : child = _createChild(billingPeriod);
+
+  final Widget child;
+
+  static Widget _createChild(DateRange billingPeriod) {
+    StringBuffer buf = StringBuffer()
+      ..write('(')
+      ..write(DateFormats.mmddyyyy.format(billingPeriod.start))
+      ..write(' - ')
+      ..write(DateFormats.mmddyyyy.format(billingPeriod.end))
+      ..write(')');
+    return Text(buf.toString(), maxLines: 1, softWrap: false);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Transform.translate(
+      offset: Offset(0, -1),
+      child: Padding(
+        padding: EdgeInsets.only(left: 10),
+        child: child,
+      ),
+    );
+  }
+}
+
+class InvoiceTotalView extends StatelessWidget {
+  const InvoiceTotalView({
+    Key key,
+    @required this.total,
+  }) : super(key: key);
+
+  final double total;
+
+  @override
+  Widget build(BuildContext context) {
+    return Transform.translate(
+      offset: Offset(0, -1),
+      child: CurrencyText(
+        prefix: 'Total Check Amount: ',
+        amount: total,
+      ),
     );
   }
 }

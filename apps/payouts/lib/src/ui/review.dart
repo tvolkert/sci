@@ -12,9 +12,7 @@ import 'accomplishments_view.dart';
 import 'rotated_text.dart';
 
 class ReviewAndSubmit extends StatelessWidget {
-  const ReviewAndSubmit({
-    Key key,
-  }) : super(key: key);
+  const ReviewAndSubmit({Key key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -711,11 +709,11 @@ class TestBorder extends TableBorder {
   })  : assert(aggregateColumns != null),
         assert(lastRowIsAggregate != null),
         super(
-        top: _outsideBorder,
-        right: _outsideBorder,
-        bottom: _outsideBorder,
-        left: _outsideBorder,
-      );
+          top: _outsideBorder,
+          right: _outsideBorder,
+          bottom: _outsideBorder,
+          left: _outsideBorder,
+        );
 
   final List<int> aggregateColumns;
   final bool lastRowIsAggregate;
@@ -739,11 +737,11 @@ class TestBorder extends TableBorder {
 
   @override
   void paint(
-      Canvas canvas,
-      Rect rect, {
-        @required Iterable<double> rows,
-        @required Iterable<double> columns,
-      }) {
+    Canvas canvas,
+    Rect rect, {
+    @required Iterable<double> rows,
+    @required Iterable<double> columns,
+  }) {
     // properties can't be null
     assert(top != null);
     assert(right != null);

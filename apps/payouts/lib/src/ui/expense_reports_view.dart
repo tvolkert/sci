@@ -6,6 +6,8 @@ import 'package:payouts/splitter.dart';
 import 'package:payouts/src/pivot.dart' as pivot;
 
 class ExpenseReportsView extends StatelessWidget {
+  const ExpenseReportsView({Key key}) : super(key: key);
+
   @override
   Widget build(BuildContext context) {
     return Padding(

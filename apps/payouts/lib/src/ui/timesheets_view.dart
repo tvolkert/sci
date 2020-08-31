@@ -8,6 +8,8 @@ import 'package:payouts/src/pivot.dart' as pivot;
 import 'rotated_text.dart';
 
 class TimesheetsView extends StatelessWidget {
+  const TimesheetsView({Key key}) : super(key: key);
+
   TableRow _buildRow(String assignment, String footer) {
     return TableRow(
       children: <Widget>[

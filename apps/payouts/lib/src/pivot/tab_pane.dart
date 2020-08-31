@@ -14,10 +14,12 @@ class Tab {
 
 class TabPane extends StatefulWidget {
   const TabPane({
+    Key key,
     this.initialSelectedIndex = 0,
     this.tabs,
   })  : assert(tabs != null),
-        assert(tabs.length > 0);
+        //assert(tabs.length > 0),
+        super(key: key);
 
   final int initialSelectedIndex;
   final List<Tab> tabs;
