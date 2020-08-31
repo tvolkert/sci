@@ -113,6 +113,9 @@ const Map<String, Map<String, dynamic>> _urlToFakeContent = <String, Map<String,
     ),
   },
   'PUT': <String, dynamic>{
+    '/invoice': _FakeResponse(
+      statusCode: HttpStatus.noContent,
+    ),
     '/password': '',
   },
 };
