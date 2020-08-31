@@ -16,16 +16,10 @@ class DeleteInvoiceIntent extends Intent {
 
 class DeleteInvoiceAction extends ContextAction<DeleteInvoiceIntent> with TrackInvoiceOpenedMixin {
   DeleteInvoiceAction._() {
-    _listener = InvoiceListener(
-      onInvoiceChanged: handleInvoiceChanged,
-    );
-    InvoiceBinding.instance.addListener(_listener);
-    initInvoiceOpened();
+    initInstance();
   }
 
   static final DeleteInvoiceAction instance = DeleteInvoiceAction._();
-
-  InvoiceListener _listener;
 
   @override
   @protected

@@ -2,18 +2,19 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io' show HttpStatus;
 
-import 'package:flutter/material.dart';
-import 'package:flutter/painting.dart';
-import 'package:flutter/rendering.dart';
+import 'package:flutter/widgets.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
+
 import 'package:payouts/src/model/constants.dart';
 import 'package:payouts/src/model/invoice.dart';
 import 'package:payouts/src/model/user.dart';
-
 import 'package:payouts/src/pivot.dart' as pivot;
 import 'package:payouts/src/pivot/foundation.dart';
 import 'package:payouts/ui/common/task_monitor.dart';
+
+import 'track_invoice_dirty_mixin.dart';
+import 'track_invoice_opened_mixin.dart';
 
 typedef InvoiceComparator = int Function(Map<String, dynamic> a, Map<String, dynamic> b);
 
@@ -70,8 +71,11 @@ class OpenInvoiceIntent extends Intent {
   final BuildContext context;
 }
 
-class OpenInvoiceAction extends ContextAction<OpenInvoiceIntent> {
-  OpenInvoiceAction._();
+class OpenInvoiceAction extends ContextAction<OpenInvoiceIntent>
+    with TrackInvoiceOpenedMixin, TrackInvoiceDirtyMixin {
+  OpenInvoiceAction._() {
+    initInstance();
+  }
 
   static final OpenInvoiceAction instance = OpenInvoiceAction._();
 

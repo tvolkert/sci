@@ -6,12 +6,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart' as intl;
+
 import 'package:payouts/src/model/constants.dart';
 import 'package:payouts/src/model/invoice.dart';
 import 'package:payouts/src/model/user.dart';
-
 import 'package:payouts/src/pivot.dart' as pivot;
 import 'package:payouts/ui/common/task_monitor.dart';
+
+import 'track_invoice_opened_mixin.dart';
 
 class CreateInvoiceIntent extends Intent {
   const CreateInvoiceIntent({this.context});
@@ -19,8 +21,10 @@ class CreateInvoiceIntent extends Intent {
   final BuildContext context;
 }
 
-class CreateInvoiceAction extends ContextAction<CreateInvoiceIntent> {
-  CreateInvoiceAction._();
+class CreateInvoiceAction extends ContextAction<CreateInvoiceIntent> with TrackInvoiceOpenedMixin {
+  CreateInvoiceAction._() {
+    initInstance();
+  }
 
   static final CreateInvoiceAction instance = CreateInvoiceAction._();
 

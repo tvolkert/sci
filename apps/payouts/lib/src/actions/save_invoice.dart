@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 import 'package:payouts/src/model/invoice.dart';
 
 import 'package:payouts/ui/common/task_monitor.dart';
@@ -15,25 +15,10 @@ class SaveInvoiceIntent extends Intent {
 class SaveInvoiceAction extends ContextAction<SaveInvoiceIntent>
     with TrackInvoiceOpenedMixin, TrackInvoiceDirtyMixin {
   SaveInvoiceAction._() {
-    _listener = InvoiceListener(
-      onInvoiceChanged: handleInvoiceChanged,
-      onInvoiceDirtyChanged: handleInvoiceDirtyChanged,
-    );
-    InvoiceBinding.instance.addListener(_listener);
-    initInvoiceOpened();
-    initInvoiceDirty();
+    initInstance();
   }
 
   static final SaveInvoiceAction instance = SaveInvoiceAction._();
-
-  InvoiceListener _listener;
-
-  @override
-  @protected
-  void handleInvoiceChanged(Invoice previousInvoice) {
-    super.handleInvoiceChanged(previousInvoice);
-    initInvoiceDirty();
-  }
 
   @override
   @protected
@@ -43,6 +28,7 @@ class SaveInvoiceAction extends ContextAction<SaveInvoiceIntent>
   }
 
   @override
+  @protected
   void onInvoiceDirtyChanged() {
     super.onInvoiceDirtyChanged();
     notifyActionListeners();
