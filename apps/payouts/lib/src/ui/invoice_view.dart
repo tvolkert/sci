@@ -2,19 +2,76 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart' show Ink, Theme;
 import 'package:flutter/painting.dart';
 import 'package:flutter/rendering.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
+import 'package:payouts/src/model/constants.dart';
 
 import 'package:payouts/src/model/invoice.dart';
 import 'package:payouts/src/pivot.dart' as pivot;
 
 import 'accomplishments_view.dart';
+import 'currency_text.dart';
 import 'expense_reports_view.dart';
 import 'invoice_builder.dart';
 import 'review.dart';
 import 'timesheets_view.dart';
 
-class InvoiceView extends StatelessWidget {
+class InvoiceView extends StatefulWidget {
   const InvoiceView({Key key}) : super(key: key);
+
+  @override
+  _InvoiceViewState createState() => _InvoiceViewState();
+}
+
+class _InvoiceViewState extends State<InvoiceView> {
+  InvoiceListener _listener;
+  bool _isSubmitted; // ignore: unused_field
+  String _billingPeriod;
+  double _total;
+
+  Invoice get invoice {
+    final Invoice invoice = InvoiceBinding.instance.invoice;
+    assert(invoice != null);
+    return invoice;
+  }
+
+  void _handleInvoiceTotalChanged(double previousTotal) {
+    setState(() => _total = invoice.total);
+  }
+
+  void _handleSubmittedChanged() {
+    setState(() => _isSubmitted = invoice.isSubmitted);
+  }
+
+  String _getBillingPeriodDisplay(DateRange billingPeriod) {
+    StringBuffer buf = StringBuffer()
+      ..write('(')
+      ..write(DateFormats.mmddyyyy.format(billingPeriod.start))
+      ..write(' - ')
+      ..write(DateFormats.mmddyyyy.format(billingPeriod.end))
+      ..write(')');
+    return buf.toString();
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _listener = InvoiceListener(
+      onInvoiceTotalChanged: _handleInvoiceTotalChanged,
+      onSubmitted: _handleSubmittedChanged,
+    );
+    final Invoice invoice = this.invoice;
+    _isSubmitted = invoice.isSubmitted;
+    _billingPeriod = _getBillingPeriodDisplay(invoice.billingPeriod);
+    _total = invoice.total;
+    InvoiceBinding.instance.addListener(_listener);
+  }
+
+  @override
+  void dispose() {
+    InvoiceBinding.instance.removeListener(_listener);
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -32,31 +89,21 @@ class InvoiceView extends StatelessWidget {
                   height: 22,
                   child: Row(
                     children: [
-                      Transform.translate(
-                        offset: Offset(0, -1),
-                        child: Text(
-                          'FOO',
-                          style: Theme.of(context)
-                              .textTheme
-                              .bodyText2
-                              .copyWith(fontWeight: FontWeight.bold),
-                        ),
-                      ),
-                      HoverPushButton(
-                        iconName: 'assets/pencil.png',
-                        onPressed: () {},
-                      ),
+                      InvoiceNumberEditor(),
                       Transform.translate(
                         offset: Offset(0, -1),
                         child: Padding(
                           padding: EdgeInsets.only(left: 10),
-                          child: Text('(10/12/2015 - 10/25/2015)'),
+                          child: Text(_billingPeriod),
                         ),
                       ),
                       Spacer(),
                       Transform.translate(
                         offset: Offset(0, -1),
-                        child: Text(r'Total Check Amount: $5,296.63'),
+                        child: CurrencyText(
+                          prefix: 'Total Check Amount: ',
+                          amount: _total,
+                        ),
                       ),
                     ],
                   ),
@@ -92,6 +139,110 @@ class InvoiceView extends StatelessWidget {
           ),
         );
       },
+    );
+  }
+}
+
+class InvoiceNumberEditor extends StatefulWidget {
+  @override
+  _InvoiceNumberEditorState createState() => _InvoiceNumberEditorState();
+}
+
+class _InvoiceNumberEditorState extends State<InvoiceNumberEditor> {
+  InvoiceListener _listener;
+  TextEditingController _invoiceNumberEditor;
+  bool _isSubmitted;
+  String _invoiceNumber;
+
+  Invoice get invoice {
+    final Invoice invoice = InvoiceBinding.instance.invoice;
+    assert(invoice != null);
+    return invoice;
+  }
+
+  void _handleInvoiceNumberChanged(String previousInvoiceNumber) {
+    setState(() => _invoiceNumber = invoice.invoiceNumber);
+  }
+
+  void _handleSubmittedChanged() {
+    setState(() => _isSubmitted = invoice.isSubmitted);
+  }
+
+  void _handleToggleEdit() {
+    if (_invoiceNumberEditor == null) {
+      setState(() => _invoiceNumberEditor = TextEditingController(text: _invoiceNumber));
+    } else {
+      _handleSaveEdit();
+    }
+  }
+
+  void _handleSaveEdit() {
+    invoice.invoiceNumber = _invoiceNumberEditor.text;
+    setState(() => _invoiceNumberEditor = null);
+  }
+
+  void _handleCancelEdit() {
+    setState(() => _invoiceNumberEditor = null);
+  }
+
+  void _handleEditKeyEvent(RawKeyEvent event) {
+    if (event.logicalKey == LogicalKeyboardKey.enter) {
+      _handleSaveEdit();
+    } else if (event.logicalKey == LogicalKeyboardKey.escape) {
+      _handleCancelEdit();
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _listener = InvoiceListener(
+      onInvoiceNumberChanged: _handleInvoiceNumberChanged,
+      onSubmitted: _handleSubmittedChanged,
+    );
+    final Invoice invoice = this.invoice;
+    _isSubmitted = invoice.isSubmitted;
+    _invoiceNumber = invoice.invoiceNumber;
+    InvoiceBinding.instance.addListener(_listener);
+  }
+
+  @override
+  void dispose() {
+    InvoiceBinding.instance.removeListener(_listener);
+    _invoiceNumberEditor?.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    Widget view;
+    if (_invoiceNumberEditor == null) {
+      view = Transform.translate(
+        offset: Offset(0, -1),
+        child: Text(
+          _invoiceNumber,
+          style: Theme.of(context).textTheme.bodyText2.copyWith(fontWeight: FontWeight.bold),
+        ),
+      );
+    } else {
+      view = SizedBox(
+        width: 100,
+        child: pivot.TextInput(
+          controller: _invoiceNumberEditor,
+          autofocus: true,
+          onKeyEvent: _handleEditKeyEvent,
+        ),
+      );
+    }
+
+    return Row(
+      children: [
+        view,
+        HoverPushButton(
+          iconName: 'assets/pencil.png',
+          onPressed: _isSubmitted && false ? null : _handleToggleEdit,
+        ),
+      ],
     );
   }
 }
