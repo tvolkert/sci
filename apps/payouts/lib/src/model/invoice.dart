@@ -512,7 +512,7 @@ class DateRange {
   factory DateRange._fromRawData(Map<String, dynamic> invoiceData) {
     final DateTime start = DateTime.parse(invoiceData[Keys.billingStart]);
     final Duration duration = Duration(days: invoiceData[Keys.billingDuration]);
-    final DateTime end = start.add(duration);
+    final DateTime end = start.add(duration).subtract(const Duration(days: 1));
     return DateRange._(start, end, duration);
   }
 
