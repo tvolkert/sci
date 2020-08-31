@@ -5,6 +5,7 @@ import 'package:intl/intl.dart' as intl;
 class DateFormats {
   static final intl.DateFormat iso8601Short = intl.DateFormat('yyyy-MM-dd');
   static final intl.DateFormat mmddyyyy = intl.DateFormat('MM/dd/yyyy');
+  static final intl.DateFormat md = intl.DateFormat('M/d');
 }
 
 class NumberFormats {

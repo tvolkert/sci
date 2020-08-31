@@ -33,7 +33,7 @@ class _BillableHoursTable extends StatelessWidget {
   Widget build(BuildContext context) {
     Invoice invoice = ib.InvoiceBinding.of(context).invoice;
     DateTime billingStart = invoice.billingPeriod.start;
-    int billingDuration = invoice.billingPeriod.duration.inDays;
+    int billingDuration = invoice.billingPeriod.length;
     TextStyle textStyle = DefaultTextStyle.of(context).style;
     TextStyle dateCellStyle = textStyle.copyWith(fontWeight: FontWeight.bold, fontSize: 18);
 

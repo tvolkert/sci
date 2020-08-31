@@ -556,26 +556,43 @@ mixin DisallowCollectionConversion<T> on Iterable<T> {
 
 /// Represents a date range (start to end, inclusive).
 @immutable
-class DateRange {
-  const DateRange._(this.start, this.end, this.duration);
+class DateRange with ForwardingIterable<DateTime> {
+  const DateRange._(this._range);
 
   factory DateRange._fromRawData(Map<String, dynamic> invoiceData) {
     final DateTime start = DateTime.parse(invoiceData[Keys.billingStart]);
-    final Duration duration = Duration(days: invoiceData[Keys.billingDuration]);
-    final DateTime end = start.add(duration).subtract(const Duration(days: 1));
-    return DateRange._(start, end, duration);
+    final int durationInDays = invoiceData[Keys.billingDuration];
+    return DateRange._(_generateRange(start, durationInDays));
   }
 
   factory DateRange._fromStartEnd(String startDate, String endDate) {
     final DateTime start = DateTime.parse(startDate);
     final DateTime end = DateTime.parse(endDate);
-    final Duration duration = Duration(days: end.difference(start).inDays + 1);
-    return DateRange._(start, end, duration);
+    final int durationInDays = end.difference(start).inDays + 1;
+    return DateRange._(_generateRange(start, durationInDays));
   }
 
-  final DateTime start;
-  final DateTime end;
-  final Duration duration;
+  final List<DateTime> _range;
+
+  /// The first date in the range (inclusive).
+  DateTime get start => _range.first;
+
+  /// The last date in the range (inclusive).
+  DateTime get end => _range.last;
+
+  static List<DateTime> _generateRange(DateTime start, int durationInDays) {
+    DateTime current = start;
+    return List<DateTime>.generate(durationInDays, (int index) {
+      final DateTime result = current;
+      assert(result == start.add(Duration(days: index)));
+      current = current.add(const Duration(days: 1));
+      return result;
+    });
+  }
+
+  @override
+  @protected
+  Iterable<DateTime> get delegate => _range;
 }
 
 /// Class that represents a consultant assignment (a.k.a. a program).
@@ -696,7 +713,7 @@ class Timesheet {
       Keys.chargeNumber: chargeNumber,
       Keys.requestor: requestor,
       Keys.taskDescription: taskDescription,
-      Keys.hours: List<double>.filled(owner.billingPeriod.duration.inDays, 0),
+      Keys.hours: List<double>.filled(owner.billingPeriod.length, 0),
     };
     return Timesheet._(owner, data, program);
   }
