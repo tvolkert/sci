@@ -15,6 +15,7 @@ import 'package:payouts/ui/common/task_monitor.dart';
 
 import 'track_invoice_dirty_mixin.dart';
 import 'track_invoice_opened_mixin.dart';
+import 'warn_on_unsaved_changes_mixin.dart';
 
 typedef InvoiceComparator = int Function(Map<String, dynamic> a, Map<String, dynamic> b);
 
@@ -72,7 +73,7 @@ class OpenInvoiceIntent extends Intent {
 }
 
 class OpenInvoiceAction extends ContextAction<OpenInvoiceIntent>
-    with TrackInvoiceOpenedMixin, TrackInvoiceDirtyMixin {
+    with TrackInvoiceOpenedMixin, TrackInvoiceDirtyMixin, WarnOnUnsavedChangesMixin {
   OpenInvoiceAction._() {
     initInstance();
   }
@@ -86,13 +87,16 @@ class OpenInvoiceAction extends ContextAction<OpenInvoiceIntent>
       throw StateError('No context in which to invoke $runtimeType');
     }
 
-    final int invoiceId = await OpenInvoiceSheet.open(context: context);
-    if (invoiceId != null) {
-      await TaskMonitor.of(context).monitor<Invoice>(
-        future: InvoiceBinding.instance.loadInvoice(invoiceId),
-        inProgressMessage: 'Opening invoice',
-        completedMessage: 'Invoice opened',
-      );
+    final bool canProceed = await checkForUnsavedChanges(context);
+    if (canProceed) {
+      final int invoiceId = await OpenInvoiceSheet.open(context: context);
+      if (invoiceId != null) {
+        await TaskMonitor.of(context).monitor<Invoice>(
+          future: InvoiceBinding.instance.loadInvoice(invoiceId),
+          inProgressMessage: 'Opening invoice',
+          completedMessage: 'Invoice opened',
+        );
+      }
     }
   }
 }

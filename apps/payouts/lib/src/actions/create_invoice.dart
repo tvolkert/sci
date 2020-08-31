@@ -13,7 +13,9 @@ import 'package:payouts/src/model/user.dart';
 import 'package:payouts/src/pivot.dart' as pivot;
 import 'package:payouts/ui/common/task_monitor.dart';
 
+import 'track_invoice_dirty_mixin.dart';
 import 'track_invoice_opened_mixin.dart';
+import 'warn_on_unsaved_changes_mixin.dart';
 
 class CreateInvoiceIntent extends Intent {
   const CreateInvoiceIntent({this.context});
@@ -21,7 +23,8 @@ class CreateInvoiceIntent extends Intent {
   final BuildContext context;
 }
 
-class CreateInvoiceAction extends ContextAction<CreateInvoiceIntent> with TrackInvoiceOpenedMixin {
+class CreateInvoiceAction extends ContextAction<CreateInvoiceIntent>
+    with TrackInvoiceOpenedMixin, TrackInvoiceDirtyMixin, WarnOnUnsavedChangesMixin {
   CreateInvoiceAction._() {
     initInstance();
   }
@@ -35,13 +38,16 @@ class CreateInvoiceAction extends ContextAction<CreateInvoiceIntent> with TrackI
       throw StateError('No context in which to invoke $runtimeType');
     }
 
-    final NewInvoiceProperties properties = await CreateInvoiceSheet.open(context: context);
-    if (properties != null) {
-      await TaskMonitor.of(context).monitor(
-        future: InvoiceBinding.instance.createInvoice(properties),
-        inProgressMessage: 'Creating invoice',
-        completedMessage: 'Invoice created',
-      );
+    final bool canProceed = await checkForUnsavedChanges(context);
+    if (canProceed) {
+      final NewInvoiceProperties properties = await CreateInvoiceSheet.open(context: context);
+      if (properties != null) {
+        await TaskMonitor.of(context).monitor(
+          future: InvoiceBinding.instance.createInvoice(properties),
+          inProgressMessage: 'Creating invoice',
+          completedMessage: 'Invoice created',
+        );
+      }
     }
   }
 }
