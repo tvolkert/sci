@@ -42,6 +42,11 @@ class _InvoiceViewState extends State<InvoiceView> {
     setState(() => _isSubmitted = invoice.isSubmitted);
   }
 
+  static Widget _buildTimesheetsView(BuildContext context) => TimesheetsView();
+  static Widget _buildExpenseReportsView(BuildContext context) => ExpenseReportsView();
+  static Widget _buildAccomplishmentsView(BuildContext context) => AccomplishmentsView();
+  static Widget _buildReviewAndSubmit(BuildContext context) => ReviewAndSubmit();
+
   @override
   void initState() {
     super.initState();
@@ -93,19 +98,19 @@ class _InvoiceViewState extends State<InvoiceView> {
                     tabs: <pivot.Tab>[
                       pivot.Tab(
                         label: 'Billable Hours',
-                        child: TimesheetsView(),
+                        builder: _buildTimesheetsView,
                       ),
                       pivot.Tab(
                         label: 'Expense Reports',
-                        child: ExpenseReportsView(),
+                        builder: _buildExpenseReportsView,
                       ),
                       pivot.Tab(
                         label: 'Accomplishments',
-                        child: AccomplishmentsView(),
+                        builder: _buildAccomplishmentsView,
                       ),
                       pivot.Tab(
                         label: 'Review & Submit',
-                        child: ReviewAndSubmit(),
+                        builder: _buildReviewAndSubmit,
                       ),
                     ],
                   ),
@@ -243,9 +248,9 @@ class BillingPeriodView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Transform.translate(
-      offset: Offset(0, -1),
+      offset: const Offset(0, -1),
       child: Padding(
-        padding: EdgeInsets.only(left: 10),
+        padding: const EdgeInsets.only(left: 10),
         child: child,
       ),
     );
@@ -263,7 +268,7 @@ class InvoiceTotalView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Transform.translate(
-      offset: Offset(0, -1),
+      offset: const Offset(0, -1),
       child: CurrencyText(
         prefix: 'Total Check Amount: ',
         amount: total,
