@@ -353,6 +353,7 @@ class _InvoicesTableState extends State<InvoicesTable>
     bool rowHighlighted,
     bool rowSelected,
     bool isEditing,
+    bool isRowDisabled,
   }) {
     return CellWrapper(
       selected: rowSelected,
@@ -371,6 +372,7 @@ class _InvoicesTableState extends State<InvoicesTable>
     bool rowHighlighted,
     bool rowSelected,
     bool isEditing,
+    bool isRowDisabled,
   }) {
     return CellWrapper(
       selected: rowSelected,
@@ -389,6 +391,7 @@ class _InvoicesTableState extends State<InvoicesTable>
     bool rowHighlighted,
     bool rowSelected,
     bool isEditing,
+    bool isRowDisabled,
   }) {
     return CellWrapper(
       selected: rowSelected,
@@ -407,6 +410,7 @@ class _InvoicesTableState extends State<InvoicesTable>
     bool rowHighlighted,
     bool rowSelected,
     bool isEditing,
+    bool isRowDisabled,
   }) {
     return CellWrapper(
       selected: rowSelected,

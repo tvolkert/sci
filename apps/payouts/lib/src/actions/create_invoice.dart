@@ -60,6 +60,7 @@ class _CreateInvoiceSheetState extends State<CreateInvoiceSheet> {
   List<Map<String, dynamic>> _billingPeriods;
   TextEditingController _invoiceNumberController;
   pivot.TableViewSelectionController _selectionController;
+  pivot.TableViewRowDisablerController _disablerController;
 
   bool _canProceed = false;
   bool get canProceed => _canProceed;
@@ -87,6 +88,11 @@ class _CreateInvoiceSheetState extends State<CreateInvoiceSheet> {
     ));
   }
 
+  bool _isRowDisabled(int rowIndex) {
+    final Map<String, dynamic> row = _billingPeriods[rowIndex];
+    return row.containsKey(Keys.invoiceNumber);
+  }
+
   @override
   void initState() {
     super.initState();
@@ -94,6 +100,7 @@ class _CreateInvoiceSheetState extends State<CreateInvoiceSheet> {
     _selectionController.addListener(_checkCanProceed);
     _invoiceNumberController = TextEditingController();
     _invoiceNumberController.addListener(_checkCanProceed);
+    _disablerController = pivot.TableViewRowDisablerController(filter: _isRowDisabled);
 
     final Uri url = Server.uri(Server.newInvoiceParametersUrl);
     UserBinding.instance.user.authenticate().get(url).then((http.Response response) {
@@ -117,6 +124,7 @@ class _CreateInvoiceSheetState extends State<CreateInvoiceSheet> {
     _invoiceNumberController.dispose();
     _selectionController.removeListener(_checkCanProceed);
     _selectionController.dispose();
+    _disablerController.dispose();
     super.dispose();
   }
 
@@ -129,7 +137,9 @@ class _CreateInvoiceSheetState extends State<CreateInvoiceSheet> {
     bool rowSelected,
     bool rowHighlighted,
     bool isEditing,
+    bool isRowDisabled,
   }) {
+    assert(!isEditing);
     final Map<String, dynamic> row = _billingPeriods[rowIndex];
     final String startDateValue = row['billing_period'];
     final DateTime startDate = DateTime.parse(startDateValue);
@@ -151,7 +161,13 @@ class _CreateInvoiceSheetState extends State<CreateInvoiceSheet> {
       ),
     );
 
-    if (rowSelected) {
+    if (isRowDisabled) {
+      final TextStyle style = DefaultTextStyle.of(context).style;
+      result = DefaultTextStyle(
+        style: style.copyWith(color: const Color(0xff999999)),
+        child: result,
+      );
+    } else if (rowSelected) {
       final TextStyle style = DefaultTextStyle.of(context).style;
       result = DefaultTextStyle(
         style: style.copyWith(color: const Color(0xffffffff)),
@@ -239,6 +255,7 @@ class _CreateInvoiceSheetState extends State<CreateInvoiceSheet> {
                               length: _billingPeriods?.length ?? 0,
                               includeHeader: false,
                               selectionController: _selectionController,
+                              rowDisabledController: _disablerController,
                               columns: [
                                 pivot.TableColumnController(
                                   key: 'billing_period',
