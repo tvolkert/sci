@@ -3,54 +3,49 @@ import 'package:payouts/src/model/invoice.dart';
 
 import 'package:payouts/ui/common/task_monitor.dart';
 
+import 'track_invoice_dirty_mixin.dart';
+import 'track_invoice_opened_mixin.dart';
+
 class SaveInvoiceIntent extends Intent {
   const SaveInvoiceIntent({this.context});
 
   final BuildContext context;
 }
 
-class SaveInvoiceAction extends ContextAction<SaveInvoiceIntent> {
+class SaveInvoiceAction extends ContextAction<SaveInvoiceIntent>
+    with TrackInvoiceOpenedMixin, TrackInvoiceDirtyMixin {
   SaveInvoiceAction._() {
     _listener = InvoiceListener(
-      onInvoiceChanged: _handleInvoiceChanged,
-      onInvoiceDirtyChanged: _handleInvoiceDirtyChanged,
+      onInvoiceChanged: handleInvoiceChanged,
+      onInvoiceDirtyChanged: handleInvoiceDirtyChanged,
     );
     InvoiceBinding.instance.addListener(_listener);
-    final Invoice invoice = InvoiceBinding.instance.invoice;
-    _isInvoiceOpened = invoice != null;
-    _isInvoiceDirty = invoice?.isDirty ?? false;
+    initInvoiceOpened();
+    initInvoiceDirty();
   }
 
   static final SaveInvoiceAction instance = SaveInvoiceAction._();
 
   InvoiceListener _listener;
 
-  bool _isInvoiceOpened;
-  bool get isInvoiceOpened => _isInvoiceOpened;
-  set isInvoiceOpened(bool value) {
-    final bool previousValue = _isInvoiceOpened;
-    if (value != previousValue) {
-      _isInvoiceOpened = value;
-      notifyActionListeners();
-    }
+  @override
+  @protected
+  void handleInvoiceChanged(Invoice previousInvoice) {
+    super.handleInvoiceChanged(previousInvoice);
+    initInvoiceDirty();
   }
 
-  bool _isInvoiceDirty;
-  bool get isInvoiceDirty => _isInvoiceDirty;
-  set isInvoiceDirty(bool value) {
-    if (value != _isInvoiceDirty) {
-      _isInvoiceDirty = value;
-      notifyActionListeners();
-    }
+  @override
+  @protected
+  void onInvoiceOpenedChanged() {
+    super.onInvoiceOpenedChanged();
+    notifyActionListeners();
   }
 
-  void _handleInvoiceChanged(Invoice previousInvoice) {
-    isInvoiceOpened = InvoiceBinding.instance.invoice != null;
-    isInvoiceDirty = InvoiceBinding.instance.invoice?.isDirty ?? false;
-  }
-
-  void _handleInvoiceDirtyChanged() {
-    isInvoiceDirty = InvoiceBinding.instance.invoice.isDirty;
+  @override
+  void onInvoiceDirtyChanged() {
+    super.onInvoiceDirtyChanged();
+    notifyActionListeners();
   }
 
   @override

@@ -80,6 +80,17 @@ class InvoiceBinding with ListenerNotifier<InvoiceListener>, InvoiceListenerNoti
       throw HttpStatusException(response.statusCode);
     }
   }
+
+  Future<void> delete() async {
+    // TODO
+    await Future<void>.delayed(const Duration(seconds: 1));
+    final Invoice previousInvoice = _invoice;
+    _invoice = null;
+    onInvoiceChanged(previousInvoice);
+    if (previousInvoice != null) {
+      previousInvoice._dispose();
+    }
+  }
 }
 
 @immutable
