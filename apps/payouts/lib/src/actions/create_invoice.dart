@@ -141,22 +141,35 @@ class _CreateInvoiceSheetState extends State<CreateInvoiceSheet> {
   }) {
     assert(!isEditing);
     final Map<String, dynamic> row = _billingPeriods[rowIndex];
-    final String startDateValue = row['billing_period'];
+    final String startDateValue = row[Keys.billingPeriod];
     final DateTime startDate = DateTime.parse(startDateValue);
     final DateTime endDate = startDate.add(const Duration(days: 14));
     final String formattedStartDate = dateFormat.format(startDate);
     final String formattedEndDate = dateFormat.format(endDate);
+    final String invoiceNumber = row[Keys.invoiceNumber];
 
     Widget result = Padding(
-      padding: EdgeInsets.fromLTRB(5, 2, 0, 0),
+      padding: EdgeInsets.fromLTRB(0, 2, 0, 2),
       child: Row(
         children: [
           ConstrainedBox(
-            constraints: BoxConstraints(minWidth: 65),
+            constraints: BoxConstraints(minWidth: 68),
             child: Text(formattedStartDate, maxLines: 1, textAlign: TextAlign.right),
           ),
           Text(' - '),
-          Expanded(child: Text(formattedEndDate, maxLines: 1)),
+          Text(formattedEndDate, maxLines: 1),
+          if (invoiceNumber != null)
+            Expanded(
+              child: Padding(
+                padding: EdgeInsets.only(right: 8),
+                child: Text(
+                  '($invoiceNumber)',
+                  textAlign: TextAlign.right,
+                  maxLines: 1,
+                  softWrap: false,
+                ),
+              ),
+            ),
         ],
       ),
     );
