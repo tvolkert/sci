@@ -32,11 +32,13 @@ class CreateInvoiceAction extends ContextAction<CreateInvoiceIntent> {
     }
 
     final NewInvoiceProperties properties = await CreateInvoiceSheet.open(context: context);
-    await TaskMonitor.of(context).monitor(
-      future: InvoiceBinding.instance.createInvoice(properties),
-      inProgressMessage: 'Creating invoice',
-      completedMessage: 'Invoice created',
-    );
+    if (properties != null) {
+      await TaskMonitor.of(context).monitor(
+        future: InvoiceBinding.instance.createInvoice(properties),
+        inProgressMessage: 'Creating invoice',
+        completedMessage: 'Invoice created',
+      );
+    }
   }
 }
 
@@ -89,6 +91,7 @@ class _CreateInvoiceSheetState extends State<CreateInvoiceSheet> {
   void initState() {
     super.initState();
     _selectionController = pivot.TableViewSelectionController();
+    _selectionController.addListener(_checkCanProceed);
     _invoiceNumberController = TextEditingController();
     _invoiceNumberController.addListener(_checkCanProceed);
 
@@ -98,6 +101,7 @@ class _CreateInvoiceSheetState extends State<CreateInvoiceSheet> {
         return;
       }
       if (response.statusCode == HttpStatus.ok) {
+        // TODO: Handle disabled row from existing invoices for any given billing period.
         setState(() {
           final Map<String, dynamic> parameters = json.decode(response.body);
           _billingPeriods = parameters[Keys.billingPeriods].cast<Map<String, dynamic>>();
@@ -111,6 +115,7 @@ class _CreateInvoiceSheetState extends State<CreateInvoiceSheet> {
   void dispose() {
     _invoiceNumberController.removeListener(_checkCanProceed);
     _invoiceNumberController.dispose();
+    _selectionController.removeListener(_checkCanProceed);
     _selectionController.dispose();
     super.dispose();
   }
@@ -131,7 +136,8 @@ class _CreateInvoiceSheetState extends State<CreateInvoiceSheet> {
     final DateTime endDate = startDate.add(const Duration(days: 14));
     final String formattedStartDate = dateFormat.format(startDate);
     final String formattedEndDate = dateFormat.format(endDate);
-    return Padding(
+
+    Widget result = Padding(
       padding: EdgeInsets.fromLTRB(5, 2, 0, 0),
       child: Row(
         children: [
@@ -144,6 +150,20 @@ class _CreateInvoiceSheetState extends State<CreateInvoiceSheet> {
         ],
       ),
     );
+
+    if (rowSelected) {
+      final TextStyle style = DefaultTextStyle.of(context).style;
+      result = DefaultTextStyle(
+        style: style.copyWith(color: const Color(0xffffffff)),
+        child: result,
+      );
+    }
+
+    result = AbsorbPointer(
+      child: result,
+    );
+
+    return result;
   }
 
   @override
