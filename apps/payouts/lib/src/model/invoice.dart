@@ -724,26 +724,51 @@ class Timesheet {
   /// The index of this timesheet in the invoice's list of timesheets.
   int get _index => _owner.timesheets._data.indexOf(this);
 
-  double _total;
-  double get total {
+  /// The total billed value of this timesheet.
+  double get total => totalHours * program.rate;
+
+  /// The total number of hours in this timesheet.
+  double _totalHours;
+  double get totalHours {
     _owner._checkDisposed();
-    if (_total == null) {
-      final double rate = program.rate;
-      _total ??= hours.fold<double>(0, (double sum, double value) => sum + value) * rate;
+    if (_totalHours == null) {
+      _totalHours ??= hours.fold<double>(0, (double sum, double value) => sum + value);
     }
-    return _total;
+    return _totalHours;
   }
 
   @protected
-  set total(double value) {
-    double previousValue = total;
+  set totalHours(double value) {
+    double previousValue = totalHours;
     if (value != previousValue) {
       // Order is important here; set this first to force the parent to run its
       // lazy total calculation before updating our total.
       final double previousInvoiceTotal = _owner.total;
-      _total = value;
-      _owner.total = previousInvoiceTotal + (value - previousValue);
+      _totalHours = value;
+      _owner.total = previousInvoiceTotal + (value - previousValue) * program.rate;
     }
+  }
+
+  /// The "name" of this timesheet.
+  ///
+  /// This is an amalgamation of the program name, the charge number (if
+  /// supplied), and the task (if supplied).
+  String _name;
+  String get name {
+    _owner._checkDisposed();
+    if (_name == null) {
+      final StringBuffer buf = StringBuffer(program.name);
+      final String chargeNumber = this.chargeNumber;
+      if (chargeNumber.isNotEmpty) {
+        buf.write(' ($chargeNumber)');
+      }
+      final String task = this.task;
+      if (task.isNotEmpty) {
+        buf.write(' ($task)');
+      }
+      _name = buf.toString();
+    }
+    return _name;
   }
 
   /// The program (assignment data) against which this timesheet is to be
@@ -858,11 +883,11 @@ class Hours with ForwardingIterable<double>, DisallowCollectionConversion<double
     if (value != previousValue) {
       // Order is important here; set this first to force the parent to run its
       // lazy total calculation before updating the hours value.
-      final double previousTotal = _parent.total;
+      final double previousTotal = _parent.totalHours;
       _data[index] = value;
       _owner._owner.onTimesheetHoursUpdated(_parent._index, index, previousValue);
       _owner._setIsDirty(true);
-      _parent.total = previousTotal + (value - previousValue) * _parent.program.rate;
+      _parent.totalHours = previousTotal + (value - previousValue);
     }
   }
 }
