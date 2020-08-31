@@ -2,6 +2,8 @@ import 'dart:math' as math;
 
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:payouts/src/model/constants.dart';
+import 'package:payouts/src/model/invoice.dart';
 
 import 'package:payouts/src/pivot.dart' as pivot;
 
@@ -35,6 +37,12 @@ class TimesheetsView extends StatelessWidget {
         Container(),
       ],
     );
+  }
+
+  Iterable<Heading> _dateHeadingsFromBillingPeriod() {
+    return InvoiceBinding.instance.invoice.billingPeriod
+        .map<String>((DateTime date) => DateFormats.md.format(date))
+        .map<Heading>((String date) => Heading(date));
   }
 
   @override
@@ -84,20 +92,7 @@ class TimesheetsView extends StatelessWidget {
                     TableRow(
                       children: <Widget>[
                         Container(),
-                        Heading('10/12'),
-                        Heading('10/13'),
-                        Heading('10/14'),
-                        Heading('10/15'),
-                        Heading('10/16'),
-                        Heading('10/17'),
-                        Heading('10/18'),
-                        Heading('10/19'),
-                        Heading('10/20'),
-                        Heading('10/21'),
-                        Heading('10/22'),
-                        Heading('10/23'),
-                        Heading('10/24'),
-                        Heading('10/25'),
+                        ..._dateHeadingsFromBillingPeriod(),
                         Container(),
                         Container(),
                       ],
