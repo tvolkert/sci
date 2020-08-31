@@ -21,6 +21,10 @@ class LoginIntent extends Intent {
 }
 
 class LoginAction extends ContextAction<LoginIntent> {
+  LoginAction._();
+
+  static final LoginAction instance = LoginAction._();
+
   @override
   Future<void> invoke(LoginIntent intent, [BuildContext context]) async {
     context ??= intent.context ?? primaryFocus.context;

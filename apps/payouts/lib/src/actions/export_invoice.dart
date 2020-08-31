@@ -12,6 +12,10 @@ class ExportInvoiceIntent extends Intent {
 }
 
 class ExportInvoiceAction extends ContextAction<ExportInvoiceIntent> {
+  ExportInvoiceAction._();
+
+  static final ExportInvoiceAction instance = ExportInvoiceAction._();
+
   // TODO: enable this once file browsing and PDF generating are on the docket
   @override
   bool isEnabled(ExportInvoiceIntent intent) => false;

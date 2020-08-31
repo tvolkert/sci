@@ -12,6 +12,10 @@ class AddTimesheetIntent extends Intent {
 }
 
 class AddTimesheetAction extends ContextAction<AddTimesheetIntent> {
+  AddTimesheetAction._();
+
+  static final AddTimesheetAction instance = AddTimesheetAction._();
+
   @override
   Future<void> invoke(AddTimesheetIntent intent, [BuildContext context]) async {
     context ??= intent.context ?? primaryFocus.context;

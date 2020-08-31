@@ -20,6 +20,10 @@ class CreateInvoiceIntent extends Intent {
 }
 
 class CreateInvoiceAction extends ContextAction<CreateInvoiceIntent> {
+  CreateInvoiceAction._();
+
+  static final CreateInvoiceAction instance = CreateInvoiceAction._();
+
   @override
   Future<void> invoke(CreateInvoiceIntent intent, [BuildContext context]) async {
     context ??= intent.context ?? primaryFocus.context;

@@ -14,6 +14,10 @@ class AboutIntent extends Intent {
 }
 
 class AboutAction extends ContextAction<AboutIntent> {
+  AboutAction._();
+
+  static final AboutAction instance = AboutAction._();
+
   @override
   Future<void> invoke(AboutIntent intent, [BuildContext context]) async {
     context ??= intent.context ?? primaryFocus.context;

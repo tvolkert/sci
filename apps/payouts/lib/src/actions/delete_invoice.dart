@@ -11,6 +11,10 @@ class DeleteInvoiceIntent extends Intent {
 }
 
 class DeleteInvoiceAction extends ContextAction<DeleteInvoiceIntent> {
+  DeleteInvoiceAction._();
+
+  static final DeleteInvoiceAction instance = DeleteInvoiceAction._();
+
   @override
   Future<void> invoke(DeleteInvoiceIntent intent, [BuildContext context]) async {
     context ??= intent.context ?? primaryFocus.context;

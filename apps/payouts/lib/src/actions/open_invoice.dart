@@ -71,6 +71,10 @@ class OpenInvoiceIntent extends Intent {
 }
 
 class OpenInvoiceAction extends ContextAction<OpenInvoiceIntent> {
+  OpenInvoiceAction._();
+
+  static final OpenInvoiceAction instance = OpenInvoiceAction._();
+
   @override
   Future<void> invoke(OpenInvoiceIntent intent, [BuildContext context]) async {
     context ??= intent.context ?? primaryFocus.context;

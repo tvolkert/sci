@@ -26,6 +26,25 @@ void main() {
 }
 
 class PayoutsApp extends StatelessWidget {
+  static final Map<Type, Action<Intent>> defaultActions = <Type, Action<Intent>>{
+    AboutIntent: AboutAction.instance,
+    AddTimesheetIntent: AddTimesheetAction.instance,
+    CreateInvoiceIntent: CreateInvoiceAction.instance,
+    DeleteInvoiceIntent: DeleteInvoiceAction.instance,
+    ExportInvoiceIntent: ExportInvoiceAction.instance,
+    LoginIntent: LoginAction.instance,
+    OpenInvoiceIntent: OpenInvoiceAction.instance,
+    SaveInvoiceIntent: SaveInvoiceAction.instance,
+  };
+
+  static final Map<LogicalKeySet, Intent> defaultShortcuts = <LogicalKeySet, Intent>{
+    LogicalKeySet(_meta, LogicalKeyboardKey.keyN): const CreateInvoiceIntent(),
+    LogicalKeySet(_meta, LogicalKeyboardKey.keyD): const DeleteInvoiceIntent(),
+    LogicalKeySet(_meta, LogicalKeyboardKey.keyE): const ExportInvoiceIntent(),
+    LogicalKeySet(_meta, LogicalKeyboardKey.keyO): const OpenInvoiceIntent(),
+    LogicalKeySet(_meta, LogicalKeyboardKey.keyS): const SaveInvoiceIntent(),
+  };
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -46,22 +65,11 @@ class PayoutsApp extends StatelessWidget {
       ),
       actions: <Type, Action<Intent>>{
         ...WidgetsApp.defaultActions,
-        AboutIntent: AboutAction(),
-        AddTimesheetIntent: AddTimesheetAction(),
-        CreateInvoiceIntent: CreateInvoiceAction(),
-        DeleteInvoiceIntent: DeleteInvoiceAction(),
-        ExportInvoiceIntent: ExportInvoiceAction(),
-        LoginIntent: LoginAction(),
-        OpenInvoiceIntent: OpenInvoiceAction(),
-        SaveInvoiceIntent: SaveInvoiceAction(),
+        ...defaultActions,
       },
       shortcuts: <LogicalKeySet, Intent>{
         ...WidgetsApp.defaultShortcuts,
-        LogicalKeySet(_meta, LogicalKeyboardKey.keyN): const CreateInvoiceIntent(),
-        LogicalKeySet(_meta, LogicalKeyboardKey.keyD): const DeleteInvoiceIntent(),
-        LogicalKeySet(_meta, LogicalKeyboardKey.keyE): const ExportInvoiceIntent(),
-        LogicalKeySet(_meta, LogicalKeyboardKey.keyO): const OpenInvoiceIntent(),
-        LogicalKeySet(_meta, LogicalKeyboardKey.keyS): const SaveInvoiceIntent(),
+        ...defaultShortcuts,
       },
       navigatorObservers: <NavigatorObserver>[
         pivot.NavigatorListener.of(context).observer,

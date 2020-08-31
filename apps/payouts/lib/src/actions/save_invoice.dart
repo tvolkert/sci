@@ -10,7 +10,7 @@ class SaveInvoiceIntent extends Intent {
 }
 
 class SaveInvoiceAction extends ContextAction<SaveInvoiceIntent> {
-  SaveInvoiceAction() {
+  SaveInvoiceAction._() {
     _listener = InvoiceListener(
       onInvoiceChanged: _handleInvoiceChanged,
       onInvoiceDirtyChanged: _handleInvoiceDirtyChanged,
@@ -20,6 +20,8 @@ class SaveInvoiceAction extends ContextAction<SaveInvoiceIntent> {
     _isInvoiceOpened = invoice != null;
     _isInvoiceDirty = invoice?.isDirty ?? false;
   }
+
+  static final SaveInvoiceAction instance = SaveInvoiceAction._();
 
   InvoiceListener _listener;
 
