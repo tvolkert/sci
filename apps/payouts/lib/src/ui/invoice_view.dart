@@ -34,6 +34,13 @@ class _InvoiceViewState extends State<InvoiceView> {
     return invoice;
   }
 
+  void _handleInvoiceChanged(Invoice previousInvoice) {
+    setState(() {
+      _total = invoice.total;
+      _isSubmitted = invoice.isSubmitted;
+    });
+  }
+
   void _handleInvoiceTotalChanged(double previousTotal) {
     setState(() => _total = invoice.total);
   }
@@ -51,6 +58,7 @@ class _InvoiceViewState extends State<InvoiceView> {
   void initState() {
     super.initState();
     _listener = InvoiceListener(
+      onInvoiceChanged: _handleInvoiceChanged,
       onInvoiceTotalChanged: _handleInvoiceTotalChanged,
       onSubmitted: _handleSubmittedChanged,
     );
@@ -143,6 +151,13 @@ class _InvoiceNumberEditorState extends State<InvoiceNumberEditor> {
     return invoice;
   }
 
+  void _handleInvoiceChanged(Invoice previousInvoice) {
+    setState(() {
+      _invoiceNumber = invoice.invoiceNumber;
+      _isSubmitted = invoice.isSubmitted;
+    });
+  }
+
   void _handleInvoiceNumberChanged(String previousInvoiceNumber) {
     setState(() => _invoiceNumber = invoice.invoiceNumber);
   }
@@ -180,6 +195,7 @@ class _InvoiceNumberEditorState extends State<InvoiceNumberEditor> {
   void initState() {
     super.initState();
     _listener = InvoiceListener(
+      onInvoiceChanged: _handleInvoiceChanged,
       onInvoiceNumberChanged: _handleInvoiceNumberChanged,
       onSubmitted: _handleSubmittedChanged,
     );
