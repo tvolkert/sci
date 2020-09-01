@@ -35,6 +35,18 @@ mixin TrackInvoiceOpenedMixin {
     _updateIsInvoiceOpened();
   }
 
+  /// Releases any resources retained by this object.
+  ///
+  /// Subclasses should override this method to release any resources retained
+  /// by this object before calling `super.dispose()`.
+  ///
+  /// Callers should call this method before they drop their reference to this
+  /// object.
+  @mustCallSuper
+  dispose() {
+    InvoiceBinding.instance.removeListener(_listener);
+  }
+
   /// Invoked when the currently open invoice (if any) changed.
   ///
   /// Subclasses may override this method to have a hook into when the value

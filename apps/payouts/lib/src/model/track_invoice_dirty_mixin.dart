@@ -29,6 +29,12 @@ mixin TrackInvoiceDirtyMixin on TrackInvoiceOpenedMixin {
   }
 
   @override
+  dispose() {
+    InvoiceBinding.instance.removeListener(_listener);
+    super.dispose();
+  }
+
+  @override
   @protected
   void onInvoiceChanged() {
     super.onInvoiceChanged();
