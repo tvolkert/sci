@@ -2,6 +2,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:payouts/src/model/constants.dart';
 import 'package:payouts/src/model/invoice.dart';
 
@@ -12,37 +13,40 @@ import 'rotated_text.dart';
 class TimesheetsView extends StatelessWidget {
   const TimesheetsView({Key key}) : super(key: key);
 
-  TableRow _buildRow(String assignment, String footer) {
-    return TableRow(
-      children: <Widget>[
-        TimesheetHeaderRow(assignment: assignment),
-        HoursTextInput(),
-        HoursTextInput(),
-        HoursTextInput(),
-        HoursTextInput(),
-        HoursTextInput(),
-        HoursTextInput(isWeekend: true),
-        HoursTextInput(isWeekend: true),
-        HoursTextInput(),
-        HoursTextInput(),
-        HoursTextInput(),
-        HoursTextInput(),
-        HoursTextInput(),
-        HoursTextInput(isWeekend: true),
-        HoursTextInput(isWeekend: true),
-        Padding(
-          padding: EdgeInsets.only(left: 10),
-          child: Text(footer, maxLines: 1),
-        ),
-        Container(),
-      ],
-    );
-  }
-
   Iterable<Heading> _dateHeadingsFromBillingPeriod() {
     return InvoiceBinding.instance.invoice.billingPeriod
         .map<String>((DateTime date) => DateFormats.md.format(date))
         .map<Heading>((String date) => Heading(date));
+  }
+
+  Iterable<TableRow> _buildTimesheetRows() {
+    return InvoiceBinding.instance.invoice.timesheets.map<TableRow>(_buildTimesheetRow);
+  }
+
+  TableRow _buildTimesheetRow(Timesheet timesheet) {
+    final StringBuffer summary = StringBuffer()
+      ..writeAll(<String>[
+        '${timesheet.totalHours} hrs',
+        ' @${NumberFormats.currency.format(timesheet.program.rate)}/hr',
+        ' (${NumberFormats.currency.format(timesheet.total)})',
+      ]);
+
+    return TableRow(
+      children: <Widget>[
+        TimesheetHeaderRow(assignment: timesheet.name),
+        ...List<Widget>.generate(timesheet.hours.length, (int index) {
+          return HoursTextInput(
+            hours: timesheet.hours,
+            index: index,
+          );
+        }),
+        Padding(
+          padding: EdgeInsets.only(left: 10),
+          child: Text(summary.toString(), maxLines: 1, softWrap: false),
+        ),
+        Container(),
+      ],
+    );
   }
 
   @override
@@ -97,11 +101,7 @@ class TimesheetsView extends StatelessWidget {
                         Container(),
                       ],
                     ),
-                    _buildRow('SCI - Overhead', r'47 hrs @$0.00/hr ($0.00)'),
-                    _buildRow('BSS, NNV8-913197 (COSC) (123)', r'1.21 hrs @$95.00/hr ($114.95)'),
-                    _buildRow('Orbital Sciences (abc)', r'5 hrs @$110.00/hr ($550.00)'),
-                    _buildRow('Loral - T14R', r'0 hrs @$110.00/hr ($0.00)'),
-                    _buildRow('Sirius FM 6', r'5 hrs @$120.00/hr ($600.00)'),
+                    ..._buildTimesheetRows(),
                     TableRow(
                       decoration: BoxDecoration(
                           border: Border(bottom: BorderSide(color: Color(0xff999999)))),
@@ -197,22 +197,79 @@ class Heading extends StatelessWidget {
   }
 }
 
-class HoursTextInput extends StatelessWidget {
+class HoursTextInput extends StatefulWidget {
+  const HoursTextInput({
+    Key key,
+    this.hours,
+    this.index,
+    this.isWeekend = false,
+  }) : super(key: key);
+
+  final Hours hours;
+  final int index;
   final bool isWeekend;
 
-  HoursTextInput({this.isWeekend = false});
+  @override
+  _HoursTextInputState createState() => _HoursTextInputState();
+}
+
+class _HoursTextInputState extends State<HoursTextInput> {
+  TextEditingController _controller;
+  TextEditingValue _lastValidValue;
+
+  void _handleEdit() {
+    final String text = _controller.text;
+    if (text == _lastValidValue?.text) {
+      // Shortcut to trivial success
+      _lastValidValue = _controller.value;
+      return;
+    }
+
+    bool valid = true;
+    double value = text.isEmpty ? 0 : double.tryParse(text);
+
+    if (value == null) {
+      valid = false;
+    } else if (value < 0 || value > 24) {
+      valid = false;
+    }
+
+    if (valid) {
+      _lastValidValue = _controller.value;
+      widget.hours[widget.index] = value;
+    } else {
+      _controller.value = _lastValidValue;
+      SystemSound.play(SystemSoundType.alert);
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    final double initialValue = widget.hours[widget.index];
+    _controller = TextEditingController(text: initialValue == 0 ? '' : '$initialValue');
+    _controller.addListener(_handleEdit);
+  }
+
+  @override
+  void dispose() {
+    _controller.removeListener(_handleEdit);
+    _controller.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     return Padding(
       padding: EdgeInsets.fromLTRB(0, 0, 1, 1),
       child: TextField(
+        controller: _controller,
         cursorWidth: 1,
         cursorColor: Colors.black,
         style: TextStyle(fontFamily: 'Verdana', fontSize: 11),
         decoration: InputDecoration(
-          fillColor: isWeekend ? Color(0xffdddcd5) : Colors.white,
-          hoverColor: isWeekend ? Color(0xffdddcd5) : Colors.white,
+          fillColor: widget.isWeekend ? Color(0xffdddcd5) : Colors.white,
+          hoverColor: widget.isWeekend ? Color(0xffdddcd5) : Colors.white,
           filled: true,
           contentPadding: EdgeInsets.fromLTRB(3, 13, 0, 4),
           isDense: true,
