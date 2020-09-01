@@ -37,7 +37,7 @@ class TimesheetsView extends StatelessWidget {
         ...List<Widget>.generate(timesheet.hours.length, (int index) {
           return HoursTextInput(
             hours: timesheet.hours,
-            index: index,
+            hoursIndex: index,
           );
         }),
         Padding(
@@ -201,12 +201,12 @@ class HoursTextInput extends StatefulWidget {
   const HoursTextInput({
     Key key,
     this.hours,
-    this.index,
+    this.hoursIndex,
     this.isWeekend = false,
   }) : super(key: key);
 
   final Hours hours;
-  final int index;
+  final int hoursIndex;
   final bool isWeekend;
 
   @override
@@ -232,11 +232,17 @@ class _HoursTextInputState extends State<HoursTextInput> {
       valid = false;
     } else if (value < 0 || value > 24) {
       valid = false;
+    } else if (text.contains('.')) {
+      final String afterDecimal = text.substring(text.indexOf('.') + 1);
+      assert(!afterDecimal.contains('.'));
+      if (afterDecimal.length > 2) {
+        valid = false;
+      }
     }
 
     if (valid) {
       _lastValidValue = _controller.value;
-      widget.hours[widget.index] = value;
+      widget.hours[widget.hoursIndex] = value;
     } else {
       _controller.value = _lastValidValue;
       SystemSound.play(SystemSoundType.alert);
@@ -246,7 +252,7 @@ class _HoursTextInputState extends State<HoursTextInput> {
   @override
   void initState() {
     super.initState();
-    final double initialValue = widget.hours[widget.index];
+    final double initialValue = widget.hours[widget.hoursIndex];
     _controller = TextEditingController(text: initialValue == 0 ? '' : '$initialValue');
     _controller.addListener(_handleEdit);
   }
