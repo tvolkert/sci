@@ -1,6 +1,6 @@
 import 'package:flutter/foundation.dart';
 
-import 'package:payouts/src/model/invoice.dart';
+import 'invoice.dart';
 
 mixin TrackInvoiceOpenedMixin {
   InvoiceListener _listener;

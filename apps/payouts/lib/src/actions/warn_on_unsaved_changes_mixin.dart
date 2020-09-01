@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart' show Theme;
 import 'package:flutter/widgets.dart';
 
+import 'package:payouts/src/model/track_invoice_dirty_mixin.dart';
 import 'package:payouts/src/pivot.dart' as pivot;
 
-import 'track_invoice_dirty_mixin.dart';
 import 'save_invoice.dart';
 
 mixin WarnOnUnsavedChangesMixin on TrackInvoiceDirtyMixin {

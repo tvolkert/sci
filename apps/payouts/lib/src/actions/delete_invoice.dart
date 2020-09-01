@@ -3,10 +3,9 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:payouts/src/model/invoice.dart';
 
+import 'package:payouts/src/model/track_invoice_opened_mixin.dart';
 import 'package:payouts/src/pivot.dart' as pivot;
 import 'package:payouts/ui/common/task_monitor.dart';
-
-import 'track_invoice_opened_mixin.dart';
 
 class DeleteInvoiceIntent extends Intent {
   const DeleteInvoiceIntent({this.context});

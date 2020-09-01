@@ -10,11 +10,11 @@ import 'package:intl/intl.dart' as intl;
 import 'package:payouts/src/model/constants.dart';
 import 'package:payouts/src/model/invoice.dart';
 import 'package:payouts/src/model/user.dart';
+import 'package:payouts/src/model/track_invoice_dirty_mixin.dart';
+import 'package:payouts/src/model/track_invoice_opened_mixin.dart';
 import 'package:payouts/src/pivot.dart' as pivot;
 import 'package:payouts/ui/common/task_monitor.dart';
 
-import 'track_invoice_dirty_mixin.dart';
-import 'track_invoice_opened_mixin.dart';
 import 'warn_on_unsaved_changes_mixin.dart';
 
 class CreateInvoiceIntent extends Intent {

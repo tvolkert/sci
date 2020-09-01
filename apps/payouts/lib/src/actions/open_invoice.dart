@@ -9,12 +9,12 @@ import 'package:intl/intl.dart';
 import 'package:payouts/src/model/constants.dart';
 import 'package:payouts/src/model/invoice.dart';
 import 'package:payouts/src/model/user.dart';
+import 'package:payouts/src/model/track_invoice_dirty_mixin.dart';
+import 'package:payouts/src/model/track_invoice_opened_mixin.dart';
 import 'package:payouts/src/pivot.dart' as pivot;
 import 'package:payouts/src/pivot/foundation.dart';
 import 'package:payouts/ui/common/task_monitor.dart';
 
-import 'track_invoice_dirty_mixin.dart';
-import 'track_invoice_opened_mixin.dart';
 import 'warn_on_unsaved_changes_mixin.dart';
 
 typedef InvoiceComparator = int Function(Map<String, dynamic> a, Map<String, dynamic> b);
