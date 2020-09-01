@@ -8,6 +8,7 @@ import 'package:payouts/src/pivot.dart';
 import 'collections.dart';
 import 'constants.dart';
 import 'debug.dart';
+import 'foundation.dart';
 import 'http.dart';
 import 'pair.dart';
 import 'user.dart';
@@ -408,6 +409,7 @@ class Invoice {
   @protected
   set total(double value) {
     assert(value != null);
+    value = roundToSignificantDigits(value, 3);
     double previousValue = total;
     if (value != previousValue) {
       _total = value;
@@ -739,6 +741,8 @@ class Timesheet {
 
   @protected
   set totalHours(double value) {
+    assert(value != null);
+    value = roundToSignificantDigits(value, 2);
     double previousValue = totalHours;
     if (value != previousValue) {
       // Order is important here; set this first to force the parent to run its
@@ -1034,6 +1038,8 @@ class ExpenseReport {
 
   @protected
   set total(double value) {
+    assert(value != null);
+    value = roundToSignificantDigits(value, 2);
     double previousValue = total;
     if (value != previousValue) {
       // Order is important here; set this first to force the parent to run its
