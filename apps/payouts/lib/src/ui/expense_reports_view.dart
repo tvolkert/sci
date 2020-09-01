@@ -198,6 +198,7 @@ class _ExpensesTableViewState extends State<ExpensesTableView> {
     bool rowSelected,
     bool rowHighlighted,
     bool isEditing,
+    bool isRowDisabled,
   }) {
     final String date = data[rowIndex][0];
     final DateTime dateTime = DateTime.parse(date);
@@ -227,6 +228,7 @@ class _ExpensesTableViewState extends State<ExpensesTableView> {
     bool rowSelected,
     bool rowHighlighted,
     bool isEditing,
+    bool isRowDisabled,
   }) {
     final String type = data[rowIndex][1];
     if (isEditing) {
@@ -277,6 +279,7 @@ class _ExpensesTableViewState extends State<ExpensesTableView> {
     bool rowSelected,
     bool rowHighlighted,
     bool isEditing,
+    bool isRowDisabled,
   }) {
     final String amount = data[rowIndex][2];
     TextStyle style = DefaultTextStyle.of(context).style;
@@ -304,6 +307,7 @@ class _ExpensesTableViewState extends State<ExpensesTableView> {
     bool rowSelected,
     bool rowHighlighted,
     bool isEditing,
+    bool isRowDisabled,
   }) {
     final String description = data[rowIndex][3];
     TextStyle style = DefaultTextStyle.of(context).style;
