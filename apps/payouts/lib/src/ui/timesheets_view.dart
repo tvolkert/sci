@@ -253,7 +253,8 @@ class _HoursTextInputState extends State<HoursTextInput> {
   void initState() {
     super.initState();
     final double initialValue = widget.hours[widget.hoursIndex];
-    _controller = TextEditingController(text: initialValue == 0 ? '' : '$initialValue');
+    final String text = initialValue == 0 ? '' : NumberFormats.maybeDecimal.format(initialValue);
+    _controller = TextEditingController(text: text);
     _controller.addListener(_handleEdit);
   }
 
