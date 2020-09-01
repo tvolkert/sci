@@ -29,9 +29,9 @@ mixin TrackInvoiceDirtyMixin on TrackInvoiceOpenedMixin {
   }
 
   @override
-  dispose() {
+  destroy() {
     InvoiceBinding.instance.removeListener(_listener);
-    super.dispose();
+    super.destroy();
   }
 
   @override

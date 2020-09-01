@@ -43,7 +43,7 @@ mixin TrackInvoiceOpenedMixin {
   /// Callers should call this method before they drop their reference to this
   /// object.
   @mustCallSuper
-  dispose() {
+  destroy() {
     InvoiceBinding.instance.removeListener(_listener);
   }
 
