@@ -13,10 +13,10 @@ import 'rotated_text.dart';
 class TimesheetsView extends StatelessWidget {
   const TimesheetsView({Key key}) : super(key: key);
 
-  Iterable<Heading> _dateHeadingsFromBillingPeriod() {
+  Iterable<_Heading> _dateHeadingsFromBillingPeriod() {
     return InvoiceBinding.instance.invoice.billingPeriod
         .map<String>((DateTime date) => DateFormats.md.format(date))
-        .map<Heading>((String date) => Heading(date));
+        .map<_Heading>((String date) => _Heading(date));
   }
 
   Iterable<TableRow> _buildTimesheetRows() {
@@ -33,9 +33,9 @@ class TimesheetsView extends StatelessWidget {
 
     return TableRow(
       children: <Widget>[
-        TimesheetHeaderRow(assignment: timesheet.name),
+        _TimesheetHeaderRow(assignment: timesheet.name),
         ...List<Widget>.generate(timesheet.hours.length, (int index) {
-          return HoursTextInput(
+          return _HoursInput(
             hours: timesheet.hours,
             hoursIndex: index,
           );
@@ -182,8 +182,8 @@ class TimesheetsView extends StatelessWidget {
   }
 }
 
-class Heading extends StatelessWidget {
-  const Heading(this.text) : assert(text != null);
+class _Heading extends StatelessWidget {
+  const _Heading(this.text) : assert(text != null);
 
   final String text;
 
@@ -197,8 +197,8 @@ class Heading extends StatelessWidget {
   }
 }
 
-class HoursTextInput extends StatefulWidget {
-  const HoursTextInput({
+class _HoursInput extends StatefulWidget {
+  const _HoursInput({
     Key key,
     this.hours,
     this.hoursIndex,
@@ -210,10 +210,10 @@ class HoursTextInput extends StatefulWidget {
   final bool isWeekend;
 
   @override
-  _HoursTextInputState createState() => _HoursTextInputState();
+  _HoursInputState createState() => _HoursInputState();
 }
 
-class _HoursTextInputState extends State<HoursTextInput> {
+class _HoursInputState extends State<_HoursInput> {
   TextEditingController _controller;
   TextEditingValue _lastValidValue;
 
@@ -277,8 +277,8 @@ class _HoursTextInputState extends State<HoursTextInput> {
   }
 }
 
-class TimesheetHeaderRow extends StatelessWidget {
-  const TimesheetHeaderRow({
+class _TimesheetHeaderRow extends StatelessWidget {
+  const _TimesheetHeaderRow({
     Key key,
     @required this.assignment,
   }) : super(key: key);
@@ -304,8 +304,11 @@ class TimesheetHeaderRow extends StatelessWidget {
               baselineType: TextBaseline.alphabetic,
               child: Opacity(
                 opacity: hover ? 1 : 0,
-                child: HoverPushButton(
-                  iconName: 'assets/pencil.png',
+                child: pivot.PushButton(
+                  padding: const EdgeInsets.fromLTRB(4, 3, 0, 3),
+                  icon: 'assets/pencil.png',
+                  showTooltip: false,
+                  isToolbar: true,
                   onPressed: () {},
                 ),
               ),
@@ -315,62 +318,17 @@ class TimesheetHeaderRow extends StatelessWidget {
               baselineType: TextBaseline.alphabetic,
               child: Opacity(
                 opacity: hover ? 1 : 0,
-                child: HoverPushButton(
-                  iconName: 'assets/cross.png',
+                child: pivot.PushButton(
+                  padding: const EdgeInsets.fromLTRB(4, 3, 0, 3),
+                  icon: 'assets/cross.png',
+                  showTooltip: false,
+                  isToolbar: true,
                   onPressed: () {},
                 ),
               ),
             ),
             SizedBox(width: 1),
           ],
-        );
-      },
-    );
-  }
-}
-
-class HoverPushButton extends StatelessWidget {
-  const HoverPushButton({
-    @required this.iconName,
-    @required this.onPressed,
-    Key key,
-  })  : assert(iconName != null),
-        super(key: key);
-
-  final String iconName;
-  final VoidCallback onPressed;
-
-  @override
-  Widget build(BuildContext context) {
-    return pivot.HoverBuilder(
-      builder: (BuildContext context, bool hover) {
-        Widget button = FlatButton(
-          color: Colors.transparent,
-          hoverColor: Colors.transparent,
-          materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-          onPressed: onPressed,
-          child: Image.asset(iconName),
-        );
-
-        if (hover) {
-          button = DecoratedBox(
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.bottomCenter,
-                end: Alignment.topCenter,
-                colors: [Color(0xffdddcd5), Color(0xfff3f2eb)],
-              ),
-            ),
-            child: button,
-          );
-        }
-
-        return ButtonTheme(
-          shape: hover ? Border.all(color: Color(0xff999999)) : Border(),
-          minWidth: 1,
-          height: 16,
-          padding: EdgeInsets.symmetric(horizontal: 12, vertical: 11),
-          child: button,
         );
       },
     );

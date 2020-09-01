@@ -237,9 +237,16 @@ class _InvoiceNumberEditorState extends State<InvoiceNumberEditor> {
     return Row(
       children: [
         view,
-        HoverPushButton(
-          iconName: 'assets/pencil.png',
-          onPressed: _isSubmitted && false ? null : _handleToggleEdit,
+        SizedBox(
+          height: 22,
+          width: 23,
+          child: pivot.PushButton(
+            padding: const EdgeInsets.fromLTRB(3, 0, 0, 0),
+            icon: 'assets/pencil.png',
+            showTooltip: false,
+            isToolbar: true,
+            onPressed: _isSubmitted && false ? null : _handleToggleEdit,
+          ),
         ),
       ],
     );
