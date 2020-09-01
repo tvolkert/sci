@@ -269,32 +269,15 @@ class _HoursTextInputState extends State<HoursTextInput> {
   Widget build(BuildContext context) {
     return Padding(
       padding: EdgeInsets.fromLTRB(0, 0, 1, 1),
-      child: TextField(
+      child: pivot.TextInput(
         controller: _controller,
-        cursorWidth: 1,
-        cursorColor: Colors.black,
-        style: TextStyle(fontFamily: 'Verdana', fontSize: 11),
-        decoration: InputDecoration(
-          fillColor: widget.isWeekend ? Color(0xffdddcd5) : Colors.white,
-          hoverColor: widget.isWeekend ? Color(0xffdddcd5) : Colors.white,
-          filled: true,
-          contentPadding: EdgeInsets.fromLTRB(3, 13, 0, 4),
-          isDense: true,
-          enabledBorder: OutlineInputBorder(
-            borderSide: const BorderSide(color: Color(0xff999999)),
-            borderRadius: BorderRadius.zero,
-          ),
-          focusedBorder: OutlineInputBorder(
-            borderSide: const BorderSide(color: Color(0xff999999)),
-            borderRadius: BorderRadius.zero,
-          ),
-        ),
+        backgroundColor: widget.isWeekend ? const Color(0xffdddcd5) : const Color(0xffffffff),
       ),
     );
   }
 }
 
-class TimesheetHeaderRow extends StatefulWidget {
+class TimesheetHeaderRow extends StatelessWidget {
   const TimesheetHeaderRow({
     Key key,
     @required this.assignment,
@@ -303,65 +286,50 @@ class TimesheetHeaderRow extends StatefulWidget {
   final String assignment;
 
   @override
-  _TimesheetHeaderRowState createState() => _TimesheetHeaderRowState();
-}
-
-class _TimesheetHeaderRowState extends State<TimesheetHeaderRow> {
-  bool hover = false;
-
-  @override
   Widget build(BuildContext context) {
-    return MouseRegion(
-      onEnter: (PointerEnterEvent event) {
-        setState(() {
-          hover = true;
-        });
-      },
-      onExit: (PointerExitEvent event) {
-        setState(() {
-          hover = false;
-        });
-      },
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.baseline,
-        textBaseline: TextBaseline.alphabetic,
-        children: [
-          Expanded(
-            child: Padding(
-              padding: EdgeInsets.only(right: 10),
-              child: Text(widget.assignment, maxLines: 1),
-            ),
-          ),
-          Baseline(
-            baseline: 18.5,
-            baselineType: TextBaseline.alphabetic,
-            child: Opacity(
-              opacity: hover ? 1 : 0,
-              child: HoverPushButton(
-                iconName: 'assets/pencil.png',
-                onPressed: () {},
+    return pivot.HoverBuilder(
+      builder: (BuildContext context, bool hover) {
+        return Row(
+          crossAxisAlignment: CrossAxisAlignment.baseline,
+          textBaseline: TextBaseline.alphabetic,
+          children: [
+            Expanded(
+              child: Padding(
+                padding: EdgeInsets.only(right: 10),
+                child: Text(assignment, maxLines: 1),
               ),
             ),
-          ),
-          Baseline(
-            baseline: 18.5,
-            baselineType: TextBaseline.alphabetic,
-            child: Opacity(
-              opacity: hover ? 1 : 0,
-              child: HoverPushButton(
-                iconName: 'assets/cross.png',
-                onPressed: () {},
+            Baseline(
+              baseline: 18.5,
+              baselineType: TextBaseline.alphabetic,
+              child: Opacity(
+                opacity: hover ? 1 : 0,
+                child: HoverPushButton(
+                  iconName: 'assets/pencil.png',
+                  onPressed: () {},
+                ),
               ),
             ),
-          ),
-          SizedBox(width: 1),
-        ],
-      ),
+            Baseline(
+              baseline: 18.5,
+              baselineType: TextBaseline.alphabetic,
+              child: Opacity(
+                opacity: hover ? 1 : 0,
+                child: HoverPushButton(
+                  iconName: 'assets/cross.png',
+                  onPressed: () {},
+                ),
+              ),
+            ),
+            SizedBox(width: 1),
+          ],
+        );
+      },
     );
   }
 }
 
-class HoverPushButton extends StatefulWidget {
+class HoverPushButton extends StatelessWidget {
   const HoverPushButton({
     @required this.iconName,
     @required this.onPressed,
@@ -373,53 +341,38 @@ class HoverPushButton extends StatefulWidget {
   final VoidCallback onPressed;
 
   @override
-  _HoverPushButtonState createState() => _HoverPushButtonState();
-}
-
-class _HoverPushButtonState extends State<HoverPushButton> {
-  bool highlighted = false;
-
-  @override
   Widget build(BuildContext context) {
-    Widget button = FlatButton(
-      color: Colors.transparent,
-      hoverColor: Colors.transparent,
-      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-      onPressed: widget.onPressed,
-      child: Image.asset(widget.iconName),
-    );
+    return pivot.HoverBuilder(
+      builder: (BuildContext context, bool hover) {
+        Widget button = FlatButton(
+          color: Colors.transparent,
+          hoverColor: Colors.transparent,
+          materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+          onPressed: onPressed,
+          child: Image.asset(iconName),
+        );
 
-    if (highlighted) {
-      button = DecoratedBox(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.bottomCenter,
-            end: Alignment.topCenter,
-            colors: [Color(0xffdddcd5), Color(0xfff3f2eb)],
-          ),
-        ),
-        child: button,
-      );
-    }
+        if (hover) {
+          button = DecoratedBox(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.bottomCenter,
+                end: Alignment.topCenter,
+                colors: [Color(0xffdddcd5), Color(0xfff3f2eb)],
+              ),
+            ),
+            child: button,
+          );
+        }
 
-    return ButtonTheme(
-      shape: highlighted ? Border.all(color: Color(0xff999999)) : Border(),
-      minWidth: 1,
-      height: 16,
-      padding: EdgeInsets.symmetric(horizontal: 12, vertical: 11),
-      child: MouseRegion(
-        onEnter: (PointerEnterEvent event) {
-          setState(() {
-            highlighted = true;
-          });
-        },
-        onExit: (PointerExitEvent event) {
-          setState(() {
-            highlighted = false;
-          });
-        },
-        child: button,
-      ),
+        return ButtonTheme(
+          shape: hover ? Border.all(color: Color(0xff999999)) : Border(),
+          minWidth: 1,
+          height: 16,
+          padding: EdgeInsets.symmetric(horizontal: 12, vertical: 11),
+          child: button,
+        );
+      },
     );
   }
 }
