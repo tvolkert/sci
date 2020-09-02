@@ -3,12 +3,36 @@ import 'dart:math' as math;
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+
 import 'package:payouts/src/model/constants.dart';
 import 'package:payouts/src/model/invoice.dart';
-
 import 'package:payouts/src/pivot.dart' as pivot;
 
+import 'foundation.dart';
 import 'rotated_text.dart';
+
+typedef _TimesheetRowBuilder = TableRow Function(Signal metadataSignal, Signal totalSignal);
+
+@immutable
+class _TimesheetDisplay {
+  _TimesheetDisplay._(this.metadataSignal, this.totalSignal, this.row);
+
+  factory _TimesheetDisplay(_TimesheetRowBuilder rowBuilder) {
+    final Signal metadataSignal = Signal();
+    final Signal totalSignal = Signal();
+    final TableRow row = rowBuilder(metadataSignal, totalSignal);
+    return _TimesheetDisplay._(metadataSignal, totalSignal, row);
+  }
+
+  final Signal metadataSignal;
+  final Signal totalSignal;
+  final TableRow row;
+
+  void dispose() {
+    metadataSignal.dispose();
+    totalSignal.dispose();
+  }
+}
 
 class TimesheetsView extends StatefulWidget {
   const TimesheetsView({Key key}) : super(key: key);
@@ -17,64 +41,62 @@ class TimesheetsView extends StatefulWidget {
   _TimesheetsViewState createState() => _TimesheetsViewState();
 }
 
-class _TimesheetNotifier with ChangeNotifier {
-  void notify() {
-    notifyListeners();
-  }
-}
-
 class _TimesheetsViewState extends State<TimesheetsView> {
   InvoiceListener _listener;
-  List<_TimesheetNotifier> _notifiers;
-  List<TableRow> _timesheetRows;
+  List<_TimesheetDisplay> _timesheets;
 
-  Iterable<_DateHeading> _dateHeadingsFromBillingPeriod() {
+  Iterable<_DateHeading> _buildDateHeadings() {
     return InvoiceBinding.instance.invoice.billingPeriod
         .map<String>((DateTime date) => DateFormats.md.format(date))
         .map<_DateHeading>((String date) => _DateHeading(date));
   }
 
-  TableRow _buildTimesheetRow(Timesheet timesheet, _TimesheetNotifier notifier) {
-    return TableRow(
-      children: <Widget>[
-        _TimesheetHeader(timesheet: timesheet, notifier: notifier),
-        ...List<Widget>.generate(timesheet.hours.length, (int index) {
-          return _HoursInput(
-            hours: timesheet.hours,
-            hoursIndex: index,
-          );
-        }),
-        _TimesheetFooter(timesheet: timesheet, notifier: notifier),
-        Container(),
-      ],
-    );
+  _TimesheetDisplay _buildTimesheet(Timesheet timesheet) {
+    return _TimesheetDisplay((Signal metadataSignal, Signal totalSignal) {
+      return TableRow(
+        children: <Widget>[
+          _TimesheetHeader(timesheet: timesheet, signal: metadataSignal),
+          ...List<Widget>.generate(timesheet.hours.length, (int index) {
+            return _HoursInput(
+              hours: timesheet.hours,
+              hoursIndex: index,
+            );
+          }),
+          _TimesheetFooter(timesheet: timesheet, signal: totalSignal),
+          Container(),
+        ],
+      );
+    });
   }
 
-  void _handleTimesheetInserted(int timesheetIndex) {
-    final Timesheet timesheet = InvoiceBinding.instance.invoice.timesheets[timesheetIndex];
-    final _TimesheetNotifier notifier = _TimesheetNotifier();
-    _notifiers.insert(timesheetIndex, notifier);
+  void _handleTimesheetInserted(int index) {
+    final Timesheet timesheet = InvoiceBinding.instance.invoice.timesheets[index];
     setState(() {
-      _timesheetRows.insert(timesheetIndex, _buildTimesheetRow(timesheet, notifier));
+      _timesheets.insert(index, _buildTimesheet(timesheet));
     });
   }
 
   void _handleTimesheetsRemoved(int startIndex, Iterable<Timesheet> removed) {
     final int count = removed.length;
     final int endIndex = startIndex + count;
-    for (int i = startIndex; i < endIndex; i++) _notifiers[i].dispose();
-    _notifiers.removeRange(startIndex, endIndex);
+    for (int i = startIndex; i < endIndex; i++) _timesheets[i].dispose();
     setState(() {
-      _timesheetRows.removeRange(startIndex, endIndex);
+      _timesheets.removeRange(startIndex, endIndex);
     });
   }
 
   void _handleTimesheetUpdated(int timesheetIndex, String key, dynamic oldValue) {
-    _notifiers[timesheetIndex].notify();
+    _timesheets[timesheetIndex].metadataSignal.notify();
   }
 
   void _handleTimesheetHoursUpdated(int timesheetIndex, int dayIndex, double oldValue) {
-    _notifiers[timesheetIndex].notify();
+    _timesheets[timesheetIndex].totalSignal.notify();
+  }
+
+  Invoice get invoice {
+    final Invoice invoice = InvoiceBinding.instance.invoice;
+    assert(invoice != null);
+    return invoice;
   }
 
   @override
@@ -87,14 +109,7 @@ class _TimesheetsViewState extends State<TimesheetsView> {
       onTimesheetHoursUpdated: _handleTimesheetHoursUpdated,
     );
     InvoiceBinding.instance.addListener(_listener);
-    final Invoice invoice = InvoiceBinding.instance.invoice;
-    assert(invoice != null);
-    _notifiers = List<_TimesheetNotifier>.generate(invoice.timesheets.length, (int index) {
-      return _TimesheetNotifier();
-    });
-    _timesheetRows = List<TableRow>.generate(invoice.timesheets.length, (int index) {
-      return _buildTimesheetRow(invoice.timesheets[index], _notifiers[index]);
-    });
+    _timesheets = invoice.timesheets.map<_TimesheetDisplay>(_buildTimesheet).toList();
   }
 
   @override
@@ -137,12 +152,12 @@ class _TimesheetsViewState extends State<TimesheetsView> {
                     TableRow(
                       children: <Widget>[
                         Container(),
-                        ..._dateHeadingsFromBillingPeriod(),
+                        ..._buildDateHeadings(),
                         Container(),
                         Container(),
                       ],
                     ),
-                    ..._timesheetRows,
+                    ..._timesheets.map<TableRow>((_TimesheetDisplay row) => row.row),
                     TableRow(
                       decoration: BoxDecoration(
                           border: Border(bottom: BorderSide(color: Color(0xff999999)))),
@@ -322,11 +337,11 @@ class _TimesheetHeader extends StatefulWidget {
   const _TimesheetHeader({
     Key key,
     @required this.timesheet,
-    @required this.notifier,
+    @required this.signal,
   }) : super(key: key);
 
   final Timesheet timesheet;
-  final _TimesheetNotifier notifier;
+  final ChangeNotifier signal;
 
   @override
   _TimesheetHeaderState createState() => _TimesheetHeaderState();
@@ -338,12 +353,12 @@ class _TimesheetHeaderState extends State<_TimesheetHeader> {
   @override
   void initState() {
     super.initState();
-    widget.notifier.addListener(_handleNeedsBuild);
+    widget.signal.addListener(_handleNeedsBuild);
   }
 
   @override
   void dispose() {
-    widget.notifier.removeListener(_handleNeedsBuild);
+    widget.signal.removeListener(_handleNeedsBuild);
     super.dispose();
   }
 
@@ -401,11 +416,11 @@ class _TimesheetFooter extends StatefulWidget {
   const _TimesheetFooter({
     Key key,
     @required this.timesheet,
-    @required this.notifier,
+    @required this.signal,
   }) : super(key: key);
 
   final Timesheet timesheet;
-  final _TimesheetNotifier notifier;
+  final ChangeNotifier signal;
 
   @override
   _TimesheetFooterState createState() => _TimesheetFooterState();
@@ -417,12 +432,12 @@ class _TimesheetFooterState extends State<_TimesheetFooter> {
   @override
   void initState() {
     super.initState();
-    widget.notifier.addListener(_handleNeedsBuild);
+    widget.signal.addListener(_handleNeedsBuild);
   }
 
   @override
   void dispose() {
-    widget.notifier.removeListener(_handleNeedsBuild);
+    widget.signal.removeListener(_handleNeedsBuild);
     super.dispose();
   }
 
