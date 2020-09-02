@@ -642,6 +642,9 @@ class Timesheets with ForwardingIterable<Timesheet>, DisallowCollectionConversio
   @protected
   Iterable<Timesheet> get delegate => _data;
 
+  /// Gets the timesheet at the specified index.
+  Timesheet operator [](int index) => _owner._checkDisposed(() => _data[index]);
+
   /// Computes the total dollar amount for this expense report.
   @protected
   @visibleForTesting
