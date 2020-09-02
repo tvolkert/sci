@@ -10,49 +10,103 @@ import 'package:payouts/src/pivot.dart' as pivot;
 
 import 'rotated_text.dart';
 
-class TimesheetsView extends StatelessWidget {
+class TimesheetsView extends StatefulWidget {
   const TimesheetsView({Key key}) : super(key: key);
 
-  Iterable<_Heading> _dateHeadingsFromBillingPeriod() {
+  @override
+  _TimesheetsViewState createState() => _TimesheetsViewState();
+}
+
+class _TimesheetNotifier with ChangeNotifier {
+  void notify() {
+    notifyListeners();
+  }
+}
+
+class _TimesheetsViewState extends State<TimesheetsView> {
+  InvoiceListener _listener;
+  List<_TimesheetNotifier> _notifiers;
+  List<TableRow> _timesheetRows;
+
+  Iterable<_DateHeading> _dateHeadingsFromBillingPeriod() {
     return InvoiceBinding.instance.invoice.billingPeriod
         .map<String>((DateTime date) => DateFormats.md.format(date))
-        .map<_Heading>((String date) => _Heading(date));
+        .map<_DateHeading>((String date) => _DateHeading(date));
   }
 
-  Iterable<TableRow> _buildTimesheetRows() {
-    return InvoiceBinding.instance.invoice.timesheets.map<TableRow>(_buildTimesheetRow);
-  }
-
-  TableRow _buildTimesheetRow(Timesheet timesheet) {
-    final StringBuffer summary = StringBuffer()
-      ..writeAll(<String>[
-        '${timesheet.totalHours} hrs',
-        ' @${NumberFormats.currency.format(timesheet.program.rate)}/hr',
-        ' (${NumberFormats.currency.format(timesheet.total)})',
-      ]);
-
+  TableRow _buildTimesheetRow(Timesheet timesheet, _TimesheetNotifier notifier) {
     return TableRow(
       children: <Widget>[
-        _TimesheetHeaderRow(assignment: timesheet.name),
+        _TimesheetHeader(timesheet: timesheet, notifier: notifier),
         ...List<Widget>.generate(timesheet.hours.length, (int index) {
           return _HoursInput(
             hours: timesheet.hours,
             hoursIndex: index,
           );
         }),
-        Padding(
-          padding: EdgeInsets.only(left: 10),
-          child: Text(summary.toString(), maxLines: 1, softWrap: false),
-        ),
+        _TimesheetFooter(timesheet: timesheet, notifier: notifier),
         Container(),
       ],
     );
   }
 
+  void _handleTimesheetInserted(int timesheetIndex) {
+    final Timesheet timesheet = InvoiceBinding.instance.invoice.timesheets[timesheetIndex];
+    final _TimesheetNotifier notifier = _TimesheetNotifier();
+    _notifiers.insert(timesheetIndex, notifier);
+    setState(() {
+      _timesheetRows.insert(timesheetIndex, _buildTimesheetRow(timesheet, notifier));
+    });
+  }
+
+  void _handleTimesheetsRemoved(int startIndex, Iterable<Timesheet> removed) {
+    final int count = removed.length;
+    final int endIndex = startIndex + count;
+    for (int i = startIndex; i < endIndex; i++) _notifiers[i].dispose();
+    _notifiers.removeRange(startIndex, endIndex);
+    setState(() {
+      _timesheetRows.removeRange(startIndex, endIndex);
+    });
+  }
+
+  void _handleTimesheetUpdated(int timesheetIndex, String key, dynamic oldValue) {
+    _notifiers[timesheetIndex].notify();
+  }
+
+  void _handleTimesheetHoursUpdated(int timesheetIndex, int dayIndex, double oldValue) {
+    _notifiers[timesheetIndex].notify();
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _listener = InvoiceListener(
+      onTimesheetInserted: _handleTimesheetInserted,
+      onTimesheetsRemoved: _handleTimesheetsRemoved,
+      onTimesheetUpdated: _handleTimesheetUpdated,
+      onTimesheetHoursUpdated: _handleTimesheetHoursUpdated,
+    );
+    InvoiceBinding.instance.addListener(_listener);
+    final Invoice invoice = InvoiceBinding.instance.invoice;
+    assert(invoice != null);
+    _notifiers = List<_TimesheetNotifier>.generate(invoice.timesheets.length, (int index) {
+      return _TimesheetNotifier();
+    });
+    _timesheetRows = List<TableRow>.generate(invoice.timesheets.length, (int index) {
+      return _buildTimesheetRow(invoice.timesheets[index], _notifiers[index]);
+    });
+  }
+
+  @override
+  void dispose() {
+    InvoiceBinding.instance.removeListener(_listener);
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: EdgeInsets.all(7),
+      padding: const EdgeInsets.all(7),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.start,
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -74,7 +128,7 @@ class TimesheetsView extends StatelessWidget {
                   defaultVerticalAlignment: TableCellVerticalAlignment.baseline,
                   defaultColumnWidth: FixedColumnWidth(33),
                   textBaseline: TextBaseline.alphabetic,
-                  columnWidths: {
+                  columnWidths: const <int, TableColumnWidth>{
                     0: IntrinsicColumnWidth(),
                     15: IntrinsicColumnWidth(),
                     16: FlexColumnWidth(),
@@ -88,7 +142,7 @@ class TimesheetsView extends StatelessWidget {
                         Container(),
                       ],
                     ),
-                    ..._buildTimesheetRows(),
+                    ..._timesheetRows,
                     TableRow(
                       decoration: BoxDecoration(
                           border: Border(bottom: BorderSide(color: Color(0xff999999)))),
@@ -169,8 +223,8 @@ class TimesheetsView extends StatelessWidget {
   }
 }
 
-class _Heading extends StatelessWidget {
-  const _Heading(this.text) : assert(text != null);
+class _DateHeading extends StatelessWidget {
+  const _DateHeading(this.text) : assert(text != null);
 
   final String text;
 
@@ -264,13 +318,34 @@ class _HoursInputState extends State<_HoursInput> {
   }
 }
 
-class _TimesheetHeaderRow extends StatelessWidget {
-  const _TimesheetHeaderRow({
+class _TimesheetHeader extends StatefulWidget {
+  const _TimesheetHeader({
     Key key,
-    @required this.assignment,
+    @required this.timesheet,
+    @required this.notifier,
   }) : super(key: key);
 
-  final String assignment;
+  final Timesheet timesheet;
+  final _TimesheetNotifier notifier;
+
+  @override
+  _TimesheetHeaderState createState() => _TimesheetHeaderState();
+}
+
+class _TimesheetHeaderState extends State<_TimesheetHeader> {
+  void _handleNeedsBuild() => setState(() {});
+
+  @override
+  void initState() {
+    super.initState();
+    widget.notifier.addListener(_handleNeedsBuild);
+  }
+
+  @override
+  void dispose() {
+    widget.notifier.removeListener(_handleNeedsBuild);
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -283,7 +358,7 @@ class _TimesheetHeaderRow extends StatelessWidget {
             Expanded(
               child: Padding(
                 padding: EdgeInsets.only(right: 10),
-                child: Text(assignment, maxLines: 1),
+                child: Text(widget.timesheet.name, maxLines: 1, softWrap: false),
               ),
             ),
             Baseline(
@@ -318,6 +393,51 @@ class _TimesheetHeaderRow extends StatelessWidget {
           ],
         );
       },
+    );
+  }
+}
+
+class _TimesheetFooter extends StatefulWidget {
+  const _TimesheetFooter({
+    Key key,
+    @required this.timesheet,
+    @required this.notifier,
+  }) : super(key: key);
+
+  final Timesheet timesheet;
+  final _TimesheetNotifier notifier;
+
+  @override
+  _TimesheetFooterState createState() => _TimesheetFooterState();
+}
+
+class _TimesheetFooterState extends State<_TimesheetFooter> {
+  void _handleNeedsBuild() => setState(() {});
+
+  @override
+  void initState() {
+    super.initState();
+    widget.notifier.addListener(_handleNeedsBuild);
+  }
+
+  @override
+  void dispose() {
+    widget.notifier.removeListener(_handleNeedsBuild);
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final StringBuffer summary = StringBuffer()
+      ..writeAll(<String>[
+        '${widget.timesheet.totalHours} hrs',
+        ' @${NumberFormats.currency.format(widget.timesheet.program.rate)}/hr',
+        ' (${NumberFormats.currency.format(widget.timesheet.total)})',
+      ]);
+
+    return Padding(
+      padding: EdgeInsets.only(left: 10),
+      child: Text(summary.toString(), maxLines: 1, softWrap: false),
     );
   }
 }
