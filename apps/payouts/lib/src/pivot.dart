@@ -13,5 +13,6 @@ export 'pivot/scroll_pane.dart';
 export 'pivot/sheet.dart';
 export 'pivot/sorting.dart';
 export 'pivot/tab_pane.dart';
+export 'pivot/table_pane.dart';
 export 'pivot/table_view.dart';
 export 'pivot/text_input.dart';
