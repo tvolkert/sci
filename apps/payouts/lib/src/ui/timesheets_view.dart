@@ -25,6 +25,7 @@ class _TimesheetsViewState extends State<TimesheetsView> {
     return _TimesheetRow(
       timesheet: timesheet,
       child: pivot.TableRow(
+        height: pivot.FixedTablePaneRowHeight(22),
         children: <Widget>[
           const _TimesheetHeader(),
           ...List<Widget>.generate(timesheet.hours.length, (int index) {
@@ -414,7 +415,7 @@ class _DividerRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return pivot.TableRow(
-      height: pivot.FixedTablePaneRowHeight(1),
+      height: pivot.FixedTablePaneRowHeight(9),
       children: const <Widget>[
         pivot.TableCell(
           columnSpan: 128,
@@ -453,35 +454,35 @@ class _FooterRow extends StatelessWidget {
       children: [
         Text('Daily Totals', maxLines: 1, style: TextStyle(fontStyle: FontStyle.italic)),
         Padding(
-          padding: EdgeInsets.only(top: 5, left: 2),
+          padding: EdgeInsets.only(left: 2),
           child: Text('6', style: TextStyle(fontStyle: FontStyle.italic)),
         ),
         Padding(
-          padding: EdgeInsets.only(top: 5, left: 2),
+          padding: EdgeInsets.only(left: 2),
           child: Text('6', style: TextStyle(fontStyle: FontStyle.italic)),
         ),
         Padding(
-          padding: EdgeInsets.only(top: 5, left: 2),
+          padding: EdgeInsets.only(left: 2),
           child: Text('6', style: TextStyle(fontStyle: FontStyle.italic)),
         ),
         Padding(
-          padding: EdgeInsets.only(top: 5, left: 2),
+          padding: EdgeInsets.only(left: 2),
           child: Text('9.21', style: TextStyle(fontStyle: FontStyle.italic)),
         ),
         Padding(
-          padding: EdgeInsets.only(top: 5, left: 2),
+          padding: EdgeInsets.only(left: 2),
           child: Text('11', style: TextStyle(fontStyle: FontStyle.italic)),
         ),
         Padding(
-          padding: EdgeInsets.only(top: 5, left: 2),
+          padding: EdgeInsets.only(left: 2),
           child: Text('7', style: TextStyle(fontStyle: FontStyle.italic)),
         ),
         Padding(
-          padding: EdgeInsets.only(top: 5, left: 2),
+          padding: EdgeInsets.only(left: 2),
           child: Text('6', style: TextStyle(fontStyle: FontStyle.italic)),
         ),
         Padding(
-          padding: EdgeInsets.only(top: 5, left: 2),
+          padding: EdgeInsets.only(left: 2),
           child: Text('7', style: TextStyle(fontStyle: FontStyle.italic)),
         ),
         Text(''),
