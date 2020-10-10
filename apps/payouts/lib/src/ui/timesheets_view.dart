@@ -22,38 +22,23 @@ class _TimesheetsViewState extends State<TimesheetsView> {
   List<_TimesheetRow> _timesheetRows;
 
   _TimesheetRow _buildTimesheetRow(Timesheet timesheet) {
-    return _TimesheetRow(
-      timesheet: timesheet,
-      child: pivot.TableRow(
-        height: pivot.FixedTablePaneRowHeight(22),
-        children: <Widget>[
-          const _TimesheetHeader(),
-          ...List<Widget>.generate(timesheet.hours.length, (int index) {
-            return _HoursInput(
-              hours: timesheet.hours,
-              hoursIndex: index,
-            );
-          }),
-          const _TimesheetFooter(),
-          const pivot.EmptyTableCell(),
-        ],
-      ),
-    );
+    return _TimesheetRow(timesheet: timesheet);
   }
 
   void _handleTimesheetInserted(int index) {
-    final Timesheet timesheet = InvoiceBinding.instance.invoice.timesheets[index];
     setState(() {
-      _timesheetRows.insert(index, _buildTimesheetRow(timesheet));
+      _timesheetRows.insert(index, _buildTimesheetRow(invoice.timesheets[index]));
     });
   }
 
   void _handleTimesheetsRemoved(int startIndex, Iterable<Timesheet> removed) {
-    final int count = removed.length;
-    final int endIndex = startIndex + count;
     setState(() {
-      _timesheetRows.removeRange(startIndex, endIndex);
+      _timesheetRows.removeRange(startIndex, startIndex + removed.length);
     });
+  }
+
+  void _handleAddTimesheet() {
+    print('TODO: Add timesheet');
   }
 
   Invoice get invoice {
@@ -92,7 +77,7 @@ class _TimesheetsViewState extends State<TimesheetsView> {
             child: pivot.LinkButton(
               image: AssetImage('assets/table_add.png'),
               text: 'Add hours line item',
-              onPressed: () {},
+              onPressed: _handleAddTimesheet,
             ),
           ),
           Expanded(
@@ -152,10 +137,10 @@ class _HeaderRow extends StatelessWidget {
   Widget build(BuildContext context) {
     return pivot.TableRow(
       children: <Widget>[
-        pivot.EmptyTableCell(),
+        const pivot.EmptyTableCell(),
         ..._buildDateHeadings(),
-        pivot.EmptyTableCell(),
-        pivot.EmptyTableCell(),
+        const pivot.EmptyTableCell(),
+        const pivot.EmptyTableCell(),
       ],
     );
   }
@@ -257,16 +242,12 @@ class _TimesheetRow extends StatefulWidget {
   const _TimesheetRow({
     Key key,
     @required this.timesheet,
-    @required this.child,
   }) : super(key: key);
 
   final Timesheet timesheet;
-  final Widget child;
 
   @override
-  State<StatefulWidget> createState() {
-    return _TimesheetRowState();
-  }
+  State<StatefulWidget> createState() => _TimesheetRowState();
 
   static Timesheet of(BuildContext context) {
     _TimesheetScope scope = context.dependOnInheritedWidgetOfExactType<_TimesheetScope>();
@@ -294,6 +275,25 @@ class _TimesheetRowState extends State<_TimesheetRow> {
     }
   }
 
+  Widget _tableRow;
+  Widget _buildTableRow() {
+    return _tableRow ??= pivot.TableRow(
+      height: pivot.IntrinsicTablePaneRowHeight(),
+      children: <Widget>[
+        const _TimesheetHeader(),
+        ...List<Widget>.generate(widget.timesheet.hours.length, (int index) {
+          return _HoursInput(
+            hours: widget.timesheet.hours,
+            hoursIndex: index,
+            isWeekend: InvoiceBinding.instance.invoice.billingPeriod[index].weekday > 5,
+          );
+        }),
+        const _TimesheetFooter(),
+        const pivot.EmptyTableCell(),
+      ],
+    );
+  }
+
   @override
   void initState() {
     super.initState();
@@ -305,6 +305,14 @@ class _TimesheetRowState extends State<_TimesheetRow> {
   }
 
   @override
+  void reassemble() {
+    super.reassemble();
+    setState(() {
+      _tableRow = null;
+    });
+  }
+
+  @override
   void dispose() {
     InvoiceBinding.instance.removeListener(_invoiceListener);
     super.dispose();
@@ -312,7 +320,11 @@ class _TimesheetRowState extends State<_TimesheetRow> {
 
   @override
   Widget build(BuildContext context) {
-    return _TimesheetScope(state: this, updateCount: _updateCount, child: widget.child);
+    return _TimesheetScope(
+      state: this,
+      updateCount: _updateCount,
+      child: _buildTableRow(),
+    );
   }
 }
 
@@ -336,55 +348,58 @@ class _TimesheetScope extends InheritedWidget {
 class _TimesheetHeader extends StatelessWidget {
   const _TimesheetHeader({Key key}) : super(key: key);
 
-  void _handleEdit() {
-    // TODO
+  static void _handleEdit(Timesheet timesheet) {
+    print('TODO: edit timesheet ${timesheet.name}');
   }
 
-  void _handleDelete() {
-    // TODO
+  static void _handleDelete(Timesheet timesheet) {
+    print('TODO: delete timesheet ${timesheet.name}');
+  }
+
+  static Widget _buildHeader(BuildContext context, bool hover) {
+    final Timesheet timesheet = _TimesheetRow.of(context);
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      textBaseline: TextBaseline.alphabetic,
+      children: [
+        Expanded(
+          child: Padding(
+            padding: const EdgeInsets.only(right: 10),
+            child: Align(
+              alignment: Alignment.centerLeft,
+              child: Text(timesheet.name, maxLines: 1, softWrap: false),
+            ),
+          ),
+        ),
+        Opacity(
+          opacity: hover ? 1 : 0,
+          child: pivot.PushButton(
+            padding: const EdgeInsets.fromLTRB(4, 3, 0, 3),
+            icon: 'assets/pencil.png',
+            showTooltip: false,
+            isToolbar: true,
+            onPressed: () => _handleEdit(timesheet),
+          ),
+        ),
+        Opacity(
+          opacity: hover ? 1 : 0,
+          child: pivot.PushButton(
+            padding: const EdgeInsets.fromLTRB(4, 3, 0, 3),
+            icon: 'assets/cross.png',
+            showTooltip: false,
+            isToolbar: true,
+            onPressed: () => _handleDelete(timesheet),
+          ),
+        ),
+        const SizedBox(width: 1),
+      ],
+    );
   }
 
   @override
   Widget build(BuildContext context) {
-    return pivot.HoverBuilder(
-      builder: (BuildContext context, bool hover) {
-        return Row(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          textBaseline: TextBaseline.alphabetic,
-          children: [
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.only(right: 10),
-                child: Align(
-                  alignment: Alignment.centerLeft,
-                  child: Text(_TimesheetRow.of(context).name, maxLines: 1, softWrap: false),
-                ),
-              ),
-            ),
-            Opacity(
-              opacity: hover ? 1 : 0,
-              child: pivot.PushButton(
-                padding: const EdgeInsets.fromLTRB(4, 3, 0, 3),
-                icon: 'assets/pencil.png',
-                showTooltip: false,
-                isToolbar: true,
-                onPressed: _handleEdit,
-              ),
-            ),
-            Opacity(
-              opacity: hover ? 1 : 0,
-              child: pivot.PushButton(
-                padding: const EdgeInsets.fromLTRB(4, 3, 0, 3),
-                icon: 'assets/cross.png',
-                showTooltip: false,
-                isToolbar: true,
-                onPressed: _handleDelete,
-              ),
-            ),
-            const SizedBox(width: 1),
-          ],
-        );
-      },
+    return const pivot.HoverBuilder(
+      builder: _buildHeader,
     );
   }
 }
@@ -397,8 +412,8 @@ class _TimesheetFooter extends StatelessWidget {
     final Timesheet timesheet = _TimesheetRow.of(context);
     final StringBuffer summary = StringBuffer()
       ..writeAll(<String>[
-        '${NumberFormats.maybeDecimal.format(timesheet.totalHours)} hrs'
-            ' @${NumberFormats.currency.format(timesheet.program.rate)}/hr',
+        '${NumberFormats.maybeDecimal.format(timesheet.totalHours)} hrs',
+        ' @${NumberFormats.currency.format(timesheet.program.rate)}/hr',
         ' (${NumberFormats.currency.format(timesheet.total)})',
       ]);
 
@@ -415,7 +430,7 @@ class _DividerRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return pivot.TableRow(
-      height: pivot.FixedTablePaneRowHeight(9),
+      height: const pivot.FixedTablePaneRowHeight(9),
       children: const <Widget>[
         pivot.TableCell(
           columnSpan: 128,
@@ -445,55 +460,83 @@ class _DividerRow extends StatelessWidget {
   }
 }
 
-class _FooterRow extends StatelessWidget {
+class _FooterRow extends StatefulWidget {
   const _FooterRow({Key key}) : super(key: key);
 
   @override
+  _FooterRowState createState() => _FooterRowState();
+}
+
+double _sum(double a, double b) => a + b;
+
+class _FooterRowState extends State<_FooterRow> {
+  InvoiceListener _invoiceListener;
+  Widget _row;
+
+  void _handleTimesheetUpdated(int index, String key, dynamic previousValue) {
+    if (key == Keys.rate) {
+      setState(() => _row = null);
+    }
+  }
+
+  void _handleTimesheetHoursUpdated(int index, int dayIndex, double previousHours) {
+    setState(() => _row = null);
+  }
+
+  double _computeTotalHoursForDay(int index) {
+    return InvoiceBinding.instance.invoice.timesheets
+        .map<double>((Timesheet timesheet) => timesheet.hours[index])
+        .fold<double>(0, _sum);
+  }
+
+  Widget _toHours(int index) {
+    return _FooterHours(hours: _computeTotalHoursForDay(index));
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _invoiceListener = InvoiceListener(
+      onTimesheetUpdated: _handleTimesheetUpdated,
+      onTimesheetHoursUpdated: _handleTimesheetHoursUpdated,
+    );
+    InvoiceBinding.instance.addListener(_invoiceListener);
+  }
+
+  @override
+  void dispose() {
+    InvoiceBinding.instance.removeListener(_invoiceListener);
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return pivot.TableRow(
+    return _row ??= pivot.TableRow(
       children: [
-        Text('Daily Totals', maxLines: 1, style: TextStyle(fontStyle: FontStyle.italic)),
-        Padding(
-          padding: EdgeInsets.only(left: 2),
-          child: Text('6', style: TextStyle(fontStyle: FontStyle.italic)),
-        ),
-        Padding(
-          padding: EdgeInsets.only(left: 2),
-          child: Text('6', style: TextStyle(fontStyle: FontStyle.italic)),
-        ),
-        Padding(
-          padding: EdgeInsets.only(left: 2),
-          child: Text('6', style: TextStyle(fontStyle: FontStyle.italic)),
-        ),
-        Padding(
-          padding: EdgeInsets.only(left: 2),
-          child: Text('9.21', style: TextStyle(fontStyle: FontStyle.italic)),
-        ),
-        Padding(
-          padding: EdgeInsets.only(left: 2),
-          child: Text('11', style: TextStyle(fontStyle: FontStyle.italic)),
-        ),
-        Padding(
-          padding: EdgeInsets.only(left: 2),
-          child: Text('7', style: TextStyle(fontStyle: FontStyle.italic)),
-        ),
-        Padding(
-          padding: EdgeInsets.only(left: 2),
-          child: Text('6', style: TextStyle(fontStyle: FontStyle.italic)),
-        ),
-        Padding(
-          padding: EdgeInsets.only(left: 2),
-          child: Text('7', style: TextStyle(fontStyle: FontStyle.italic)),
-        ),
-        Text(''),
-        Text(''),
-        Text(''),
-        Text(''),
-        Text(''),
-        Text(''),
-        Container(),
-        Container(),
+        const Text('Daily Totals', maxLines: 1, style: TextStyle(fontStyle: FontStyle.italic)),
+        ...List<Widget>.generate(InvoiceBinding.instance.invoice.billingPeriod.length, _toHours),
+        const pivot.EmptyTableCell(),
+        const pivot.EmptyTableCell(),
       ],
+    );
+  }
+}
+
+class _FooterHours extends StatelessWidget {
+  const _FooterHours({Key key, this.hours}) : super(key: key);
+
+  final double hours;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: EdgeInsets.only(left: 2),
+      child: Text(
+        hours == 0 ? '' : NumberFormats.maybeDecimal.format(hours),
+        style: TextStyle(fontStyle: FontStyle.italic),
+        maxLines: 1,
+        softWrap: false,
+      ),
     );
   }
 }
