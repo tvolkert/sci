@@ -582,6 +582,9 @@ class DateRange with ForwardingIterable<DateTime> {
   /// The last date in the range (inclusive).
   DateTime get end => _range.last;
 
+  /// The date at the specified index.
+  DateTime operator[](int index) => _range[index];
+
   static List<DateTime> _generateRange(DateTime start, int durationInDays) {
     DateTime current = start;
     return List<DateTime>.generate(durationInDays, (int index) {
