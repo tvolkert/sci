@@ -86,7 +86,7 @@ class _TimesheetsViewState extends State<TimesheetsView> {
               view: Padding(
                 padding: const EdgeInsets.only(left: 20, right: 25),
                 child: pivot.TablePane(
-                  horizontalSize: MainAxisSize.min,
+                  horizontalIntrinsicSize: MainAxisSize.min,
                   horizontalSpacing: 1,
                   verticalSpacing: 1,
                   columns: const <pivot.TablePaneColumn>[
