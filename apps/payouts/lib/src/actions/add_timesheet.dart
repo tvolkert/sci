@@ -1,7 +1,12 @@
 import 'dart:async';
+import 'dart:convert';
+import 'dart:io' show HttpStatus;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
+import 'package:http/http.dart' as http;
+import 'package:payouts/src/model/constants.dart';
+import 'package:payouts/src/model/user.dart';
 
 import 'package:payouts/src/pivot.dart' as pivot;
 
@@ -43,10 +48,23 @@ class AddTimesheetSheet extends StatefulWidget {
 }
 
 class _AddTimesheetSheetState extends State<AddTimesheetSheet> {
+  List<Map<String, dynamic>> _assignments;
+
   @override
   void initState() {
     super.initState();
-    // TODO: Really fetch billing periods
+    final Uri url = Server.uri(Server.userAssignmentsUrl);
+    UserBinding.instance.user.authenticate().get(url).then((http.Response response) {
+      if (!mounted) {
+        return;
+      }
+      if (response.statusCode == HttpStatus.ok) {
+        setState(() {
+          final List<dynamic> data = json.decode(response.body);
+          _assignments = data.cast<Map<String, dynamic>>();
+        });
+      }
+    });
   }
 
   @override
@@ -57,6 +75,71 @@ class _AddTimesheetSheetState extends State<AddTimesheetSheet> {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
+          pivot.Border(
+            backgroundColor: const Color(0xffffffff),
+            borderColor: const Color(0xff999999),
+            child: Padding(
+              padding: EdgeInsets.all(8),
+              child: pivot.TablePane(
+                verticalSpacing: 6,
+                horizontalSpacing: 6,
+                columns: [
+                  pivot.TablePaneColumn(
+                    width: pivot.IntrinsicTablePaneColumnWidth(),
+                  ),
+                  pivot.TablePaneColumn(
+                    width: pivot.RelativeTablePaneColumnWidth(),
+                  ),
+                ],
+                children: [
+                  if (_assignments != null) pivot.TableRow(
+                    children: [
+                      Text('Program:'),
+                      DropdownButton(
+                        items: _assignments.map<DropdownMenuItem>((Map<String, dynamic> item) {
+                          return DropdownMenuItem(
+                            child: Text(item[Keys.name]),
+                          );
+                        }).toList(),
+                        onChanged: (dynamic value) {},
+                      ),
+                    ],
+                  ),
+                  pivot.TableRow(
+                    children: [
+                      Text('Charge Number:'),
+                      pivot.TextInput(
+                        backgroundColor: const Color(0xfff7f5ee),
+                      ),
+                    ],
+                  ),
+                  pivot.TableRow(
+                    children: [
+                      Text('Requestor (Client):'),
+                      pivot.TextInput(
+                        backgroundColor: const Color(0xfff7f5ee),
+                      ),
+                    ],
+                  ),
+                  pivot.TableRow(
+                    children: [
+                      Text('Task:'),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: pivot.TextInput(
+                              backgroundColor: const Color(0xfff7f5ee),
+                            ),
+                          ),
+                          Text('(optional)'),
+                        ],
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
           SizedBox(height: 8),
           Row(
             mainAxisAlignment: MainAxisAlignment.end,
@@ -65,7 +148,7 @@ class _AddTimesheetSheetState extends State<AddTimesheetSheet> {
                 label: 'OK',
                 onPressed: () => Navigator.of(context).pop(),
               ),
-              SizedBox(width: 4),
+              SizedBox(width: 6),
               pivot.CommandPushButton(
                 label: 'Cancel',
                 onPressed: () => Navigator.of(context).pop(),

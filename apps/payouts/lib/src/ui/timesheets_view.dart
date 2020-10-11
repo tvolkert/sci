@@ -4,6 +4,7 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import 'package:payouts/src/actions.dart';
 import 'package:payouts/src/model/constants.dart';
 import 'package:payouts/src/model/invoice.dart';
 import 'package:payouts/src/pivot.dart' as pivot;
@@ -38,7 +39,7 @@ class _TimesheetsViewState extends State<TimesheetsView> {
   }
 
   void _handleAddTimesheet() {
-    print('TODO: Add timesheet');
+    Actions.invoke(context, AddTimesheetIntent(context: context));
   }
 
   Invoice get invoice {
