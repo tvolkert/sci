@@ -652,6 +652,7 @@ class ScrollableTableView extends StatelessWidget {
     this.sortController,
     this.editorController,
     this.rowDisabledController,
+    this.platform,
     this.scrollController,
     this.roundColumnWidthsToWholePixel = false,
     this.includeHeader = true,
@@ -670,6 +671,7 @@ class ScrollableTableView extends StatelessWidget {
   final TableViewSortController sortController;
   final TableViewEditorController editorController;
   final TableViewRowDisablerController rowDisabledController;
+  final TargetPlatform platform;
   final ScrollController scrollController;
   final bool roundColumnWidthsToWholePixel;
   final bool includeHeader;
@@ -701,6 +703,7 @@ class ScrollableTableView extends StatelessWidget {
         sortController: sortController,
         editorController: editorController,
         rowDisabledController: rowDisabledController,
+        platform: platform,
       ),
     );
   }
