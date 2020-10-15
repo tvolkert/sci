@@ -98,7 +98,7 @@ class _AddTimesheetSheetState extends State<AddTimesheetSheet> {
                       pivot.ListButton(
                         length: _assignments.length,
                         builder: ({BuildContext context, int index}) {
-                          return Text(_assignments[index][Keys.name]);
+                          return Text(index >= 0 ? _assignments[index][Keys.name] : '');
                         },
                         itemBuilder: ({
                           BuildContext context,
@@ -111,7 +111,13 @@ class _AddTimesheetSheetState extends State<AddTimesheetSheet> {
                           if (isSelected) {
                             style = style.copyWith(color: const Color(0xffffffff));
                           }
-                          return Text(_assignments[index][Keys.name], style: style);
+                          return Padding(
+                            padding: EdgeInsets.symmetric(horizontal: 2),
+                            child: Align(
+                              alignment: Alignment.centerLeft,
+                              child: Text(_assignments[index][Keys.name], style: style),
+                            ),
+                          );
                         },
                       ),
                     ],
