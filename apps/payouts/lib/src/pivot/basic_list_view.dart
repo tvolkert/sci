@@ -17,7 +17,7 @@ void main() {
           view: BasicListView(
             length: 1000,
             itemHeight: 20,
-            itemRenderer: ({
+            itemBuilder: ({
               BuildContext context,
               int index,
             }) {
@@ -41,7 +41,7 @@ typedef ListViewLayoutCallback = void Function({
   ListItemHost visitChildrenToBuild,
 });
 
-typedef BasicListViewItemRenderer = Widget Function({
+typedef BasicListItemBuilder = Widget Function({
   BuildContext context,
   int index,
 });
@@ -51,7 +51,7 @@ class BasicListView extends RenderObjectWidget {
     Key key,
     @required this.length,
     @required this.itemHeight,
-    @required this.itemRenderer,
+    @required this.itemBuilder,
   })  : assert(length != null),
         assert(itemHeight != null),
         assert(length >= 0),
@@ -59,7 +59,7 @@ class BasicListView extends RenderObjectWidget {
 
   final int length;
   final double itemHeight;
-  final BasicListViewItemRenderer itemRenderer;
+  final BasicListItemBuilder itemBuilder;
 
   @override
   BasicListViewElement createElement() => BasicListViewElement(this);
@@ -70,6 +70,7 @@ class BasicListView extends RenderObjectWidget {
     return RenderBasicListView(
       itemHeight: itemHeight,
       length: length,
+      itemBuilder: itemBuilder,
     );
   }
 
@@ -78,7 +79,8 @@ class BasicListView extends RenderObjectWidget {
   void updateRenderObject(BuildContext context, covariant RenderBasicListView renderObject) {
     renderObject
       ..itemHeight = itemHeight
-      ..length = length;
+      ..length = length
+      ..itemBuilder = itemBuilder;
   }
 }
 
@@ -272,7 +274,7 @@ class BasicListViewElement extends RenderObjectElement {
 
   @protected
   Widget renderItem(int index) {
-    return widget.itemRenderer(
+    return widget.itemBuilder(
       context: this,
       index: index,
     );
@@ -433,9 +435,11 @@ class RenderBasicListView extends RenderSegment {
   RenderBasicListView({
     double itemHeight,
     int length,
+    BasicListItemBuilder itemBuilder,
   }) {
     this.itemHeight = itemHeight;
     this.length = length;
+    this.itemBuilder = itemBuilder;
   }
 
   double _itemHeight;
@@ -458,6 +462,15 @@ class RenderBasicListView extends RenderSegment {
     _length = value;
     // We rebuild because the cell at any given offset may not contain the same
     // contents as it did before the length changed.
+    markNeedsBuild();
+  }
+
+  BasicListItemBuilder _itemBuilder;
+  BasicListItemBuilder get itemBuilder => _itemBuilder;
+  set itemBuilder(BasicListItemBuilder value) {
+    assert(value != null);
+    if (_itemBuilder == value) return;
+    _itemBuilder = value;
     markNeedsBuild();
   }
 
@@ -610,6 +623,16 @@ class RenderBasicListView extends RenderSegment {
     assert(child.parentData is ListViewParentData);
     super.setupParentData(child);
   }
+
+  // @override
+  // double computeMinIntrinsicWidth(double height) {
+  //   double intrinsicWidth = 0;
+  //   for (int i = 0; i < length; i++) {
+  //     owner;
+  //     Widget built = itemBuilder(context: debugCreator, index: i);
+  //   }
+  //   return intrinsicWidth;
+  // }
 
   @override
   double computeMinIntrinsicHeight(double width) {

@@ -22,7 +22,7 @@ void main() {
           selectionController: ListViewSelectionController(),
           length: 1000,
           itemHeight: 20,
-          itemRenderer: ({
+          itemBuilder: ({
             BuildContext context,
             int index,
             bool isSelected,
@@ -37,7 +37,7 @@ void main() {
   );
 }
 
-typedef ListViewItemRenderer = Widget Function({
+typedef ListItemBuilder = Widget Function({
   BuildContext context,
   int index,
   bool isSelected,
@@ -214,7 +214,7 @@ class ScrollableListView extends StatelessWidget {
     Key key,
     @required this.itemHeight,
     @required this.length,
-    @required this.itemRenderer,
+    @required this.itemBuilder,
     this.selectionController,
     this.itemDisabledController,
     this.platform,
@@ -225,7 +225,7 @@ class ScrollableListView extends StatelessWidget {
 
   final double itemHeight;
   final int length;
-  final ListViewItemRenderer itemRenderer;
+  final ListItemBuilder itemBuilder;
   final ListViewSelectionController selectionController;
   final ListViewItemDisablerController itemDisabledController;
   final TargetPlatform platform;
@@ -240,7 +240,7 @@ class ScrollableListView extends StatelessWidget {
       view: ListView(
         itemHeight: itemHeight,
         length: length,
-        itemRenderer: itemRenderer,
+        itemBuilder: itemBuilder,
         selectionController: selectionController,
         itemDisabledController: itemDisabledController,
         platform: platform,
@@ -254,7 +254,7 @@ class ListView extends StatefulWidget {
     Key key,
     @required this.itemHeight,
     @required this.length,
-    @required this.itemRenderer,
+    @required this.itemBuilder,
     this.selectionController,
     this.itemDisabledController,
     this.platform,
@@ -262,7 +262,7 @@ class ListView extends StatefulWidget {
 
   final double itemHeight;
   final int length;
-  final ListViewItemRenderer itemRenderer;
+  final ListItemBuilder itemBuilder;
   final ListViewSelectionController selectionController;
   final ListViewItemDisablerController itemDisabledController;
   final TargetPlatform platform;
@@ -291,7 +291,7 @@ class _ListViewState extends State<ListView> {
     Widget result = RawListView(
       itemHeight: widget.itemHeight,
       length: widget.length,
-      itemRenderer: widget.itemRenderer,
+      itemBuilder: widget.itemBuilder,
       selectionController: widget.selectionController,
       itemDisabledController: widget.itemDisabledController,
       pointerEvents: _pointerEvents.stream,
@@ -317,7 +317,7 @@ class RawListView extends BasicListView {
     Key key,
     @required double itemHeight,
     @required int length,
-    @required ListViewItemRenderer itemRenderer,
+    @required ListItemBuilder itemBuilder,
     this.selectionController,
     this.itemDisabledController,
     @required this.pointerEvents,
@@ -327,7 +327,7 @@ class RawListView extends BasicListView {
           key: key,
           itemHeight: itemHeight,
           length: length,
-          itemRenderer: itemRenderer,
+          itemBuilder: itemBuilder,
         );
 
   final ListViewSelectionController selectionController;
@@ -336,7 +336,7 @@ class RawListView extends BasicListView {
   final TargetPlatform platform;
 
   @override
-  ListViewItemRenderer get itemRenderer => super.itemRenderer as ListViewItemRenderer;
+  ListItemBuilder get itemBuilder => super.itemBuilder as ListItemBuilder;
 
   @override
   BasicListViewElement createElement() => ListViewElement(this);
@@ -346,6 +346,7 @@ class RawListView extends BasicListView {
     return RenderListView(
       itemHeight: itemHeight,
       length: length,
+      itemBuilder: itemBuilder,
       selectionController: selectionController,
       itemDisabledController: itemDisabledController,
       pointerEvents: pointerEvents,
@@ -376,8 +377,8 @@ class ListViewElement extends BasicListViewElement {
   @override
   @protected
   Widget renderItem(int index) {
-    assert(widget.itemRenderer is ListViewItemRenderer);
-    return widget.itemRenderer(
+    assert(widget.itemBuilder is ListItemBuilder);
+    return widget.itemBuilder(
       context: this,
       index: index,
       isSelected: widget.selectionController?.isItemSelected(index) ?? false,
@@ -391,11 +392,12 @@ class RenderListView extends RenderBasicListView {
   RenderListView({
     double itemHeight,
     int length,
+    ListItemBuilder itemBuilder,
     ListViewSelectionController selectionController,
     ListViewItemDisablerController itemDisabledController,
     Stream<PointerEvent> pointerEvents,
     TargetPlatform platform,
-  }) : super(itemHeight: itemHeight, length: length) {
+  }) : super(itemHeight: itemHeight, length: length, itemBuilder: itemBuilder) {
     _itemDisablerListener = ListViewItemDisablerListener(
       onListViewItemDisabledFilterChanged: _handleItemDisabledFilterChanged,
     );
@@ -424,6 +426,7 @@ class RenderListView extends RenderBasicListView {
       }
       _selectionController.addListener(_handleSelectionChanged);
     }
+    highlightedItem = null;
     markNeedsBuild();
   }
 
@@ -493,7 +496,9 @@ class RenderListView extends RenderBasicListView {
   }
 
   void _onPointerExit(PointerExitEvent event) {
-    highlightedItem = null;
+    if (selectionController != null) {
+      highlightedItem = null;
+    }
   }
 
   void _onPointerScroll(PointerScrollEvent event) {
@@ -503,8 +508,10 @@ class RenderListView extends RenderBasicListView {
   }
 
   void _onPointerHover(PointerHoverEvent event) {
-    final int index = getItemAt(event.localPosition.dy);
-    highlightedItem = index != -1 && !_isItemDisabled(index) ? index : null;
+    if (selectionController != null) {
+      final int index = getItemAt(event.localPosition.dy);
+      highlightedItem = index != -1 && !_isItemDisabled(index) ? index : null;
+    }
   }
 
   int _selectIndex = -1;
