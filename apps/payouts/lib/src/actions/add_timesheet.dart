@@ -95,13 +95,24 @@ class _AddTimesheetSheetState extends State<AddTimesheetSheet> {
                   if (_assignments != null) pivot.TableRow(
                     children: [
                       Text('Program:'),
-                      DropdownButton(
-                        items: _assignments.map<DropdownMenuItem>((Map<String, dynamic> item) {
-                          return DropdownMenuItem(
-                            child: Text(item[Keys.name]),
-                          );
-                        }).toList(),
-                        onChanged: (dynamic value) {},
+                      pivot.ListButton(
+                        length: _assignments.length,
+                        builder: ({BuildContext context, int index}) {
+                          return Text(_assignments[index][Keys.name]);
+                        },
+                        itemBuilder: ({
+                          BuildContext context,
+                          int index,
+                          bool isSelected,
+                          bool isHighlighted,
+                          bool isDisabled,
+                        }) {
+                          TextStyle style = DefaultTextStyle.of(context).style;
+                          if (isSelected) {
+                            style = style.copyWith(color: const Color(0xffffffff));
+                          }
+                          return Text(_assignments[index][Keys.name], style: style);
+                        },
                       ),
                     ],
                   ),
