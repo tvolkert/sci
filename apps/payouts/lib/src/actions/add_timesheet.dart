@@ -80,78 +80,61 @@ class _AddTimesheetSheetState extends State<AddTimesheetSheet> {
             borderColor: const Color(0xff999999),
             child: Padding(
               padding: EdgeInsets.all(8),
-              child: pivot.TablePane(
-                verticalSpacing: 6,
-                horizontalSpacing: 6,
-                columns: [
-                  pivot.TablePaneColumn(
-                    width: pivot.IntrinsicTablePaneColumnWidth(),
-                  ),
-                  pivot.TablePaneColumn(
-                    width: pivot.RelativeTablePaneColumnWidth(),
-                  ),
-                ],
+              child: pivot.Form(
                 children: [
-                  if (_assignments != null) pivot.TableRow(
-                    children: [
-                      Text('Program:'),
-                      pivot.ListButton(
-                        length: _assignments.length,
-                        builder: ({BuildContext context, int index}) {
-                          return Text(index >= 0 ? _assignments[index][Keys.name] : '');
-                        },
-                        itemBuilder: ({
-                          BuildContext context,
-                          int index,
-                          bool isSelected,
-                          bool isHighlighted,
-                          bool isDisabled,
-                        }) {
-                          TextStyle style = DefaultTextStyle.of(context).style;
-                          if (isSelected) {
-                            style = style.copyWith(color: const Color(0xffffffff));
-                          }
-                          return Padding(
-                            padding: EdgeInsets.symmetric(horizontal: 2),
-                            child: Align(
-                              alignment: Alignment.centerLeft,
-                              child: Text(_assignments[index][Keys.name], style: style),
-                            ),
-                          );
-                        },
-                      ),
-                    ],
-                  ),
-                  pivot.TableRow(
-                    children: [
-                      Text('Charge Number:'),
-                      pivot.TextInput(
-                        backgroundColor: const Color(0xfff7f5ee),
-                      ),
-                    ],
-                  ),
-                  pivot.TableRow(
-                    children: [
-                      Text('Requestor (Client):'),
-                      pivot.TextInput(
-                        backgroundColor: const Color(0xfff7f5ee),
-                      ),
-                    ],
-                  ),
-                  pivot.TableRow(
-                    children: [
-                      Text('Task:'),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: pivot.TextInput(
-                              backgroundColor: const Color(0xfff7f5ee),
-                            ),
+                  if (_assignments != null) pivot.FormField(
+                    label: 'Program',
+                    child: pivot.ListButton(
+                      length: _assignments.length,
+                      builder: ({BuildContext context, int index}) {
+                        return Text(index >= 0 ? _assignments[index][Keys.name] : '');
+                      },
+                      itemBuilder: ({
+                        BuildContext context,
+                        int index,
+                        bool isSelected,
+                        bool isHighlighted,
+                        bool isDisabled,
+                      }) {
+                        TextStyle style = DefaultTextStyle.of(context).style;
+                        if (isSelected) {
+                          style = style.copyWith(color: const Color(0xffffffff));
+                        }
+                        return Padding(
+                          padding: EdgeInsets.symmetric(horizontal: 2),
+                          child: Align(
+                            alignment: Alignment.centerLeft,
+                            child: Text(_assignments[index][Keys.name], style: style),
                           ),
-                          Text('(optional)'),
-                        ],
-                      ),
-                    ],
+                        );
+                      },
+                    ),
+                  ),
+                  pivot.FormField(
+                    label: 'Charge Number',
+                    child: pivot.TextInput(
+                      backgroundColor: const Color(0xfff7f5ee),
+                    ),
+                  ),
+                  pivot.FormField(
+                    label: 'Requestor (Client)',
+                    child: pivot.TextInput(
+                      backgroundColor: const Color(0xfff7f5ee),
+                    ),
+                  ),
+                  pivot.FormField(
+                    label: 'Task',
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: pivot.TextInput(
+                            backgroundColor: const Color(0xfff7f5ee),
+                          ),
+                        ),
+                        SizedBox(width: 4),
+                        Text('(optional)'),
+                      ],
+                    ),
                   ),
                 ],
               ),
