@@ -84,30 +84,10 @@ class _AddTimesheetSheetState extends State<AddTimesheetSheet> {
                 children: [
                   if (_assignments != null) pivot.FormField(
                     label: 'Program',
-                    child: pivot.ListButton(
-                      length: _assignments.length,
-                      builder: ({BuildContext context, int index}) {
-                        return Text(index >= 0 ? _assignments[index][Keys.name] : '');
-                      },
-                      itemBuilder: ({
-                        BuildContext context,
-                        int index,
-                        bool isSelected,
-                        bool isHighlighted,
-                        bool isDisabled,
-                      }) {
-                        TextStyle style = DefaultTextStyle.of(context).style;
-                        if (isSelected) {
-                          style = style.copyWith(color: const Color(0xffffffff));
-                        }
-                        return Padding(
-                          padding: EdgeInsets.symmetric(horizontal: 2),
-                          child: Align(
-                            alignment: Alignment.centerLeft,
-                            child: Text(_assignments[index][Keys.name], style: style),
-                          ),
-                        );
-                      },
+                    child: pivot.ListButton<Map<String, dynamic>>(
+                      items: _assignments,
+                      builder: pivot.ListButton.mapBuilderFor<String, dynamic>(Keys.name),
+                      itemBuilder: pivot.ListButton.mapItemBuilderFor<String, dynamic>(Keys.name),
                     ),
                   ),
                   pivot.FormField(
