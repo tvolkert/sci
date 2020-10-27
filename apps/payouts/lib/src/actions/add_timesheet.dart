@@ -1,12 +1,8 @@
 import 'dart:async';
-import 'dart:convert';
-import 'dart:io' show HttpStatus;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
-import 'package:http/http.dart' as http;
-import 'package:payouts/src/model/constants.dart';
-import 'package:payouts/src/model/user.dart';
+import 'package:payouts/src/model/invoice.dart';
 
 import 'package:payouts/src/pivot.dart' as pivot;
 
@@ -48,23 +44,35 @@ class AddTimesheetSheet extends StatefulWidget {
 }
 
 class _AddTimesheetSheetState extends State<AddTimesheetSheet> {
-  List<Map<String, dynamic>> _assignments;
+  List<Program> _assignments;
+
+  Widget _buildProgram({BuildContext context, Program item}) {
+    return pivot.ListButton.defaultBuilder(
+      context: context,
+      item: item == null ? '' : item.name,
+    );
+  }
+
+  Widget _buildProgramItem({
+    BuildContext context,
+    Program item,
+    bool isSelected,
+    bool isHighlighted,
+    bool isDisabled,
+  }) {
+    return pivot.ListButton.defaultItemBuilder(
+      context: context,
+      item: item.name,
+      isSelected: isSelected,
+      isHighlighted: isHighlighted,
+      isDisabled: isDisabled,
+    );
+  }
 
   @override
   void initState() {
     super.initState();
-    final Uri url = Server.uri(Server.userAssignmentsUrl);
-    UserBinding.instance.user.authenticate().get(url).then((http.Response response) {
-      if (!mounted) {
-        return;
-      }
-      if (response.statusCode == HttpStatus.ok) {
-        setState(() {
-          final List<dynamic> data = json.decode(response.body);
-          _assignments = data.cast<Map<String, dynamic>>();
-        });
-      }
-    });
+    _assignments = AssignmentsBinding.instance.assignments;
   }
 
   @override
@@ -82,12 +90,13 @@ class _AddTimesheetSheetState extends State<AddTimesheetSheet> {
               padding: EdgeInsets.all(8),
               child: pivot.Form(
                 children: [
-                  if (_assignments != null) pivot.FormField(
+                  pivot.FormField(
                     label: 'Program',
-                    child: pivot.ListButton<Map<String, dynamic>>(
+                    child: pivot.ListButton<Program>(
+                      width: pivot.ExpandedListButtonWidth(),
                       items: _assignments,
-                      builder: pivot.ListButton.mapBuilderFor<String, dynamic>(Keys.name),
-                      itemBuilder: pivot.ListButton.mapItemBuilderFor<String, dynamic>(Keys.name),
+                      builder: _buildProgram,
+                      itemBuilder: _buildProgramItem,
                     ),
                   ),
                   pivot.FormField(
