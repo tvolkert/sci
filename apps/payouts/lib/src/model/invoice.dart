@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:payouts/src/pivot.dart';
 
+import 'binding.dart';
 import 'collections.dart';
 import 'constants.dart';
 import 'debug.dart';
@@ -13,11 +14,16 @@ import 'http.dart';
 import 'pair.dart';
 import 'user.dart';
 
-class InvoiceBinding with ListenerNotifier<InvoiceListener>, InvoiceListenerNotifier {
-  InvoiceBinding._();
+mixin InvoiceBinding on AppBindingBase, ListenerNotifier<InvoiceListener>, InvoiceListenerNotifier {
+  @override
+  void initInstances() {
+    super.initInstances();
+    _instance = this;
+  }
 
-  /// The singleton binding instance.
-  static final InvoiceBinding instance = InvoiceBinding._();
+  /// The singleton instance of this object.
+  static InvoiceBinding _instance;
+  static InvoiceBinding get instance => _instance;
 
   /// The currently open invoice, or null if no invoice is opened.
   Invoice _invoice;
@@ -90,6 +96,39 @@ class InvoiceBinding with ListenerNotifier<InvoiceListener>, InvoiceListenerNoti
     onInvoiceChanged(previousInvoice);
     if (previousInvoice != null) {
       previousInvoice._dispose();
+    }
+  }
+}
+
+mixin AssignmentsBinding on AppBindingBase, UserBinding {
+  @override
+  void initInstances() {
+    super.initInstances();
+    _instance = this;
+    addPostLoginCallback(_loadAssignments);
+  }
+
+  /// The singleton instance of this object.
+  static AssignmentsBinding _instance;
+  static AssignmentsBinding get instance => _instance;
+
+  List<Program> _assignments;
+  List<Program> get assignments => _assignments;
+
+  Future<void> _loadAssignments() async {
+    final Uri url = Server.uri(Server.userAssignmentsUrl);
+    final http.Response response =
+        await UserBinding.instance.user.authenticate().get(url).timeout(httpTimeout);
+    if (response.statusCode == HttpStatus.ok) {
+      final List<dynamic> rawData = json.decode(response.body);
+      _assignments = rawData
+          .cast<Map<String, dynamic>>()
+          .map<Program>((Map<String, dynamic> data) => Program._(data))
+          .toList(growable: false);
+    } else if (response.statusCode == HttpStatus.forbidden) {
+      throw const InvalidCredentials();
+    } else {
+      throw HttpStatusException(response.statusCode);
     }
   }
 }
@@ -583,7 +622,7 @@ class DateRange with ForwardingIterable<DateTime> {
   DateTime get end => _range.last;
 
   /// The date at the specified index.
-  DateTime operator[](int index) => _range[index];
+  DateTime operator [](int index) => _range[index];
 
   static List<DateTime> _generateRange(DateTime start, int durationInDays) {
     DateTime current = start;

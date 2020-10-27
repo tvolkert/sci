@@ -67,7 +67,7 @@ class LoginSheet extends StatefulWidget {
 enum _LoginPhase {
   idle,
   authenticating,
-  loadingInvoice,
+  initializing,
   changingPassword,
 }
 
@@ -112,7 +112,7 @@ class _LoginSheetState extends State<LoginSheet> {
   _LoginPhase _phase = _LoginPhase.idle;
   _LoginPhase get phase => _phase;
   set phase(_LoginPhase value) {
-    if (value != _phase) {
+    if (value != _phase && mounted) {
       setState(() {
         _phase = value;
       });
@@ -129,12 +129,15 @@ class _LoginSheetState extends State<LoginSheet> {
     }
   }
 
-  Future<void> _handlePostLogin(User user) async {
-    final int invoiceId = user.lastInvoiceId;
+  Future<void> _initialize() async {
+    phase = _LoginPhase.initializing;
+    final int invoiceId = UserBinding.instance.user.lastInvoiceId;
     if (invoiceId != null) {
-      phase = _LoginPhase.loadingInvoice;
       await InvoiceBinding.instance.loadInvoice(invoiceId);
     }
+  }
+
+  void _close() {
     Navigator.of(context).pop<void>();
   }
 
@@ -143,8 +146,8 @@ class _LoginSheetState extends State<LoginSheet> {
     try {
       final User user = await UserBinding.instance.login(username, password);
       passwordNeedsReset = user.passwordRequiresReset;
-      if (!user.passwordRequiresReset) {
-        return await _handlePostLogin(user);
+      if (user.isPostLogin) {
+        _close();
       }
     } on InvalidCredentials {
       errorText = _loginSpecificHttpStatusErrorMessages[HttpStatus.forbidden];
@@ -160,15 +163,17 @@ class _LoginSheetState extends State<LoginSheet> {
   Future<void> _handleAttemptChangePassword(String password) async {
     assert(UserBinding.instance.user != null);
     phase = _LoginPhase.changingPassword;
-    final User user = await UserBinding.instance.updatePassword(password);
-    await _handlePostLogin(user);
+    final User user = await UserBinding.instance.user.updatePassword(password);
+    if (user.isPostLogin) {
+      _close();
+    }
   }
 
   static String _statusTextFor(_LoginPhase phase) {
     switch (phase) {
       case _LoginPhase.authenticating:
         return 'Logging In...';
-      case _LoginPhase.loadingInvoice:
+      case _LoginPhase.initializing:
         return 'Initializing...';
       case _LoginPhase.changingPassword:
         return 'Setting new password...';
@@ -181,6 +186,13 @@ class _LoginSheetState extends State<LoginSheet> {
   void initState() {
     super.initState();
     _passwordNeedsReset = UserBinding.instance.user?.passwordRequiresReset ?? false;
+    UserBinding.instance.addPostLoginCallback(_initialize);
+  }
+
+  @override
+  void dispose() {
+    UserBinding.instance.removePostLoginCallback(_initialize);
+    super.dispose();
   }
 
   @override

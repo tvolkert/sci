@@ -2,26 +2,64 @@ import 'dart:convert';
 import 'dart:io' show HttpStatus;
 import 'dart:ui';
 
+import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 
+import 'binding.dart';
 import 'constants.dart';
 import 'http.dart';
 
-class UserBinding {
-  UserBinding._();
+mixin UserBinding on AppBindingBase {
+  @override
+  void initInstances() {
+    super.initInstances();
+    _instance = this;
+  }
 
-  /// The singleton binding instance.
-  static final UserBinding instance = UserBinding._();
+  /// The singleton instance of this object.
+  static UserBinding _instance;
+  static UserBinding get instance => _instance;
 
   /// The currently logged-in user, or null if no user is logged in.
   User _user;
   User get user => _user;
+
+  List<AsyncCallback> _postLoginCallbacks = <AsyncCallback>[];
+
+  /// Registers the specified async callback to be run after the user logs in.
+  ///
+  /// Post-login callbacks are run either after a user logs in (via [login])
+  /// when the user's password is valid (doesn't require reset), or after the
+  /// user resets their password (via [updatePassword]). In both of these
+  /// cases, the future returned by the method will not complete until all
+  /// futures returned by the post-login callbacks have completed.
+  ///
+  /// Registered callbacks may rely on the [user] property being non-null.
+  void addPostLoginCallback(AsyncCallback callback) {
+    _postLoginCallbacks.add(callback);
+  }
+
+  /// Removes a previously-registered post-login callback.
+  ///
+  /// If the callback cannot be found in the list of registered callbacks, this
+  /// is a no-op.
+  void removePostLoginCallback(AsyncCallback callback) {
+    _postLoginCallbacks.remove(callback);
+  }
 
   static Map<String, String> _authHeaders(String username, String password) {
     String token = base64.encode(latin1.encode('$username:$password'));
     return <String, String>{
       'Authorization': 'Basic ${token.trim()}',
     };
+  }
+
+  Future<void> _runPostLoginCallbacks() async {
+    List<Future<void>> postLoginFutures = <Future<void>>[];
+    for (AsyncCallback callback in _postLoginCallbacks) {
+      postLoginFutures.add(callback());
+    }
+    await Future.wait(postLoginFutures);
   }
 
   /// Logs the user in from the given username and password.
@@ -33,6 +71,10 @@ class UserBinding {
   ///
   /// If the username and password aren't correct, then a [InvalidCredentials]
   /// error will be thrown.
+  ///
+  /// If upon a successful login, the user's [User.isPostLogin] property is
+  /// true, then post-login callbacks will be run as well, and the returned
+  /// future will complete only once all corresponding futures have completed.
   ///
   /// If the HTTP request to authenticate the user takes longer than [timeout],
   /// then a [TimeoutException] error will be thrown.
@@ -53,6 +95,9 @@ class UserBinding {
       int lastInvoiceId = loginData[Keys.lastInvoiceId];
       bool passwordRequiresReset = loginData[Keys.passwordRequiresReset];
       _user = User._(username, password, lastInvoiceId, passwordRequiresReset);
+      if (_user.isPostLogin) {
+        await _runPostLoginCallbacks();
+      }
       return _user;
     } else if (response.statusCode == HttpStatus.forbidden) {
       throw const InvalidCredentials();
@@ -60,23 +105,6 @@ class UserBinding {
       throw HttpStatusException(response.statusCode, response.body);
     }
     // TODO: handle no route to host, unknown host, socket exception, conection exception
-  }
-
-  /// Updates the password of the currently logged-in user.
-  ///
-  /// Returns a new User with the updated password. The new user will also be
-  /// set as the value of this binding's [user].
-  Future<User> updatePassword(String password, {Duration timeout = httpTimeout}) async {
-    assert(user != null);
-    final Uri url = Server.uri(Server.passwordUrl);
-    final http.Response response =
-        await user.authenticate().put(url, body: password).timeout(timeout);
-    if (response.statusCode == HttpStatus.ok) {
-      _user = _user._withNewPassword(password);
-      return _user;
-    } else {
-      throw HttpStatusException(response.statusCode, response.body);
-    }
   }
 
   /// Logs the current user out.
@@ -115,12 +143,36 @@ class User {
 
   Map<String, String> get _authHeaders => UserBinding._authHeaders(username, _password);
 
+  bool get isPostLogin => !passwordRequiresReset;
+
   http.BaseClient authenticate([http.BaseClient client]) {
     return _AuthenticatedClient._(client ?? HttpBinding.instance.client, this);
   }
 
-  User _withNewPassword(String password) {
-    return User._(username, password, lastInvoiceId, false);
+  /// Updates the user's password.
+  ///
+  /// Returns a new User with the updated password. The new user will also be
+  /// set as the value of [UserBinding.user].
+  ///
+  /// If [isPostLogin] was false before calling this method, and the new user's
+  /// [isPostLogin] property is true, then this will also run all post-login
+  /// callbacks that have been registered via [UserBinding.addPostLoginCallback],
+  /// and the future returned by this method will only complete after all
+  /// corresponding futures have completed.
+  Future<User> updatePassword(String password, {Duration timeout = httpTimeout}) async {
+    final bool wasPostLogin = isPostLogin;
+    final Uri url = Server.uri(Server.passwordUrl);
+    final http.Response response = await authenticate().put(url, body: password).timeout(timeout);
+    if (response.statusCode == HttpStatus.ok) {
+      User newUser = User._(username, password, lastInvoiceId, false);
+      UserBinding.instance._user = newUser;
+      if (!wasPostLogin && newUser.isPostLogin) {
+        await UserBinding.instance._runPostLoginCallbacks();
+      }
+      return newUser;
+    } else {
+      throw HttpStatusException(response.statusCode, response.body);
+    }
   }
 
   @override

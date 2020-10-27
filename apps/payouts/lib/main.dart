@@ -4,6 +4,7 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 
 import 'package:payouts/src/actions.dart';
+import 'package:payouts/src/model/payouts.dart';
 import 'package:payouts/src/pivot.dart' as pivot;
 import 'package:payouts/src/ui/asset_image_precache.dart';
 import 'package:payouts/src/ui/home.dart';
@@ -14,6 +15,7 @@ import 'package:payouts/ui/common/task_monitor.dart';
 const LogicalKeyboardKey _meta = LogicalKeyboardKey.meta;
 
 void main() {
+  PayoutsBinding.ensureInitialized();
   FlutterError.onError = (FlutterErrorDetails details, {bool forceReport = false}) {
     FlutterError.dumpErrorToConsole(details, forceReport: true);
   };

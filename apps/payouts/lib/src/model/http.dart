@@ -4,19 +4,31 @@ import 'dart:io' show HttpHeaders, HttpStatus;
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 
+import 'binding.dart';
 import 'constants.dart';
 import 'debug.dart';
 
-abstract class HttpBinding {
-  const HttpBinding._();
-
-  static HttpBinding _instance;
-  static HttpBinding get instance {
-    _instance ??= debugUseFakeHttpLayer ? FakeHttpBinding() : RealHttpBinding();
-    return _instance;
+mixin HttpBinding on AppBindingBase {
+  @override
+  void initInstances() {
+    super.initInstances();
+    _instance = this;
   }
 
-  http.BaseClient get client;
+  /// The singleton instance of this object.
+  static HttpBinding _instance;
+  static HttpBinding get instance => _instance;
+
+  http.BaseClient _client;
+  http.BaseClient get client {
+    assert(() {
+      if (debugUseFakeHttpLayer) {
+        _client ??= _FakeHttpClient();
+      }
+      return true;
+    }());
+    return _client ??= http.Client();
+  }
 }
 
 @immutable
@@ -38,14 +50,6 @@ class HttpStatusException implements Exception {
       ]);
     return buf.toString();
   }
-}
-
-@visibleForTesting
-class FakeHttpBinding extends HttpBinding {
-  FakeHttpBinding() : super._();
-
-  @override
-  final http.BaseClient client = _FakeHttpClient();
 }
 
 class _FakeHttpClient extends http.BaseClient {
@@ -86,14 +90,6 @@ class _FakeHttpClient extends http.BaseClient {
       contentLength: encodedBody.length,
     );
   }
-}
-
-@visibleForTesting
-class RealHttpBinding extends HttpBinding {
-  RealHttpBinding() : super._();
-
-  @override
-  final http.BaseClient client = http.Client();
 }
 
 // last invoice id: 516
