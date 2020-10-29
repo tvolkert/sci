@@ -24,8 +24,10 @@ class AddTimesheetAction extends ContextAction<AddTimesheetIntent> {
       throw StateError('No context in which to invoke $runtimeType');
     }
 
-    await AddTimesheetSheet.open(context: context);
-    print('TODO: add timesheet');
+    final _TimesheetMetadata metadata = await AddTimesheetSheet.open(context: context);
+    if (metadata != null) {
+      print('TODO: add timesheet');
+    }
   }
 }
 
@@ -35,8 +37,8 @@ class AddTimesheetSheet extends StatefulWidget {
   @override
   _AddTimesheetSheetState createState() => _AddTimesheetSheetState();
 
-  static Future<void> open({BuildContext context}) {
-    return pivot.Sheet.open<void>(
+  static Future<_TimesheetMetadata> open({BuildContext context}) {
+    return pivot.Sheet.open<_TimesheetMetadata>(
       context: context,
       content: AddTimesheetSheet(),
     );
@@ -45,6 +47,15 @@ class AddTimesheetSheet extends StatefulWidget {
 
 class _AddTimesheetSheetState extends State<AddTimesheetSheet> {
   List<Program> _assignments;
+  bool _requiresChargeNumber = false;
+  bool _requiresRequestor = false;
+  pivot.Flag _programFlag;
+  pivot.Flag _chargeNumberFlag;
+  pivot.Flag _requestorFlag;
+  pivot.ListViewSelectionController _programSelectionController;
+  TextEditingController _chargeNumberController;
+  TextEditingController _requestorController;
+  TextEditingController _taskController;
 
   Widget _buildProgram({BuildContext context, Program item}) {
     return pivot.ListButton.defaultBuilder(
@@ -69,10 +80,100 @@ class _AddTimesheetSheetState extends State<AddTimesheetSheet> {
     );
   }
 
+  Program get _selectedProgram {
+    return _programSelectionController.selectedIndex >= 0
+        ? _assignments[_programSelectionController.selectedIndex]
+        : null;
+  }
+
+  void _handleProgramSelected() {
+    final Program selectedProgram = _selectedProgram;
+    setState(() {
+      _requiresChargeNumber = selectedProgram.requiresChargeNumber;
+      _requiresRequestor = selectedProgram.requiresRequestor;
+    });
+  }
+
+  void _handleOk() {
+    bool isInputValid = true;
+
+    final Program selectedProgram = _selectedProgram;
+    final String chargeNumber = _chargeNumberController.text.trim();
+    final String requestor = _requestorController.text.trim();
+    final String task = _taskController.text.trim();
+
+    if (selectedProgram == null) {
+      isInputValid = false;
+      setState(() {
+        _programFlag = pivot.Flag(
+          messageType: pivot.MessageType.warning,
+          message: 'TODO',
+        );
+      });
+    } else {
+      setState(() {
+        _programFlag = null;
+      });
+    }
+
+    if (_requiresChargeNumber && chargeNumber.isEmpty) {
+      isInputValid = false;
+      setState(() {
+        _chargeNumberFlag = pivot.Flag(
+          messageType: pivot.MessageType.warning,
+          message: 'TODO',
+        );
+      });
+    } else {
+      setState(() {
+        _chargeNumberFlag = null;
+      });
+    }
+
+    if (_requiresRequestor && requestor.isEmpty) {
+      isInputValid = false;
+      setState(() {
+        _requestorFlag = pivot.Flag(
+          messageType: pivot.MessageType.warning,
+          message: 'TODO',
+        );
+      });
+    } else {
+      setState(() {
+        _requestorFlag = null;
+      });
+    }
+
+    if (isInputValid) {
+      final _TimesheetMetadata metadata = _TimesheetMetadata(
+        program: selectedProgram,
+        chargeNumber: chargeNumber,
+        requestor: requestor,
+        task: task,
+      );
+      Navigator.of(context).pop<_TimesheetMetadata>(metadata);
+    }
+  }
+
   @override
   void initState() {
     super.initState();
     _assignments = AssignmentsBinding.instance.assignments;
+    _programSelectionController = pivot.ListViewSelectionController();
+    _programSelectionController.addListener(_handleProgramSelected);
+    _chargeNumberController = TextEditingController();
+    _requestorController = TextEditingController();
+    _taskController = TextEditingController();
+  }
+
+  @override
+  void dispose() {
+    _programSelectionController.removeListener(_handleProgramSelected);
+    _programSelectionController.dispose();
+    _chargeNumberController.dispose();
+    _requestorController.dispose();
+    _taskController.dispose();
+    super.dispose();
   }
 
   @override
@@ -92,25 +193,33 @@ class _AddTimesheetSheetState extends State<AddTimesheetSheet> {
                 children: [
                   pivot.FormField(
                     label: 'Program',
+                    flag: _programFlag,
                     child: pivot.ListButton<Program>(
                       width: pivot.ExpandedListButtonWidth(),
                       items: _assignments,
+                      selectionController: _programSelectionController,
                       builder: _buildProgram,
                       itemBuilder: _buildProgramItem,
                     ),
                   ),
-                  pivot.FormField(
-                    label: 'Charge Number',
-                    child: pivot.TextInput(
-                      backgroundColor: const Color(0xfff7f5ee),
+                  if (_requiresChargeNumber)
+                    pivot.FormField(
+                      label: 'Charge Number',
+                      flag: _chargeNumberFlag,
+                      child: pivot.TextInput(
+                        backgroundColor: const Color(0xfff7f5ee),
+                        controller: _chargeNumberController,
+                      ),
                     ),
-                  ),
-                  pivot.FormField(
-                    label: 'Requestor (Client)',
-                    child: pivot.TextInput(
-                      backgroundColor: const Color(0xfff7f5ee),
+                  if (_requiresRequestor)
+                    pivot.FormField(
+                      label: 'Requestor (Client)',
+                      flag: _requestorFlag,
+                      child: pivot.TextInput(
+                        backgroundColor: const Color(0xfff7f5ee),
+                        controller: _requestorController,
+                      ),
                     ),
-                  ),
                   pivot.FormField(
                     label: 'Task',
                     child: Row(
@@ -118,6 +227,7 @@ class _AddTimesheetSheetState extends State<AddTimesheetSheet> {
                         Expanded(
                           child: pivot.TextInput(
                             backgroundColor: const Color(0xfff7f5ee),
+                            controller: _taskController,
                           ),
                         ),
                         SizedBox(width: 4),
@@ -135,7 +245,7 @@ class _AddTimesheetSheetState extends State<AddTimesheetSheet> {
             children: [
               pivot.CommandPushButton(
                 label: 'OK',
-                onPressed: () => Navigator.of(context).pop(),
+                onPressed: _handleOk,
               ),
               SizedBox(width: 6),
               pivot.CommandPushButton(
@@ -148,4 +258,19 @@ class _AddTimesheetSheetState extends State<AddTimesheetSheet> {
       ),
     );
   }
+}
+
+@immutable
+class _TimesheetMetadata {
+  const _TimesheetMetadata({
+    @required this.program,
+    @required this.chargeNumber,
+    @required this.requestor,
+    @required this.task,
+  });
+
+  final Program program;
+  final String chargeNumber;
+  final String requestor;
+  final String task;
 }
