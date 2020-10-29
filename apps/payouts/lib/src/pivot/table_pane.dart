@@ -482,6 +482,7 @@ mixin ChildListRenderObjectMixin<ChildType extends RenderBox,
   }
 
   @protected
+  @mustCallSuper
   void markNeedsChildren() {
     _children = null;
   }
@@ -550,6 +551,13 @@ class RenderTableRow extends RenderBox
     if (child.parentData is! TableCellParentData) {
       child.parentData = TableCellParentData();
     }
+  }
+
+  @override
+  @protected
+  void markNeedsChildren() {
+    super.markNeedsChildren();
+    parent.markNeedsMetrics();
   }
 
   @override
@@ -1362,6 +1370,13 @@ class RenderTablePane extends RenderBox
     if (child.parentData is! TableRowParentData) {
       child.parentData = TableRowParentData();
     }
+  }
+
+  @override
+  @protected
+  void markNeedsChildren() {
+    super.markNeedsChildren();
+    markNeedsMetrics();
   }
 
   @protected
