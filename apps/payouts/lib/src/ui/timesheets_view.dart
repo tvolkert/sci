@@ -231,6 +231,16 @@ class _HoursInputState extends State<_HoursInput> {
   }
 
   @override
+  void didUpdateWidget(covariant _HoursInput oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.hours != oldWidget.hours || widget.hoursIndex != oldWidget.hoursIndex) {
+      final double newValue = widget.hours[widget.hoursIndex];
+      final String text = newValue == 0 ? '' : NumberFormats.maybeDecimal.format(newValue);
+      _controller.text = text;
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     return pivot.TextInput(
       controller: _controller,
@@ -306,6 +316,12 @@ class _TimesheetRowState extends State<_TimesheetRow> {
   }
 
   @override
+  void dispose() {
+    InvoiceBinding.instance.removeListener(_invoiceListener);
+    super.dispose();
+  }
+
+  @override
   void reassemble() {
     super.reassemble();
     setState(() {
@@ -314,9 +330,14 @@ class _TimesheetRowState extends State<_TimesheetRow> {
   }
 
   @override
-  void dispose() {
-    InvoiceBinding.instance.removeListener(_invoiceListener);
-    super.dispose();
+  void didUpdateWidget(covariant _TimesheetRow oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.timesheet != oldWidget.timesheet) {
+      setState(() {
+        _tableRow = null;
+        _updateCount++;
+      });
+    }
   }
 
   @override
