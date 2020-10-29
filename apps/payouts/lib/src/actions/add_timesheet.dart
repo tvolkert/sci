@@ -26,7 +26,12 @@ class AddTimesheetAction extends ContextAction<AddTimesheetIntent> {
 
     final _TimesheetMetadata metadata = await AddTimesheetSheet.open(context: context);
     if (metadata != null) {
-      print('TODO: add timesheet');
+      InvoiceBinding.instance.invoice.timesheets.add(
+        program: metadata.program,
+        chargeNumber: metadata.chargeNumber,
+        requestor: metadata.requestor,
+        task: metadata.task,
+      );
     }
   }
 }
