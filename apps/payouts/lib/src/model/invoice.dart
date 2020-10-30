@@ -660,32 +660,35 @@ class Program {
   bool get requiresRequestor => _data[Keys.requiresRequestor];
 
   int get assignmentId => _data[Keys.assignmentId];
+
+  Map<String, dynamic> serialize() => _data;
 }
 
 /// Class that represents the list of timesheets in an invoice.
 ///
 /// Mutations on this class will notify registered [InvoiceListener] listeners.
 class Timesheets with ForwardingIterable<Timesheet>, DisallowCollectionConversion<Timesheet> {
-  const Timesheets._(this._owner, this._data);
+  const Timesheets._(this._owner, this._data, this._view);
 
   factory Timesheets._fromRawData(Invoice owner, Map<String, dynamic> invoiceData) {
     final List<dynamic> rawTimesheets = invoiceData[Keys.timesheets];
-    final List<Timesheet> timesheets = rawTimesheets
-        .cast<Map<String, dynamic>>()
+    final List<Map<String, dynamic>> timesheets = rawTimesheets.cast<Map<String, dynamic>>();
+    final List<Timesheet> view = timesheets
         .map<Timesheet>((Map<String, dynamic> data) => Timesheet._(owner, data))
         .toList();
-    return Timesheets._(owner, timesheets);
+    return Timesheets._(owner, timesheets, view);
   }
 
   final Invoice _owner;
-  final List<Timesheet> _data;
+  final List<Map<String, dynamic>> _data;
+  final List<Timesheet> _view;
 
   @override
   @protected
-  Iterable<Timesheet> get delegate => _data;
+  Iterable<Timesheet> get delegate => _view;
 
   /// Gets the timesheet at the specified index.
-  Timesheet operator [](int index) => _owner._checkDisposed(() => _data[index]);
+  Timesheet operator [](int index) => _owner._checkDisposed(() => _view[index]);
 
   /// Computes the total dollar amount for this expense report.
   @protected
@@ -710,7 +713,8 @@ class Timesheets with ForwardingIterable<Timesheet>, DisallowCollectionConversio
       requestor: requestor,
       taskDescription: task,
     );
-    _data.insert(insertIndex, timesheet);
+    _view.insert(insertIndex, timesheet);
+    _data.insert(insertIndex, timesheet.serialize());
     _owner._owner.onTimesheetInserted(insertIndex);
     _owner._setIsDirty(true);
     return timesheet;
@@ -722,7 +726,8 @@ class Timesheets with ForwardingIterable<Timesheet>, DisallowCollectionConversio
   /// be notified.
   Timesheet removeAt(int index) {
     _owner._checkDisposed();
-    final Timesheet removed = _data.removeAt(index);
+    final Timesheet removed = _view.removeAt(index);
+    _data.removeAt(index);
     _owner._owner.onTimesheetsRemoved(index, <Timesheet>[removed]);
     _owner._setIsDirty(true);
     return removed;
@@ -735,7 +740,7 @@ class Timesheets with ForwardingIterable<Timesheet>, DisallowCollectionConversio
   void removeWhere(bool Function(Timesheet timesheet) test) {
     _owner._checkDisposed();
     for (int i = length - 1; i >= 0; i--) {
-      if (test(_data[i])) {
+      if (test(_view[i])) {
         removeAt(i);
       }
     }
@@ -769,7 +774,7 @@ class Timesheet {
   final Map<String, dynamic> _data;
 
   /// The index of this timesheet in the invoice's list of timesheets.
-  int get _index => _owner.timesheets._data.indexOf(this);
+  int get _index => _owner.timesheets._view.indexOf(this);
 
   /// The total billed value of this timesheet.
   double get total => totalHours * program.rate;
@@ -869,7 +874,7 @@ class Timesheet {
     String taskDescription,
   }) {
     _owner._checkDisposed();
-    final int timesheetsIndex = _owner.timesheets._data.indexOf(this);
+    final int timesheetsIndex = _owner.timesheets._view.indexOf(this);
     if (chargeNumber != null) {
       String previousValue = _data[Keys.chargeNumber];
       if (chargeNumber != previousValue) {
@@ -895,6 +900,8 @@ class Timesheet {
       }
     }
   }
+
+  Map<String, dynamic> serialize() => _data;
 }
 
 /// Class representing the list of hours values within a timesheet.
@@ -905,22 +912,20 @@ class Hours with ForwardingIterable<double>, DisallowCollectionConversion<double
   const Hours._(this._owner, this._parent, this._data);
 
   factory Hours._fromRawData(Invoice owner, Timesheet parent, Map<String, dynamic> timesheetData) {
-    final List<dynamic> rawHours = timesheetData[Keys.hours];
-    final List<double> hours =
-        rawHours.cast<num>().map<double>((num value) => value.toDouble()).toList();
-    return Hours._(owner, parent, hours);
+    final List<dynamic> hours = timesheetData[Keys.hours];
+    return Hours._(owner, parent, hours.cast<num>());
   }
 
   final Invoice _owner;
   final Timesheet _parent;
-  final List<double> _data;
+  final List<num> _data;
 
   @override
   @protected
-  Iterable<double> get delegate => _data;
+  Iterable<double> get delegate => _data.map<double>((num value) => value.toDouble());
 
   /// Gets the hours value at the specified index.
-  double operator [](int index) => _owner._checkDisposed(() => _data[index]);
+  double operator [](int index) => _owner._checkDisposed(() => _data[index].toDouble());
 
   /// Sets the hours value at the specified index.
   ///
