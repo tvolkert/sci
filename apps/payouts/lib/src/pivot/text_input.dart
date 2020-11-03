@@ -1,11 +1,9 @@
-// @dart=2.9
-
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 
 class TextInput extends StatelessWidget {
   const TextInput({
-    Key key,
+    Key? key,
     this.controller,
     this.onKeyEvent,
     this.backgroundColor = const Color(0xffffffff),
@@ -13,8 +11,8 @@ class TextInput extends StatelessWidget {
     this.autofocus = false,
   }) : super(key: key);
 
-  final TextEditingController controller;
-  final ValueChanged<RawKeyEvent> onKeyEvent;
+  final TextEditingController? controller;
+  final ValueChanged<RawKeyEvent>? onKeyEvent;
   final Color backgroundColor;
   final bool obscureText;
   final bool autofocus;
@@ -29,14 +27,14 @@ class TextInput extends StatelessWidget {
 
     if (autofocus) {
       result = _Autofocus(
-        textField: result,
+        textField: result as _TextField,
       );
     }
 
     if (onKeyEvent != null) {
       result = _RawKeyboardEventRepeater(
         child: result,
-        onKeyEvent: onKeyEvent,
+        onKeyEvent: onKeyEvent!,
       );
     }
 
@@ -46,8 +44,8 @@ class TextInput extends StatelessWidget {
 
 class _Autofocus extends StatefulWidget {
   const _Autofocus({
-    Key key,
-    this.textField,
+    Key? key,
+    required this.textField,
   }) : super(key: key);
 
   final _TextField textField;
@@ -57,13 +55,13 @@ class _Autofocus extends StatefulWidget {
 }
 
 class _AutofocusState extends State<_Autofocus> {
-  FocusNode _focusNode;
+  late FocusNode _focusNode;
 
   @override
   void initState() {
     super.initState();
     _focusNode = FocusNode();
-    SchedulerBinding.instance.addPostFrameCallback((Duration timeStamp) {
+    SchedulerBinding.instance!.addPostFrameCallback((Duration timeStamp) {
       _focusNode.requestFocus();
     });
   }
@@ -84,9 +82,9 @@ class _AutofocusState extends State<_Autofocus> {
 
 class _RawKeyboardEventRepeater extends StatefulWidget {
   const _RawKeyboardEventRepeater({
-    Key key,
-    this.onKeyEvent,
-    this.child,
+    Key? key,
+    required this.onKeyEvent,
+    required this.child,
   }) : super(key: key);
 
   final ValueChanged<RawKeyEvent> onKeyEvent;
@@ -97,7 +95,7 @@ class _RawKeyboardEventRepeater extends StatefulWidget {
 }
 
 class _RawKeyboardEventRepeaterState extends State<_RawKeyboardEventRepeater> {
-  FocusNode _focusNode;
+  late FocusNode _focusNode;
 
   @override
   void initState() {
@@ -123,21 +121,23 @@ class _RawKeyboardEventRepeaterState extends State<_RawKeyboardEventRepeater> {
 
 class _TextField extends StatelessWidget {
   const _TextField({
-    Key key,
+    Key? key,
     this.focusNode,
     this.controller,
     this.backgroundColor = const Color(0xffffffff),
     this.obscureText = false,
   }) : super(key: key);
 
-  final FocusNode focusNode;
-  final TextEditingController controller;
+  final FocusNode? focusNode;
+  final TextEditingController? controller;
   final Color backgroundColor;
   final bool obscureText;
 
-  _TextField copyWith({FocusNode focusNode}) {
+  _TextField copyWith({
+    required FocusNode focusNode,
+  }) {
     return _TextField(
-      focusNode: focusNode ?? this.focusNode,
+      focusNode: focusNode,
       controller: controller,
       backgroundColor: backgroundColor,
       obscureText: obscureText,

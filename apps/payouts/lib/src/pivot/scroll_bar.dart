@@ -1,5 +1,3 @@
-// @dart=2.9
-
 import 'dart:async';
 import 'dart:math' as math;
 import 'dart:ui' as ui;
@@ -15,7 +13,7 @@ import 'listener_list.dart';
 
 class ScrollBar extends LeafRenderObjectWidget {
   const ScrollBar({
-    Key key,
+    Key? key,
     this.orientation = Axis.vertical,
     this.unitIncrement = 1,
     this.blockIncrement = 1,
@@ -50,30 +48,20 @@ class ScrollBarConstraints extends BoxConstraints {
     double minHeight = 0,
     double maxHeight = double.infinity,
     this.enabled = true,
-    @required this.start,
-    @required this.end,
-    @required this.value,
-    @required this.extent,
-  })  : assert(enabled != null),
-        assert(start != null),
-        assert(end != null),
-        assert(value != null),
-        assert(extent != null),
-        super(minWidth: minWidth, maxWidth: maxWidth, minHeight: minHeight, maxHeight: maxHeight);
+    required this.start,
+    required this.end,
+    required this.value,
+    required this.extent,
+  })  : super(minWidth: minWidth, maxWidth: maxWidth, minHeight: minHeight, maxHeight: maxHeight);
 
   ScrollBarConstraints.fromBoxConstraints({
-    @required BoxConstraints boxConstraints,
+    required BoxConstraints boxConstraints,
     this.enabled = true,
-    @required this.start,
-    @required this.end,
-    @required this.value,
-    @required this.extent,
-  })  : assert(enabled != null),
-        assert(start != null),
-        assert(end != null),
-        assert(value != null),
-        assert(extent != null),
-        super(
+    required this.start,
+    required this.end,
+    required this.value,
+    required this.extent,
+  })  : super(
           minWidth: boxConstraints.minWidth,
           maxWidth: boxConstraints.maxWidth,
           minHeight: boxConstraints.minHeight,
@@ -145,15 +133,7 @@ class RenderScrollBar extends RenderBox
     double end = 100,
     double extent = 1,
     double value = 0,
-  })  : assert(orientation != null),
-        assert(unitIncrement != null),
-        assert(blockIncrement != null),
-        assert(start != null),
-        assert(end != null),
-        assert(extent != null),
-        assert(value != null),
-        assert(enabled != null),
-        _orientation = orientation,
+  })  : _orientation = orientation,
         _unitIncrement = unitIncrement,
         _blockIncrement = blockIncrement,
         _enabled = enabled,
@@ -185,19 +165,16 @@ class RenderScrollBar extends RenderBox
     automaticScroller = _AutomaticScroller(scrollBar: this);
   }
 
-  /// These properties are effectively final but are initialized in the body
-  /// of the constructor and so can't be marked final.
-  _RenderScrollBarButton _upButton;
-  _RenderScrollBarButton _downButton;
-  _RenderScrollBarHandle _handle;
-  _AutomaticScroller automaticScroller;
+  late final _RenderScrollBarButton _upButton;
+  late final _RenderScrollBarButton _downButton;
+  late final _RenderScrollBarHandle _handle;
+  late final _AutomaticScroller automaticScroller;
 
   static const double _minimumHandleLength = 31;
 
   Axis _orientation;
   Axis get orientation => _orientation;
   set orientation(Axis value) {
-    assert(value != null);
     if (_orientation == value) return;
     _orientation = value;
     markNeedsLayout();
@@ -242,7 +219,6 @@ class RenderScrollBar extends RenderBox
   ///
   /// Returns true if the value was updated, or false if the value didn't change.
   bool _updateValue(double value) {
-    assert(value != null);
     if (_value == value) return false;
     double previousValue = _value;
     _value = value;
@@ -255,7 +231,6 @@ class RenderScrollBar extends RenderBox
   double _unitIncrement;
   double get unitIncrement => _unitIncrement;
   set unitIncrement(double value) {
-    assert(value != null);
     if (_unitIncrement == value) return;
     _unitIncrement = value;
   }
@@ -263,7 +238,6 @@ class RenderScrollBar extends RenderBox
   double _blockIncrement;
   double get blockIncrement => _blockIncrement;
   set blockIncrement(double value) {
-    assert(value != null);
     if (_blockIncrement == value) return;
     _blockIncrement = value;
   }
@@ -290,13 +264,13 @@ class RenderScrollBar extends RenderBox
     return numLegalPixelValues / numLegalRealValues;
   }
 
-  _ScrollBarParentData parentDataFor(RenderBox child) => child.parentData;
+  _ScrollBarParentData parentDataFor(RenderBox child) => child.parentData as _ScrollBarParentData;
 
   @override
   ScrollBarConstraints get constraints => super.constraints as ScrollBarConstraints;
 
   @override
-  void insert(RenderBox child, {RenderBox after}) {
+  void insert(RenderBox child, {RenderBox? after}) {
     throw UnsupportedError('Unsupported operation');
   }
 
@@ -304,7 +278,7 @@ class RenderScrollBar extends RenderBox
   void add(RenderBox child) => throw UnsupportedError('Unsupported operation');
 
   @override
-  void addAll(List<RenderBox> children) => throw UnsupportedError('Unsupported operation');
+  void addAll(List<RenderBox>? children) => throw UnsupportedError('Unsupported operation');
 
   @override
   void remove(RenderBox child) => throw UnsupportedError('Unsupported operation');
@@ -313,7 +287,7 @@ class RenderScrollBar extends RenderBox
   void removeAll() => throw UnsupportedError('Unsupported operation');
 
   @override
-  void move(RenderBox child, {RenderBox after}) => throw UnsupportedError('Unsupported operation');
+  void move(RenderBox child, {RenderBox? after}) => throw UnsupportedError('Unsupported operation');
 
   void _onPointerDown(PointerDownEvent event) {
     if (event.buttons & kPrimaryMouseButton != 0 && parentDataFor(_handle).visible) {
@@ -546,10 +520,10 @@ class RenderScrollBar extends RenderBox
         break;
     }
 
-    RenderBox child = firstChild;
+    RenderBox? child = firstChild;
     while (child != null) {
-      final _ScrollBarParentData childParentData = child.parentData;
-      if (childParentData.visible ?? false) {
+      final _ScrollBarParentData childParentData = child.parentData as _ScrollBarParentData;
+      if (childParentData.visible) {
         context.paintChild(child, childParentData.offset + offset);
       }
       child = childParentData.nextSibling;
@@ -557,7 +531,7 @@ class RenderScrollBar extends RenderBox
   }
 
   @override
-  bool hitTest(BoxHitTestResult result, {ui.Offset position}) {
+  bool hitTest(BoxHitTestResult result, {required ui.Offset position}) {
     assert(() {
       if (!hasSize) {
         if (debugNeedsLayout) {
@@ -600,7 +574,7 @@ class RenderScrollBar extends RenderBox
   }
 
   @override
-  bool hitTestChildren(BoxHitTestResult result, {Offset position}) {
+  bool hitTestChildren(BoxHitTestResult result, {required Offset position}) {
     return defaultHitTestChildren(result, position: position);
   }
 
@@ -623,7 +597,7 @@ class RenderScrollBar extends RenderBox
 
 class _ScrollBarParentData extends ContainerBoxParentData<RenderBox> {
   /// Whether the child should be painted.
-  bool visible;
+  bool visible = false;
 
   @override
   String toString() => '${super.toString()}; visible=$visible';
@@ -636,8 +610,8 @@ typedef ScrollBarValueChangedHandler = void Function(
 
 class ScrollBarValueListener {
   const ScrollBarValueListener({
-    @required this.valueChanged,
-  }) : assert(valueChanged != null);
+    required this.valueChanged,
+  });
 
   /// Called when a scroll bar's value has changed.
   final ScrollBarValueChangedHandler valueChanged;
@@ -664,9 +638,8 @@ class _RenderScrollBarButton extends RenderBox
   bool _enabled = true;
   bool get enabled => _enabled;
   set enabled(bool value) {
-    assert(value != null);
     if (_enabled == value) return;
-    parent?.automaticScroller?.stop();
+    parent.automaticScroller.stop();
     _enabled = value;
     if (_enabled) {
       child.cursor = SystemMouseCursors.click;
@@ -679,7 +652,6 @@ class _RenderScrollBarButton extends RenderBox
   bool _highlighted = false;
   bool get highlighted => _highlighted;
   set highlighted(bool value) {
-    assert(value != null);
     if (_highlighted == value) return;
     _highlighted = value;
     markNeedsPaint();
@@ -688,7 +660,6 @@ class _RenderScrollBarButton extends RenderBox
   bool _pressed = false;
   bool get pressed => _pressed;
   set pressed(bool value) {
-    assert(value != null);
     if (_pressed == value) return;
     _pressed = value;
     markNeedsPaint();
@@ -722,10 +693,10 @@ class _RenderScrollBarButton extends RenderBox
   }
 
   @override
-  RenderScrollBar get parent => super.parent;
+  RenderScrollBar get parent => super.parent as RenderScrollBar;
 
   @override
-  RenderMouseRegion get child => super.child;
+  RenderMouseRegion get child => super.child as RenderMouseRegion;
 
   @override
   void handleEvent(PointerEvent event, BoxHitTestEntry entry) {
@@ -738,7 +709,7 @@ class _RenderScrollBarButton extends RenderBox
   }
 
   @override
-  bool hitTestChildren(BoxHitTestResult result, {ui.Offset position}) {
+  bool hitTestChildren(BoxHitTestResult result, {required ui.Offset position}) {
     return defaultHitTestChild(result, position: position);
   }
 
@@ -754,7 +725,7 @@ class _RenderScrollBarButton extends RenderBox
   @override
   void performLayout() {
     size = constraints.constrain(Size.square(_length));
-    if (child != null) child.layout(BoxConstraints.tight(size));
+    child.layout(BoxConstraints.tight(size));
   }
 
   @override
@@ -774,13 +745,13 @@ class _RenderScrollBarButton extends RenderBox
       context.canvas.restore();
     }
 
-    if (child != null) context.paintChild(child, offset);
+    context.paintChild(child, offset);
   }
 }
 
 class _RenderScrollBarHandle extends RenderBox
     with RenderObjectWithChildMixin<RenderBox>, RenderBoxWithChildDefaultsMixin {
-  _RenderScrollBarHandle({@required this.orientation}) : assert(orientation != null) {
+  _RenderScrollBarHandle({required this.orientation}) {
     child = RenderMouseRegion(
       onEnter: _onEnter,
       onExit: _onExit,
@@ -792,7 +763,6 @@ class _RenderScrollBarHandle extends RenderBox
   bool _highlighted = false;
   bool get highlighted => _highlighted;
   set highlighted(bool value) {
-    assert(value != null);
     if (_highlighted == value) return;
     _highlighted = value;
     markNeedsPaint();
@@ -806,7 +776,7 @@ class _RenderScrollBarHandle extends RenderBox
     highlighted = false;
   }
 
-  double _dragOffset;
+  double? _dragOffset;
 
   void _onPointerDown(PointerDownEvent event) {
     if (event.buttons & kPrimaryMouseButton != 0) {
@@ -826,9 +796,9 @@ class _RenderScrollBarHandle extends RenderBox
       // Calculate the new scroll bar value
       double pixelValue;
       if (orientation == Axis.horizontal) {
-        pixelValue = event.position.dx - _dragOffset;
+        pixelValue = event.position.dx - _dragOffset!;
       } else {
-        pixelValue = event.position.dy - _dragOffset;
+        pixelValue = event.position.dy - _dragOffset!;
       }
 
       double scrollBarValue = (pixelValue / parent._pixelValueRatio);
@@ -838,10 +808,10 @@ class _RenderScrollBarHandle extends RenderBox
   }
 
   @override
-  RenderScrollBar get parent => super.parent;
+  RenderScrollBar get parent => super.parent as RenderScrollBar;
 
   @override
-  BoxParentData get parentData => super.parentData;
+  BoxParentData get parentData => super.parentData as BoxParentData;
 
   @override
   void handleEvent(PointerEvent event, BoxHitTestEntry entry) {
@@ -853,7 +823,7 @@ class _RenderScrollBarHandle extends RenderBox
   }
 
   @override
-  bool hitTestChildren(BoxHitTestResult result, {ui.Offset position}) {
+  bool hitTestChildren(BoxHitTestResult result, {required ui.Offset position}) {
     return defaultHitTestChild(result, position: position);
   }
 
@@ -863,7 +833,7 @@ class _RenderScrollBarHandle extends RenderBox
   @override
   void performLayout() {
     size = constraints.smallest;
-    if (child != null) child.layout(BoxConstraints.tight(size));
+    child!.layout(BoxConstraints.tight(size));
   }
 
   @override
@@ -880,22 +850,22 @@ class _RenderScrollBarHandle extends RenderBox
       context.canvas.restore();
     }
 
-    if (child != null) context.paintChild(child, offset);
+    context.paintChild(child!, offset);
   }
 }
 
 mixin RenderBoxWithChildDefaultsMixin on RenderObjectWithChildMixin<RenderBox> {
-  bool defaultHitTestChild(BoxHitTestResult result, {Offset position}) {
+  bool defaultHitTestChild(BoxHitTestResult result, {required ui.Offset position}) {
     if (child == null) {
       return false;
     }
-    final BoxParentData childParentData = child.parentData;
+    final BoxParentData childParentData = child!.parentData as BoxParentData;
     return result.addWithPaintOffset(
       offset: childParentData.offset,
       position: position,
       hitTest: (BoxHitTestResult result, Offset transformed) {
         assert(transformed == position - childParentData.offset);
-        return child.hitTest(result, position: transformed);
+        return child!.hitTest(result, position: transformed);
       },
     );
   }
@@ -908,16 +878,12 @@ enum _ScrollType {
 
 class _ScrollButtonPainter extends CustomPainter {
   const _ScrollButtonPainter({
-    @required this.enabled,
-    @required this.pressed,
-    @required this.highlighted,
-    @required this.orientation,
-    @required this.arrow,
-  })  : assert(enabled != null),
-        assert(pressed != null),
-        assert(highlighted != null),
-        assert(orientation != null),
-        assert(arrow != null);
+    required this.enabled,
+    required this.pressed,
+    required this.highlighted,
+    required this.orientation,
+    required this.arrow,
+  });
 
   final bool enabled;
   final bool pressed;
@@ -992,11 +958,9 @@ abstract class _ArrowImage {
   const _ArrowImage._(this.orientation);
 
   factory _ArrowImage({
-    @required Axis orientation,
-    @required int direction,
+    required Axis orientation,
+    required int direction,
   }) {
-    assert(orientation != null);
-    assert(direction != null);
     if (direction > 0) {
       return _UpArrowImage(orientation);
     } else {
@@ -1069,10 +1033,9 @@ class _DownArrowImage extends _ArrowImage {
 
 class _HandlePainter extends CustomPainter {
   const _HandlePainter({
-    @required this.highlighted,
-    @required this.orientation,
-  })  : assert(highlighted != null),
-        assert(orientation != null);
+    required this.highlighted,
+    required this.orientation,
+  });
 
   final bool highlighted;
   final Axis orientation;
@@ -1151,15 +1114,15 @@ class _HandlePainter extends CustomPainter {
 
 class _AutomaticScroller {
   _AutomaticScroller({
-    @required this.scrollBar,
-  }) : assert(scrollBar != null);
+    required this.scrollBar,
+  });
 
   final RenderScrollBar scrollBar;
 
-  int direction;
-  _ScrollType incrementType;
-  double stopValue;
-  Timer scheduledScrollTimer;
+  late int direction;
+  late _ScrollType incrementType;
+  late double stopValue;
+  Timer? scheduledScrollTimer;
 
   static const Duration _delay = Duration(milliseconds: 400);
   static const Duration _interval = Duration(milliseconds: 30);
@@ -1205,7 +1168,7 @@ class _AutomaticScroller {
   /// Stops any automatic scrolling in progress.
   void stop() {
     if (scheduledScrollTimer != null) {
-      scheduledScrollTimer.cancel();
+      scheduledScrollTimer!.cancel();
       scheduledScrollTimer = null;
     }
   }

@@ -1,5 +1,3 @@
-// @dart=2.9
-
 import 'dart:math' as math;
 
 import 'package:flutter/rendering.dart';
@@ -11,12 +9,11 @@ const int _spokes = 12;
 
 class ActivityIndicator extends StatefulWidget {
   const ActivityIndicator({
-    Key key,
+    Key? key,
     this.color = const Color(0xff000000),
     this.animating = true,
     this.semanticLabel = 'Loading',
-  })  : assert(color != null),
-        super(key: key);
+  })  : super(key: key);
 
   final Color color;
   final bool animating;
@@ -28,7 +25,7 @@ class ActivityIndicator extends StatefulWidget {
 
 class _ActivityIndicatorState extends State<ActivityIndicator>
     with SingleTickerProviderStateMixin<ActivityIndicator> {
-  AnimationController _controller;
+  late AnimationController _controller;
 
   @override
   void initState() {
@@ -77,10 +74,9 @@ class _ActivityIndicatorState extends State<ActivityIndicator>
 
 class ActivityIndicatorPainter extends CustomPainter {
   ActivityIndicatorPainter({
-    this.baseColor,
-    this.animation,
-  })  : assert(baseColor != null),
-        colors = _splitColor(baseColor),
+    required this.baseColor,
+    required this.animation,
+  })  : colors = _splitColor(baseColor),
         super(repaint: animation);
 
   final Color baseColor;
@@ -133,9 +129,9 @@ class ActivityIndicatorPainter extends CustomPainter {
 
 class _StepTween extends Tween<double> {
   _StepTween({
-    double begin,
-    double end,
-    this.step,
+    required double begin,
+    required double end,
+    required this.step,
   }) : super(begin: begin, end: end);
 
   final double step;

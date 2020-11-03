@@ -1,13 +1,11 @@
-// @dart=2.9
-
 import 'package:flutter/rendering.dart';
 import 'package:flutter/widgets.dart';
 
 class Checkbox extends StatelessWidget {
   const Checkbox({
-    Key key,
-    this.spacing,
-    this.child,
+    Key? key,
+    this.spacing = 6,
+    required this.child,
   }) : super(key: key);
 
   final double spacing;

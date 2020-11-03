@@ -1,5 +1,3 @@
-// @dart=2.9
-
 export 'pivot/activity_indicator.dart';
 export 'pivot/basic_list_view.dart';
 export 'pivot/basic_table_view.dart';
@@ -21,5 +19,5 @@ export 'pivot/sheet.dart';
 export 'pivot/sorting.dart';
 export 'pivot/tab_pane.dart';
 export 'pivot/table_pane.dart' hide main;
-export 'pivot/table_view.dart' hide main;
+export 'pivot/table_view.dart';
 export 'pivot/text_input.dart';
