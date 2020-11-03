@@ -1,3 +1,5 @@
+// @dart=2.9
+
 import 'package:payouts/src/pivot.dart';
 
 import 'binding.dart';

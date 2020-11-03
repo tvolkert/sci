@@ -1,3 +1,5 @@
+// @dart=2.9
+
 import 'package:flutter/widgets.dart';
 
 /// Signature for a function that receives [NavigatorObserver] notifications.

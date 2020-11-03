@@ -2,20 +2,16 @@ import 'dart:ui' as ui;
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/painting.dart';
-import 'package:meta/meta.dart';
 
 class LinearGradientDecoration extends Decoration {
   const LinearGradientDecoration({
     this.axis = Axis.vertical,
-    @required this.from,
-    @required this.to,
-    @required this.fromColor,
-    @required this.toColor,
+    required this.from,
+    required this.to,
+    required this.fromColor,
+    required this.toColor,
     this.backgroundBlendMode,
-  })  : assert(from != null),
-        assert(to != null),
-        assert(fromColor != null),
-        assert(toColor != null);
+  });
 
   final Axis axis;
   final Offset from;
@@ -27,31 +23,31 @@ class LinearGradientDecoration extends Decoration {
   ///
   /// If no [backgroundBlendMode] is provided, then the default painting blend
   /// mode is used.
-  final BlendMode backgroundBlendMode;
+  final BlendMode? backgroundBlendMode;
 
   /// Returns a new box decoration that is scaled by the given factor.
   LinearGradientDecoration scale(double factor) {
     return LinearGradientDecoration(
       from: from,
       to: to,
-      fromColor: Color.lerp(null, fromColor, factor),
-      toColor: Color.lerp(null, toColor, factor),
+      fromColor: Color.lerp(null, fromColor, factor)!,
+      toColor: Color.lerp(null, toColor, factor)!,
       backgroundBlendMode: backgroundBlendMode,
     );
   }
 
   @override
-  LinearGradientDecoration lerpFrom(Decoration a, double t) {
+  LinearGradientDecoration? lerpFrom(Decoration? a, double t) {
     if (a == null) return scale(t);
     if (a is LinearGradientDecoration) return LinearGradientDecoration.lerp(a, this, t);
-    return super.lerpFrom(a, t) as LinearGradientDecoration;
+    return super.lerpFrom(a, t) as LinearGradientDecoration?;
   }
 
   @override
-  LinearGradientDecoration lerpTo(Decoration b, double t) {
+  LinearGradientDecoration? lerpTo(Decoration? b, double t) {
     if (b == null) return scale(1.0 - t);
     if (b is LinearGradientDecoration) return LinearGradientDecoration.lerp(this, b, t);
-    return super.lerpTo(b, t) as LinearGradientDecoration;
+    return super.lerpTo(b, t) as LinearGradientDecoration?;
   }
 
   /// Linearly interpolate between two box decorations.
@@ -77,18 +73,14 @@ class LinearGradientDecoration extends Decoration {
   ///  * [lerpFrom] and [lerpTo], which are used to implement [Decoration.lerp]
   ///    and which use [BoxDecoration.lerp] when interpolating two
   ///    [BoxDecoration]s or a [BoxDecoration] to or from null.
-  static LinearGradientDecoration lerp(LinearGradientDecoration a, LinearGradientDecoration b, double t) {
-    assert(t != null);
-    if (a == null && b == null) return null;
-    if (a == null) return b.scale(t);
-    if (b == null) return a.scale(1.0 - t);
+  static LinearGradientDecoration? lerp(LinearGradientDecoration a, LinearGradientDecoration b, double t) {
     if (t == 0.0) return a;
     if (t == 1.0) return b;
     return LinearGradientDecoration(
-      from: Offset.lerp(a.from, b.from, t),
-      to: Offset.lerp(a.to, b.to, t),
-      fromColor: Color.lerp(a.fromColor, b.fromColor, t),
-      toColor: Color.lerp(a.toColor, b.toColor, t),
+      from: Offset.lerp(a.from, b.from, t)!,
+      to: Offset.lerp(a.to, b.to, t)!,
+      fromColor: Color.lerp(a.fromColor, b.fromColor, t)!,
+      toColor: Color.lerp(a.toColor, b.toColor, t)!,
     );
   }
 
@@ -122,27 +114,24 @@ class LinearGradientDecoration extends Decoration {
   }
 
   @override
-  _LinearGradientPainter createBoxPainter([VoidCallback onChanged]) {
+  _LinearGradientPainter createBoxPainter([VoidCallback? onChanged]) {
     throw _LinearGradientPainter(this, onChanged);
   }
 }
 
 /// An object that paints a [LinearGradientDecoration] into a canvas.
 class _LinearGradientPainter extends BoxPainter {
-  _LinearGradientPainter(this._decoration, VoidCallback onChanged)
-      : assert(_decoration != null),
-        super(onChanged);
+  _LinearGradientPainter(this._decoration, VoidCallback? onChanged)
+      : super(onChanged);
 
   final LinearGradientDecoration _decoration;
 
-  Paint _cachedBackgroundPaint;
-  Rect _rectForCachedBackgroundPaint;
-  Paint _getBackgroundPaint(Rect rect, TextDirection textDirection) {
-    assert(rect != null);
-
+  Paint? _cachedBackgroundPaint;
+  Rect? _rectForCachedBackgroundPaint;
+  Paint _getBackgroundPaint(Rect rect) {
     if (_cachedBackgroundPaint == null || _rectForCachedBackgroundPaint != rect) {
       final Paint paint = Paint();
-      if (_decoration.backgroundBlendMode != null) paint.blendMode = _decoration.backgroundBlendMode;
+      if (_decoration.backgroundBlendMode != null) paint.blendMode = _decoration.backgroundBlendMode!;
       paint.shader = ui.Gradient.linear(
         _decoration.from,
         _decoration.to,
@@ -152,21 +141,19 @@ class _LinearGradientPainter extends BoxPainter {
       _cachedBackgroundPaint = paint;
     }
 
-    return _cachedBackgroundPaint;
+    return _cachedBackgroundPaint!;
   }
 
-  void _paintBackgroundColor(Canvas canvas, Rect rect, TextDirection textDirection) {
-    canvas.drawRect(rect, _getBackgroundPaint(rect, textDirection));
+  void _paintBackgroundColor(Canvas canvas, Rect rect) {
+    canvas.drawRect(rect, _getBackgroundPaint(rect));
   }
 
   /// Paint the box decoration into the given location on the given canvas
   @override
   void paint(Canvas canvas, Offset offset, ImageConfiguration configuration) {
-    assert(configuration != null);
     assert(configuration.size != null);
-    final Rect rect = offset & configuration.size;
-    final TextDirection textDirection = configuration.textDirection;
-    _paintBackgroundColor(canvas, rect, textDirection);
+    final Rect rect = offset & configuration.size!;
+    _paintBackgroundColor(canvas, rect);
   }
 
   @override
