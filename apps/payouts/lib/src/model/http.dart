@@ -1,5 +1,3 @@
-// @dart=2.9
-
 import 'dart:convert';
 import 'dart:io' show HttpHeaders, HttpStatus;
 
@@ -18,10 +16,10 @@ mixin HttpBinding on AppBindingBase {
   }
 
   /// The singleton instance of this object.
-  static HttpBinding _instance;
-  static HttpBinding get instance => _instance;
+  static HttpBinding? _instance;
+  static HttpBinding? get instance => _instance;
 
-  http.BaseClient _client;
+  http.BaseClient? _client;
   http.BaseClient get client {
     assert(() {
       if (debugUseFakeHttpLayer) {
@@ -29,7 +27,7 @@ mixin HttpBinding on AppBindingBase {
       }
       return true;
     }());
-    return _client ??= http.Client();
+    return _client ??= http.Client() as http.BaseClient;
   }
 }
 
@@ -39,8 +37,8 @@ class HttpStatusException implements Exception {
       : statusMessage = httpStatusCodes[statusCode];
 
   final int statusCode;
-  final String statusMessage;
-  final String message;
+  final String? statusMessage;
+  final String? message;
 
   @override
   String toString() {
@@ -65,7 +63,7 @@ class _FakeHttpClient extends http.BaseClient {
     if (!_urlToFakeContent.containsKey(request.method)) {
       return _notFound();
     }
-    final dynamic content = _urlToFakeContent[request.method][request.url.path];
+    final dynamic content = _urlToFakeContent[request.method]![request.url.path];
     if (content == null) {
       return _notFound();
     }
@@ -73,9 +71,7 @@ class _FakeHttpClient extends http.BaseClient {
     Map<String, String> responseHeaders = const <String, String>{};
     int statusCode = debugHttpStatusCode;
     if (content is _FakeResponse) {
-      if (content.statusCode != null) {
-        statusCode = content.statusCode;
-      }
+      statusCode = content.statusCode;
       body = content.body;
       responseHeaders = content.headers;
     } else {
@@ -83,7 +79,7 @@ class _FakeHttpClient extends http.BaseClient {
     }
     final List<int> encodedBody = utf8.encode(body);
     if (debugHttpLatency != null) {
-      await Future<void>.delayed(debugHttpLatency);
+      await Future<void>.delayed(debugHttpLatency!);
     }
     return http.StreamedResponse(
       Stream<List<int>>.value(encodedBody),
@@ -123,7 +119,7 @@ const Map<String, Map<String, dynamic>> _urlToFakeContent = <String, Map<String,
 @immutable
 class _FakeResponse {
   const _FakeResponse({
-    this.statusCode,
+    required this.statusCode,
     this.body = '',
     this.headers = const <String, String>{},
   });

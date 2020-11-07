@@ -1,5 +1,3 @@
-// @dart=2.9
-
 import 'dart:developer' as developer;
 
 import 'package:flutter/foundation.dart';

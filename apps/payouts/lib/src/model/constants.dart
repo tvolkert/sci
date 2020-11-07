@@ -1,5 +1,3 @@
-// @dart=2.9
-
 import 'dart:io' show HttpStatus;
 
 import 'package:intl/intl.dart' as intl;
@@ -105,7 +103,7 @@ class Server {
   static const String invoicesUrl = 'invoices';
   static const String newInvoiceParametersUrl = 'newInvoiceParameters';
 
-  static Uri uri(String path, {Map<String, String> query}) {
+  static Uri uri(String path, {Map<String, String>? query}) {
     return Uri(scheme: scheme, host: host, path: path, queryParameters: query);
   }
 }

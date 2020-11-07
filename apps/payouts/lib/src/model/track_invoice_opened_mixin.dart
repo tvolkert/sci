@@ -1,22 +1,20 @@
-// @dart=2.9
-
 import 'package:flutter/foundation.dart';
 
 import 'invoice.dart';
 
 mixin TrackInvoiceOpenedMixin {
-  InvoiceListener _listener;
-  bool _isInvoiceOpened;
+  late InvoiceListener _listener;
+  bool _isInvoiceOpened = false;
 
   void _updateIsInvoiceOpened() {
-    final bool isOpened = InvoiceBinding.instance.invoice != null;
+    final bool isOpened = InvoiceBinding.instance!.invoice != null;
     if (isOpened != _isInvoiceOpened) {
       _isInvoiceOpened = isOpened;
       onInvoiceOpenedChanged();
     }
   }
 
-  void _handleInvoiceChanged(Invoice previousInvoice) {
+  void _handleInvoiceChanged(Invoice? previousInvoice) {
     _updateIsInvoiceOpened();
     onInvoiceChanged();
   }
@@ -33,7 +31,7 @@ mixin TrackInvoiceOpenedMixin {
   @mustCallSuper
   void initInstance() {
     _listener = InvoiceListener(onInvoiceChanged: _handleInvoiceChanged);
-    InvoiceBinding.instance.addListener(_listener);
+    InvoiceBinding.instance!.addListener(_listener);
     _updateIsInvoiceOpened();
   }
 
@@ -46,7 +44,7 @@ mixin TrackInvoiceOpenedMixin {
   /// object.
   @mustCallSuper
   destroy() {
-    InvoiceBinding.instance.removeListener(_listener);
+    InvoiceBinding.instance!.removeListener(_listener);
   }
 
   /// Invoked when the currently open invoice (if any) changed.

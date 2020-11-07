@@ -1,5 +1,3 @@
-// @dart=2.9
-
 import 'dart:math';
 
 import 'package:flutter/foundation.dart';
@@ -21,13 +19,13 @@ class MapListener<K, V> {
     this.onCleared,
   });
 
-  final ValueAddedHandler<K, V> onValueAdded;
+  final ValueAddedHandler<K, V>? onValueAdded;
 
-  final ValueUpdatedHandler<K, V> onValueUpdated;
+  final ValueUpdatedHandler<K, V>? onValueUpdated;
 
-  final ValueRemovedHandler<K, V> onValueRemoved;
+  final ValueRemovedHandler<K, V>? onValueRemoved;
 
-  final MapClearedHandler<K, V> onCleared;
+  final MapClearedHandler<K, V>? onCleared;
 }
 
 mixin MapListenerNotifier<K, V> on ListenerNotifier<MapListener<K, V>> implements Map<K, V> {
@@ -35,7 +33,7 @@ mixin MapListenerNotifier<K, V> on ListenerNotifier<MapListener<K, V>> implement
   void onValueAdded(K key) {
     notifyListeners((MapListener<K, V> listener) {
       if (listener.onValueAdded != null) {
-        listener.onValueAdded(this, key);
+        listener.onValueAdded!(this, key);
       }
     });
   }
@@ -44,7 +42,7 @@ mixin MapListenerNotifier<K, V> on ListenerNotifier<MapListener<K, V>> implement
   void onValueUpdated(K key, V previousValue) {
     notifyListeners((MapListener<K, V> listener) {
       if (listener.onValueUpdated != null) {
-        listener.onValueUpdated(this, key, previousValue);
+        listener.onValueUpdated!(this, key, previousValue);
       }
     });
   }
@@ -53,7 +51,7 @@ mixin MapListenerNotifier<K, V> on ListenerNotifier<MapListener<K, V>> implement
   void onValueRemoved(K key, V value) {
     notifyListeners((MapListener<K, V> listener) {
       if (listener.onValueRemoved != null) {
-        listener.onValueRemoved(this, key, value);
+        listener.onValueRemoved!(this, key, value);
       }
     });
   }
@@ -62,7 +60,7 @@ mixin MapListenerNotifier<K, V> on ListenerNotifier<MapListener<K, V>> implement
   void onCleared() {
     notifyListeners((MapListener<K, V> listener) {
       if (listener.onCleared != null) {
-        listener.onCleared(this);
+        listener.onCleared!(this);
       }
     });
   }
@@ -76,18 +74,18 @@ class NotifyingMap<K, V>
   final Map<K, V> delegate;
 
   @override
-  V operator [](Object key) => delegate[key];
+  V? operator [](Object? key) => delegate[key];
 
   @override
   void operator []=(K key, V value) {
     final bool update = containsKey(key);
-    V previousValue = delegate[key];
+    V? previousValue = delegate[key];
     delegate[key] = value;
 
     if (!update) {
       onValueAdded(key);
     } else if (value != previousValue) {
-      onValueUpdated(key, previousValue);
+      onValueUpdated(key, previousValue as V);
     }
   }
 
@@ -120,10 +118,10 @@ class NotifyingMap<K, V>
   }
 
   @override
-  bool containsKey(Object key) => delegate.containsKey(key);
+  bool containsKey(Object? key) => delegate.containsKey(key);
 
   @override
-  bool containsValue(Object value) => delegate.containsValue(value);
+  bool containsValue(Object? value) => delegate.containsValue(value);
 
   @override
   Iterable<MapEntry<K, V>> get entries => delegate.entries;
@@ -152,7 +150,7 @@ class NotifyingMap<K, V>
   @override
   V putIfAbsent(K key, V Function() ifAbsent) {
     if (containsKey(key)) {
-      return this[key];
+      return this[key]!;
     }
     final V value = ifAbsent();
     this[key] = value;
@@ -160,11 +158,11 @@ class NotifyingMap<K, V>
   }
 
   @override
-  V remove(Object key) {
-    V value;
+  V? remove(Object? key) {
+    V? value;
     if (containsKey(key)) {
       value = delegate.remove(key);
-      onValueRemoved(key, value);
+      onValueRemoved(key as K, value as V);
     }
     return value;
   }
@@ -179,10 +177,10 @@ class NotifyingMap<K, V>
   }
 
   @override
-  V update(K key, V Function(V value) update, {V Function() ifAbsent}) {
-    V newValue;
+  V update(K key, V Function(V value) update, {V Function()? ifAbsent}) {
+    late V newValue;
     if (containsKey(key)) {
-      newValue = update(this[key]);
+      newValue = update(this[key] as V);
     } else if (ifAbsent != null) {
       newValue = ifAbsent();
     } else {
@@ -263,11 +261,11 @@ class ListListener<T> {
     this.onReordered,
   });
 
-  final ItemsUpdatedHandler<T> onItemsUpdated;
+  final ItemsUpdatedHandler<T>? onItemsUpdated;
 
-  final ListClearedHandler<T> onCleared;
+  final ListClearedHandler<T>? onCleared;
 
-  final ListReorderedHandler<T> onReordered;
+  final ListReorderedHandler<T>? onReordered;
 }
 
 mixin ListListenerNotifier<T> on ListenerNotifier<ListListener<T>> implements List<T> {
@@ -275,7 +273,7 @@ mixin ListListenerNotifier<T> on ListenerNotifier<ListListener<T>> implements Li
   void onItemsUpdated(int index, Iterable<T> removedItems, int insertedCount) {
     notifyListeners((ListListener<T> listener) {
       if (listener.onItemsUpdated != null) {
-        listener.onItemsUpdated(this as NotifyingList<T>, index, removedItems, insertedCount);
+        listener.onItemsUpdated!(this as NotifyingList<T>, index, removedItems, insertedCount);
       }
     });
   }
@@ -284,7 +282,7 @@ mixin ListListenerNotifier<T> on ListenerNotifier<ListListener<T>> implements Li
   void onCleared() {
     notifyListeners((ListListener<T> listener) {
       if (listener.onCleared != null) {
-        listener.onCleared(this as NotifyingList<T>);
+        listener.onCleared!(this as NotifyingList<T>);
       }
     });
   }
@@ -293,7 +291,7 @@ mixin ListListenerNotifier<T> on ListenerNotifier<ListListener<T>> implements Li
   void onReordered() {
     notifyListeners((ListListener<T> listener) {
       if (listener.onReordered != null) {
-        listener.onReordered(this as NotifyingList<T>);
+        listener.onReordered!(this as NotifyingList<T>);
       }
     });
   }
@@ -386,7 +384,7 @@ class NotifyingList<T>
   }
 
   @override
-  bool contains(Object element) => delegate.contains(element);
+  bool contains(Object? element) => delegate.contains(element);
 
   @override
   T elementAt(int index) => delegate.elementAt(index);
@@ -398,14 +396,14 @@ class NotifyingList<T>
   Iterable<R> expand<R>(Iterable<R> Function(T element) f) => delegate.expand<R>(f);
 
   @override
-  void fillRange(int start, int end, [T fillValue]) {
+  void fillRange(int start, int end, [T? fillValue]) {
     for (int i = start; i < end; i++) {
-      this[i] = fillValue;
+      this[i] = fillValue as T;
     }
   }
 
   @override
-  T firstWhere(bool Function(T element) test, {T Function() orElse}) {
+  T firstWhere(bool Function(T element) test, {T Function()? orElse}) {
     return delegate.firstWhere(test, orElse: orElse);
   }
 
@@ -459,15 +457,15 @@ class NotifyingList<T>
   String join([String separator = ""]) => delegate.join(separator);
 
   @override
-  int lastIndexOf(T element, [int start]) => delegate.lastIndexOf(element, start);
+  int lastIndexOf(T element, [int? start]) => delegate.lastIndexOf(element, start);
 
   @override
-  int lastIndexWhere(bool Function(T element) test, [int start]) {
+  int lastIndexWhere(bool Function(T element) test, [int? start]) {
     return delegate.lastIndexWhere(test, start);
   }
 
   @override
-  T lastWhere(bool Function(T element) test, {T Function() orElse}) {
+  T lastWhere(bool Function(T element) test, {T Function()? orElse}) {
     return delegate.lastWhere(test, orElse: orElse);
   }
 
@@ -478,12 +476,16 @@ class NotifyingList<T>
   T reduce(T Function(T value, T element) combine) => delegate.reduce(combine);
 
   @override
-  bool remove(Object value) {
-    final int index = indexOf(value);
-    if (index >= 0) {
-      delegate.removeAt(index);
-      onItemsUpdated(index, <T>[value], 0);
-      return true;
+  bool remove(Object? value) {
+    try {
+      final int index = indexOf(value as T);
+      if (index >= 0) {
+        delegate.removeAt(index);
+        onItemsUpdated(index, <T>[value], 0);
+        return true;
+      }
+    } on TypeError {
+      // fall-through
     }
     return false;
   }
@@ -555,7 +557,7 @@ class NotifyingList<T>
   }
 
   @override
-  void shuffle([Random random]) {
+  void shuffle([Random? random]) {
     delegate.shuffle(random);
     onReordered();
   }
@@ -564,7 +566,7 @@ class NotifyingList<T>
   T get single => delegate.single;
 
   @override
-  T singleWhere(bool Function(T element) test, {T Function() orElse}) {
+  T singleWhere(bool Function(T element) test, {T Function()? orElse}) {
     return delegate.singleWhere(test, orElse: orElse);
   }
 
@@ -575,13 +577,13 @@ class NotifyingList<T>
   Iterable<T> skipWhile(bool Function(T value) test) => delegate.skipWhile(test);
 
   @override
-  void sort([int Function(T a, T b) compare]) {
+  void sort([int Function(T a, T b)? compare]) {
     delegate.sort(compare);
     onReordered();
   }
 
   @override
-  NotifyingList<T> sublist(int start, [int end]) {
+  NotifyingList<T> sublist(int start, [int? end]) {
     final List<T> sublist = delegate.sublist(start, end);
     return NotifyingList<T>(sublist);
   }
@@ -619,7 +621,7 @@ mixin ForwardingIterable<T> implements Iterable<T> {
   Iterable<R> cast<R>() => Iterable.castFrom<T, R>(delegate);
 
   @override
-  bool contains(Object element) => delegate.contains(element);
+  bool contains(Object? element) => delegate.contains(element);
 
   @override
   T elementAt(int index) => delegate.elementAt(index);
@@ -634,7 +636,7 @@ mixin ForwardingIterable<T> implements Iterable<T> {
   T get first => delegate.first;
 
   @override
-  T firstWhere(bool Function(T element) test, {T Function() orElse}) {
+  T firstWhere(bool Function(T element) test, {T Function()? orElse}) {
     return delegate.firstWhere(test, orElse: orElse);
   }
 
@@ -665,7 +667,7 @@ mixin ForwardingIterable<T> implements Iterable<T> {
   T get last => delegate.last;
 
   @override
-  T lastWhere(bool Function(T element) test, {T Function() orElse}) {
+  T lastWhere(bool Function(T element) test, {T Function()? orElse}) {
     return delegate.lastWhere(test, orElse: orElse);
   }
 
@@ -682,7 +684,7 @@ mixin ForwardingIterable<T> implements Iterable<T> {
   T get single => delegate.single;
 
   @override
-  T singleWhere(bool Function(T element) test, {T Function() orElse}) {
+  T singleWhere(bool Function(T element) test, {T Function()? orElse}) {
     return delegate.singleWhere(test, orElse: orElse);
   }
 

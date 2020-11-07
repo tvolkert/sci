@@ -1,5 +1,3 @@
-// @dart=2.9
-
 import 'dart:convert';
 import 'dart:io' show HttpHeaders, HttpStatus;
 
@@ -24,28 +22,29 @@ mixin InvoiceBinding on AppBindingBase, ListenerNotifier<InvoiceListener>, Invoi
   }
 
   /// The singleton instance of this object.
-  static InvoiceBinding _instance;
-  static InvoiceBinding get instance => _instance;
+  static InvoiceBinding? _instance;
+  static InvoiceBinding? get instance => _instance;
 
   /// The currently open invoice, or null if no invoice is opened.
-  Invoice _invoice;
-  Invoice get invoice => _invoice;
+  Invoice? _invoice;
+  Invoice? get invoice => _invoice;
 
   Future<Invoice> loadInvoice(int invoiceId, {Duration timeout = httpTimeout}) async {
     final Uri url = Server.uri(Server.invoiceUrl, query: <String, String>{
       QueryParameters.invoiceId: '$invoiceId',
     });
     final http.Response response =
-        await UserBinding.instance.user.authenticate().get(url).timeout(timeout);
+        await UserBinding.instance!.user!.authenticate().get(url).timeout(timeout);
     if (response.statusCode == HttpStatus.ok) {
       final Map<String, dynamic> invoiceData = json.decode(response.body).cast<String, dynamic>();
-      final Invoice previousInvoice = _invoice;
-      _invoice = Invoice._(this, invoiceId, invoiceData);
+      final Invoice? previousInvoice = _invoice;
+      final Invoice invoice = Invoice._(this, invoiceId, invoiceData);
       onInvoiceChanged(previousInvoice);
       if (previousInvoice != null) {
         previousInvoice._dispose();
       }
-      return _invoice;
+      _invoice = invoice;
+      return invoice;
     } else if (response.statusCode == HttpStatus.forbidden) {
       throw const InvalidCredentials();
     } else {
@@ -55,7 +54,7 @@ mixin InvoiceBinding on AppBindingBase, ListenerNotifier<InvoiceListener>, Invoi
 
   Future<Invoice> createInvoice(NewInvoiceProperties properties) async {
     final Uri url = Server.uri(Server.invoiceUrl);
-    final http.Client client = UserBinding.instance.user.authenticate();
+    final http.Client client = UserBinding.instance!.user!.authenticate();
     final Map<String, dynamic> body = <String, dynamic>{
       Keys.invoiceNumber: properties.invoiceNumber,
       Keys.billingStart: properties.billingStart,
@@ -63,7 +62,7 @@ mixin InvoiceBinding on AppBindingBase, ListenerNotifier<InvoiceListener>, Invoi
     };
     final http.Response response = await client.post(url, body: json.encode(body));
     if (response.statusCode == HttpStatus.created) {
-      final String location = response.headers[HttpHeaders.locationHeader];
+      final String location = response.headers[HttpHeaders.locationHeader]!;
       final String fragment = Uri.parse(location).fragment;
       Pair<String> pair = Pair<String>.fromIterable(fragment.split('='));
       assert(pair.first == QueryParameters.invoiceId);
@@ -78,11 +77,11 @@ mixin InvoiceBinding on AppBindingBase, ListenerNotifier<InvoiceListener>, Invoi
 
   Future<void> save() async {
     final Uri url = Server.uri(Server.invoiceUrl);
-    final http.Client client = UserBinding.instance.user.authenticate();
-    final String serialized = invoice.serialize(markAsSubmitted: true);
+    final http.Client client = UserBinding.instance!.user!.authenticate();
+    final String serialized = invoice!.serialize(markAsSubmitted: true);
     final http.Response response = await client.put(url, body: serialized);
     if (response.statusCode == HttpStatus.noContent) {
-      invoice._setIsDirty(false);
+      invoice!._setIsDirty(false);
     } else if (response.statusCode == HttpStatus.forbidden) {
       throw const InvalidCredentials();
     } else {
@@ -93,7 +92,7 @@ mixin InvoiceBinding on AppBindingBase, ListenerNotifier<InvoiceListener>, Invoi
   Future<void> delete() async {
     // TODO
     await Future<void>.delayed(const Duration(seconds: 1));
-    final Invoice previousInvoice = _invoice;
+    final Invoice? previousInvoice = _invoice;
     _invoice = null;
     onInvoiceChanged(previousInvoice);
     if (previousInvoice != null) {
@@ -111,16 +110,16 @@ mixin AssignmentsBinding on AppBindingBase, UserBinding {
   }
 
   /// The singleton instance of this object.
-  static AssignmentsBinding _instance;
-  static AssignmentsBinding get instance => _instance;
+  static AssignmentsBinding? _instance;
+  static AssignmentsBinding? get instance => _instance;
 
-  List<Program> _assignments;
-  List<Program> get assignments => _assignments;
+  List<Program>? _assignments;
+  List<Program>? get assignments => _assignments;
 
   Future<void> _loadAssignments() async {
     final Uri url = Server.uri(Server.userAssignmentsUrl);
     final http.Response response =
-        await UserBinding.instance.user.authenticate().get(url).timeout(httpTimeout);
+        await UserBinding.instance!.user!.authenticate().get(url).timeout(httpTimeout);
     if (response.statusCode == HttpStatus.ok) {
       final List<dynamic> rawData = json.decode(response.body);
       _assignments = rawData
@@ -138,19 +137,17 @@ mixin AssignmentsBinding on AppBindingBase, UserBinding {
 @immutable
 class NewInvoiceProperties {
   const NewInvoiceProperties({
-    @required this.invoiceNumber,
-    @required this.billingStart,
+    required this.invoiceNumber,
+    required this.billingStart,
     this.billingDuration = const Duration(days: 14),
-  })  : assert(invoiceNumber != null),
-        assert(billingStart != null),
-        assert(billingDuration != null);
+  });
 
   final String invoiceNumber;
   final String billingStart;
   final Duration billingDuration;
 }
 
-typedef InvoiceChangedHandler = void Function(Invoice oldInvoice);
+typedef InvoiceChangedHandler = void Function(Invoice? oldInvoice);
 
 typedef InvoiceNumberChangedHandler = void Function(String previousInvoiceNumber);
 
@@ -236,30 +233,30 @@ class InvoiceListener {
     this.onExpensesRemoved,
   });
 
-  final InvoiceChangedHandler onInvoiceChanged;
-  final InvoiceNumberChangedHandler onInvoiceNumberChanged;
-  final InvoiceTotalChangedHandler onInvoiceTotalChanged;
-  final InvoiceSubmittedHandler onSubmitted;
-  final InvoiceDirtyChangedHandler onInvoiceDirtyChanged;
-  final InvoiceTimesheetInsertedHandler onTimesheetInserted;
-  final InvoiceTimesheetsRemovedHandler onTimesheetsRemoved;
-  final InvoiceTimesheetUpdatedHandler onTimesheetUpdated;
-  final InvoiceTimesheetHoursUpdatedHandler onTimesheetHoursUpdated;
-  final InvoiceAccomplishmentInsertedHandler onAccomplishmentInserted;
-  final InvoiceAccomplishmentTextUpdatedHandler onAccomplishmentTextUpdated;
-  final InvoiceExpenseReportInsertedHandler onExpenseReportInserted;
-  final InvoiceExpenseReportsRemovedHandler onExpenseReportsRemoved;
-  final InvoiceExpenseInsertedHandler onExpenseInserted;
-  final InvoiceExpenseUpdatedHandler onExpenseUpdated;
-  final InvoiceExpensesRemovedHandler onExpensesRemoved;
+  final InvoiceChangedHandler? onInvoiceChanged;
+  final InvoiceNumberChangedHandler? onInvoiceNumberChanged;
+  final InvoiceTotalChangedHandler? onInvoiceTotalChanged;
+  final InvoiceSubmittedHandler? onSubmitted;
+  final InvoiceDirtyChangedHandler? onInvoiceDirtyChanged;
+  final InvoiceTimesheetInsertedHandler? onTimesheetInserted;
+  final InvoiceTimesheetsRemovedHandler? onTimesheetsRemoved;
+  final InvoiceTimesheetUpdatedHandler? onTimesheetUpdated;
+  final InvoiceTimesheetHoursUpdatedHandler? onTimesheetHoursUpdated;
+  final InvoiceAccomplishmentInsertedHandler? onAccomplishmentInserted;
+  final InvoiceAccomplishmentTextUpdatedHandler? onAccomplishmentTextUpdated;
+  final InvoiceExpenseReportInsertedHandler? onExpenseReportInserted;
+  final InvoiceExpenseReportsRemovedHandler? onExpenseReportsRemoved;
+  final InvoiceExpenseInsertedHandler? onExpenseInserted;
+  final InvoiceExpenseUpdatedHandler? onExpenseUpdated;
+  final InvoiceExpensesRemovedHandler? onExpensesRemoved;
 }
 
 mixin InvoiceListenerNotifier on ListenerNotifier<InvoiceListener> {
   @protected
-  void onInvoiceChanged(Invoice oldInvoice) {
+  void onInvoiceChanged(Invoice? oldInvoice) {
     notifyListeners((InvoiceListener listener) {
       if (listener.onInvoiceChanged != null) {
-        listener.onInvoiceChanged(oldInvoice);
+        listener.onInvoiceChanged!(oldInvoice);
       }
     });
   }
@@ -268,7 +265,7 @@ mixin InvoiceListenerNotifier on ListenerNotifier<InvoiceListener> {
   void onInvoiceNumberChanged(String previousInvoiceNumber) {
     notifyListeners((InvoiceListener listener) {
       if (listener.onInvoiceNumberChanged != null) {
-        listener.onInvoiceNumberChanged(previousInvoiceNumber);
+        listener.onInvoiceNumberChanged!(previousInvoiceNumber);
       }
     });
   }
@@ -277,7 +274,7 @@ mixin InvoiceListenerNotifier on ListenerNotifier<InvoiceListener> {
   void onInvoiceTotalChanged(double previousTotal) {
     notifyListeners((InvoiceListener listener) {
       if (listener.onInvoiceTotalChanged != null) {
-        listener.onInvoiceTotalChanged(previousTotal);
+        listener.onInvoiceTotalChanged!(previousTotal);
       }
     });
   }
@@ -286,7 +283,7 @@ mixin InvoiceListenerNotifier on ListenerNotifier<InvoiceListener> {
   void onSubmitted() {
     notifyListeners((InvoiceListener listener) {
       if (listener.onSubmitted != null) {
-        listener.onSubmitted();
+        listener.onSubmitted!();
       }
     });
   }
@@ -295,7 +292,7 @@ mixin InvoiceListenerNotifier on ListenerNotifier<InvoiceListener> {
   void onInvoiceDirtyChanged() {
     notifyListeners((InvoiceListener listener) {
       if (listener.onInvoiceDirtyChanged != null) {
-        listener.onInvoiceDirtyChanged();
+        listener.onInvoiceDirtyChanged!();
       }
     });
   }
@@ -304,7 +301,7 @@ mixin InvoiceListenerNotifier on ListenerNotifier<InvoiceListener> {
   void onTimesheetInserted(int timesheetsIndex) {
     notifyListeners((InvoiceListener listener) {
       if (listener.onTimesheetInserted != null) {
-        listener.onTimesheetInserted(timesheetsIndex);
+        listener.onTimesheetInserted!(timesheetsIndex);
       }
     });
   }
@@ -313,7 +310,7 @@ mixin InvoiceListenerNotifier on ListenerNotifier<InvoiceListener> {
   void onTimesheetsRemoved(int timesheetsIndex, Iterable<Timesheet> removed) {
     notifyListeners((InvoiceListener listener) {
       if (listener.onTimesheetsRemoved != null) {
-        listener.onTimesheetsRemoved(timesheetsIndex, removed);
+        listener.onTimesheetsRemoved!(timesheetsIndex, removed);
       }
     });
   }
@@ -322,7 +319,7 @@ mixin InvoiceListenerNotifier on ListenerNotifier<InvoiceListener> {
   void onTimesheetUpdated(int timesheetsIndex, String key, dynamic previousValue) {
     notifyListeners((InvoiceListener listener) {
       if (listener.onTimesheetUpdated != null) {
-        listener.onTimesheetUpdated(timesheetsIndex, key, previousValue);
+        listener.onTimesheetUpdated!(timesheetsIndex, key, previousValue);
       }
     });
   }
@@ -331,7 +328,7 @@ mixin InvoiceListenerNotifier on ListenerNotifier<InvoiceListener> {
   void onTimesheetHoursUpdated(int timesheetsIndex, int dayIndex, double previousHours) {
     notifyListeners((InvoiceListener listener) {
       if (listener.onTimesheetHoursUpdated != null) {
-        listener.onTimesheetHoursUpdated(timesheetsIndex, dayIndex, previousHours);
+        listener.onTimesheetHoursUpdated!(timesheetsIndex, dayIndex, previousHours);
       }
     });
   }
@@ -340,7 +337,7 @@ mixin InvoiceListenerNotifier on ListenerNotifier<InvoiceListener> {
   void onAccomplishmentInserted(int accomplishmentsIndex) {
     notifyListeners((InvoiceListener listener) {
       if (listener.onAccomplishmentInserted != null) {
-        listener.onAccomplishmentInserted(accomplishmentsIndex);
+        listener.onAccomplishmentInserted!(accomplishmentsIndex);
       }
     });
   }
@@ -349,7 +346,7 @@ mixin InvoiceListenerNotifier on ListenerNotifier<InvoiceListener> {
   void onAccomplishmentTextUpdated(int accomplishmentsIndex, String previousDescription) {
     notifyListeners((InvoiceListener listener) {
       if (listener.onAccomplishmentTextUpdated != null) {
-        listener.onAccomplishmentTextUpdated(accomplishmentsIndex, previousDescription);
+        listener.onAccomplishmentTextUpdated!(accomplishmentsIndex, previousDescription);
       }
     });
   }
@@ -358,7 +355,7 @@ mixin InvoiceListenerNotifier on ListenerNotifier<InvoiceListener> {
   void onExpenseReportInserted(int expenseReportsIndex) {
     notifyListeners((InvoiceListener listener) {
       if (listener.onExpenseReportInserted != null) {
-        listener.onExpenseReportInserted(expenseReportsIndex);
+        listener.onExpenseReportInserted!(expenseReportsIndex);
       }
     });
   }
@@ -367,7 +364,7 @@ mixin InvoiceListenerNotifier on ListenerNotifier<InvoiceListener> {
   void onExpenseReportsRemoved(int expenseReportsIndex, Iterable<ExpenseReport> removed) {
     notifyListeners((InvoiceListener listener) {
       if (listener.onExpenseReportsRemoved != null) {
-        listener.onExpenseReportsRemoved(expenseReportsIndex, removed);
+        listener.onExpenseReportsRemoved!(expenseReportsIndex, removed);
       }
     });
   }
@@ -376,7 +373,7 @@ mixin InvoiceListenerNotifier on ListenerNotifier<InvoiceListener> {
   void onExpenseInserted(int expenseReportsIndex, int expensesIndex) {
     notifyListeners((InvoiceListener listener) {
       if (listener.onExpenseInserted != null) {
-        listener.onExpenseInserted(expenseReportsIndex, expensesIndex);
+        listener.onExpenseInserted!(expenseReportsIndex, expensesIndex);
       }
     });
   }
@@ -390,7 +387,7 @@ mixin InvoiceListenerNotifier on ListenerNotifier<InvoiceListener> {
   ) {
     notifyListeners((InvoiceListener listener) {
       if (listener.onExpenseUpdated != null) {
-        listener.onExpenseUpdated(expenseReportsIndex, expensesIndex, key, previousValue);
+        listener.onExpenseUpdated!(expenseReportsIndex, expensesIndex, key, previousValue);
       }
     });
   }
@@ -399,7 +396,7 @@ mixin InvoiceListenerNotifier on ListenerNotifier<InvoiceListener> {
   void onExpensesRemoved(int expenseReportsIndex, int expensesIndex, Iterable<Expense> removed) {
     notifyListeners((InvoiceListener listener) {
       if (listener.onExpensesRemoved != null) {
-        listener.onExpensesRemoved(expenseReportsIndex, expensesIndex, removed);
+        listener.onExpensesRemoved!(expenseReportsIndex, expensesIndex, removed);
       }
     });
   }
@@ -417,9 +414,7 @@ mixin InvoiceListenerNotifier on ListenerNotifier<InvoiceListener> {
 ///    the SCI server.
 class Invoice {
   Invoice._(this._owner, this.id, this._data)
-      : assert(id != null),
-        assert(_data != null),
-        assert(debugUseFakeHttpLayer || _data[Keys.invoiceId] == id);
+      : assert(debugUseFakeHttpLayer || _data[Keys.invoiceId] == id);
 
   final InvoiceBinding _owner;
   bool _disposed = false;
@@ -433,7 +428,7 @@ class Invoice {
     _disposed = true;
   }
 
-  T _checkDisposed<T>([T Function() callback]) {
+  T? _checkDisposed<T>([T Function()? callback]) {
     assert(!_disposed);
     if (callback != null) {
       return callback();
@@ -441,7 +436,7 @@ class Invoice {
     return null;
   }
 
-  double _total;
+  double? _total;
   double get total {
     _checkDisposed();
     return _total ??= computeTotal();
@@ -449,7 +444,6 @@ class Invoice {
 
   @protected
   set total(double value) {
-    assert(value != null);
     value = roundToSignificantDigits(value, 3);
     double previousValue = total;
     if (value != previousValue) {
@@ -475,16 +469,15 @@ class Invoice {
   }
 
   /// The invoice vendor (e.g. "Todd Volkert" or "RES Consulting").
-  String get vendor => _checkDisposed(() => _data[Keys.vendor]);
+  String get vendor => _checkDisposed(() => _data[Keys.vendor])!;
 
   /// The invoice number.
   ///
   /// When this is changed, [InvoiceListener.onInvoiceNumberChanged] listeners
   /// will be notified.
-  String get invoiceNumber => _checkDisposed(() => _data[Keys.invoiceNumber]);
+  String get invoiceNumber => _checkDisposed(() => _data[Keys.invoiceNumber])!;
   set invoiceNumber(String value) {
     _checkDisposed();
-    assert(value != null);
     final String previousValue = _data[Keys.invoiceNumber];
     if (value != previousValue) {
       _data[Keys.invoiceNumber] = value;
@@ -500,10 +493,10 @@ class Invoice {
   ///
   /// When this is changed, [InvoiceListener.onSubmitted] listeners will
   /// be notified.
-  bool get isSubmitted => _checkDisposed(() => _data[Keys.submitted]);
+  bool get isSubmitted => _checkDisposed(() => _data[Keys.submitted])!;
   set isSubmitted(bool value) {
     _checkDisposed();
-    assert(value != null && value);
+    assert(value);
     if (value != isSubmitted) {
       _data[Keys.submitted] = value;
       _owner.onSubmitted();
@@ -511,44 +504,40 @@ class Invoice {
   }
 
   /// The billing period for the invoice.
-  DateRange _billingPeriod;
+  DateRange? _billingPeriod;
   DateRange get billingPeriod {
     _checkDisposed();
-    _billingPeriod ??= DateRange._fromRawData(_data);
-    return _billingPeriod;
+    return _billingPeriod ??= DateRange._fromRawData(_data);
   }
 
   /// This invoice's timesheets.
   ///
   /// Mutations on the list of timesheets or any individual timesheet will
   /// notify registered [InvoiceListener] listeners.
-  Timesheets _timesheets;
+  Timesheets? _timesheets;
   Timesheets get timesheets {
     _checkDisposed();
-    _timesheets ??= Timesheets._fromRawData(this, _data);
-    return _timesheets;
+    return _timesheets ??= Timesheets._fromRawData(this, _data);
   }
 
   /// This invoice's expense reports.
   ///
   /// Mutations on the list of expense reports or any individual expense report
   /// will notify registered [InvoiceListener] listeners.
-  ExpenseReports _expenseReports;
+  ExpenseReports? _expenseReports;
   ExpenseReports get expenseReports {
     _checkDisposed();
-    _expenseReports ??= ExpenseReports._fromRawData(this, _data);
-    return _expenseReports;
+    return _expenseReports ??= ExpenseReports._fromRawData(this, _data);
   }
 
   /// This invoice's accomplishments.
   ///
   /// Mutations on the list of accomplishments or any individual accomplishment
   /// will notify registered [InvoiceListener] listeners.
-  Accomplishments _accomplishments;
+  Accomplishments? _accomplishments;
   Accomplishments get accomplishments {
     _checkDisposed();
-    _accomplishments ??= Accomplishments._fromRawData(this, _data);
-    return _accomplishments;
+    return _accomplishments ??= Accomplishments._fromRawData(this, _data);
   }
 
   @override
@@ -573,7 +562,6 @@ class Invoice {
   /// server responds with success.
   String serialize({bool markAsSubmitted = false}) {
     _checkDisposed();
-    assert(markAsSubmitted != null);
     Map<String, dynamic> data = _data;
     if (markAsSubmitted) {
       data = Map<String, dynamic>.from(data);
@@ -690,7 +678,7 @@ class Timesheets with ForwardingIterable<Timesheet>, DisallowCollectionConversio
   Iterable<Timesheet> get delegate => _view;
 
   /// Gets the timesheet at the specified index.
-  Timesheet operator [](int index) => _owner._checkDisposed(() => _view[index]);
+  Timesheet operator [](int index) => _owner._checkDisposed(() => _view[index])!;
 
   /// Computes the total dollar amount for this expense report.
   @protected
@@ -704,7 +692,12 @@ class Timesheets with ForwardingIterable<Timesheet>, DisallowCollectionConversio
   ///
   /// Registered [InvoiceListener.onTimesheetInserted] listeners will
   /// be notified.
-  Timesheet add({Program program, String chargeNumber, String requestor, String task}) {
+  Timesheet add({
+    required Program program,
+    required String chargeNumber,
+    required String requestor,
+    required String task,
+  }) {
     _owner._checkDisposed();
     // TODO: this list should probably be sorted.
     final int insertIndex = _data.length - 1;
@@ -756,11 +749,11 @@ class Timesheet {
   Timesheet._(this._owner, this._data, [this._program]);
 
   factory Timesheet._fromParts({
-    @required Invoice owner,
-    @required Program program,
-    @required String chargeNumber,
-    @required String requestor,
-    @required String taskDescription,
+    required Invoice owner,
+    required Program program,
+    required String chargeNumber,
+    required String requestor,
+    required String taskDescription,
   }) {
     final Map<String, dynamic> data = <String, dynamic>{
       Keys.program: program._data,
@@ -782,18 +775,14 @@ class Timesheet {
   double get total => totalHours * program.rate;
 
   /// The total number of hours in this timesheet.
-  double _totalHours;
+  double? _totalHours;
   double get totalHours {
     _owner._checkDisposed();
-    if (_totalHours == null) {
-      _totalHours ??= hours.fold<double>(0, (double sum, double value) => sum + value);
-    }
-    return _totalHours;
+    return _totalHours ??= hours.fold<double>(0, (double sum, double value) => sum + value);
   }
 
   @protected
   set totalHours(double value) {
-    assert(value != null);
     value = roundToSignificantDigits(value, 2);
     double previousValue = totalHours;
     if (value != previousValue) {
@@ -809,10 +798,10 @@ class Timesheet {
   ///
   /// This is an amalgamation of the program name, the charge number (if
   /// supplied), and the task (if supplied).
-  String _name;
+  String? _name;
   String get name {
     _owner._checkDisposed();
-    if (_name == null) {
+    String computeName() {
       final StringBuffer buf = StringBuffer(program.name);
       final String chargeNumber = this.chargeNumber;
       if (chargeNumber.isNotEmpty) {
@@ -822,43 +811,42 @@ class Timesheet {
       if (task.isNotEmpty) {
         buf.write(' ($task)');
       }
-      _name = buf.toString();
+      return buf.toString();
     }
-    return _name;
+    return _name ??= computeName();
   }
 
   /// The program (assignment data) against which this timesheet is to be
   /// billed.
-  Program _program;
+  Program? _program;
   Program get program {
     _owner._checkDisposed();
-    _program ??= Program._(_data[Keys.program]);
-    return _program;
+    return _program ??= Program._(_data[Keys.program]);
   }
 
   /// The charge number of this timesheet.
   ///
   /// If [Program.requiresChargeNumber] is false this this timesheet's
   /// [program], then the charge number will be the empty string.
-  String get chargeNumber => _owner._checkDisposed(() => _data[Keys.chargeNumber]);
+  String get chargeNumber => _owner._checkDisposed(() => _data[Keys.chargeNumber])!;
 
   /// The name of the client who requested the work done in this timesheet.
   ///
   /// If [Program.requiresRequestor] is false this this timesheet's
   /// [program], then the requestor will be the empty string.
-  String get requestor => _owner._checkDisposed(() => _data[Keys.requestor]);
+  String get requestor => _owner._checkDisposed(() => _data[Keys.requestor])!;
 
   /// The task description for this timesheet.
   ///
   /// This optional field allows the consultant to describe the timesheet to
   /// help them organize their invoice.
-  String get task => _owner._checkDisposed(() => _data[Keys.taskDescription]);
+  String get task => _owner._checkDisposed(() => _data[Keys.taskDescription])!;
 
   /// The hour entries in this timesheet.
   ///
   /// The number of entries will match the billing duration
   /// ([DateRange.duration], in days) of the invoice.
-  Hours _hours;
+  Hours? _hours;
   Hours get hours {
     _owner._checkDisposed();
     return _hours ??= Hours._fromRawData(_owner, this, _data);
@@ -871,14 +859,14 @@ class Timesheet {
   /// Registered [InvoiceListener.onTimesheetUpdated] listeners will be
   /// notified once for each field that was updated.
   void update({
-    String chargeNumber,
-    String requestor,
-    String taskDescription,
+    String? chargeNumber,
+    String? requestor,
+    String? taskDescription,
   }) {
     _owner._checkDisposed();
     final int timesheetsIndex = _owner.timesheets._view.indexOf(this);
     if (chargeNumber != null) {
-      String previousValue = _data[Keys.chargeNumber];
+      String previousValue = this.chargeNumber;
       if (chargeNumber != previousValue) {
         _data[Keys.chargeNumber] = chargeNumber;
         _owner._owner.onTimesheetUpdated(timesheetsIndex, Keys.chargeNumber, previousValue);
@@ -886,7 +874,7 @@ class Timesheet {
       }
     }
     if (requestor != null) {
-      String previousValue = _data[Keys.requestor];
+      String previousValue = this.requestor;
       if (requestor != previousValue) {
         _data[Keys.requestor] = requestor;
         _owner._owner.onTimesheetUpdated(timesheetsIndex, Keys.requestor, previousValue);
@@ -894,7 +882,7 @@ class Timesheet {
       }
     }
     if (taskDescription != null) {
-      String previousValue = _data[Keys.taskDescription];
+      String previousValue = this.task;
       if (taskDescription != previousValue) {
         _data[Keys.taskDescription] = taskDescription;
         _owner._owner.onTimesheetUpdated(timesheetsIndex, Keys.taskDescription, previousValue);
@@ -927,7 +915,7 @@ class Hours with ForwardingIterable<double>, DisallowCollectionConversion<double
   Iterable<double> get delegate => _data.map<double>((num value) => value.toDouble());
 
   /// Gets the hours value at the specified index.
-  double operator [](int index) => _owner._checkDisposed(() => _data[index].toDouble());
+  double operator [](int index) => _owner._checkDisposed(() => _data[index].toDouble())!;
 
   /// Sets the hours value at the specified index.
   ///
@@ -980,7 +968,7 @@ class ExpenseReports
   }
 
   /// Gets the expense report at the specified index.
-  ExpenseReport operator [](int index) => _owner._checkDisposed(() => _data[index]);
+  ExpenseReport operator [](int index) => _owner._checkDisposed(() => _data[index])!;
 
   /// Adds an expense report with the specified metadata to this invoice's list
   /// of expense reports.
@@ -988,14 +976,14 @@ class ExpenseReports
   /// Registered [InvoiceListener.onExpenseReportInserted] listeners will
   /// be notified.
   ExpenseReport add({
-    Program program,
-    String chargeNumber,
-    String requestor,
-    String task,
-    DateRange period,
-    String travelPurpose,
-    String travelDestination,
-    String travelParties,
+    required Program program,
+    required String chargeNumber,
+    required String requestor,
+    required String task,
+    required DateRange period,
+    required String travelPurpose,
+    required String travelDestination,
+    required String travelParties,
   }) {
     _owner._checkDisposed();
     // TODO: this list should probably be sorted.
@@ -1051,15 +1039,15 @@ class ExpenseReport {
   ExpenseReport._(this._owner, this._data, [this._program, this._period]);
 
   factory ExpenseReport._fromParts({
-    @required Invoice owner,
-    @required Program program,
-    @required String chargeNumber,
-    @required String requestor,
-    @required String task,
-    @required DateRange period,
-    @required String travelPurpose,
-    @required String travelDestination,
-    @required String travelParties,
+    required Invoice owner,
+    required Program program,
+    required String chargeNumber,
+    required String requestor,
+    required String task,
+    required DateRange period,
+    required String travelPurpose,
+    required String travelDestination,
+    required String travelParties,
   }) {
     Map<String, dynamic> data = <String, dynamic>{
       Keys.program: program._data,
@@ -1082,7 +1070,7 @@ class ExpenseReport {
   /// The index of this expense report in the list of expense reports.
   int get _index => _owner.expenseReports._data.indexOf(this);
 
-  double _total;
+  double? _total;
   double get total {
     _owner._checkDisposed();
     return _total ??= expenses.fold<double>(0, (double sum, Expense exp) => sum + exp.amount);
@@ -1090,7 +1078,6 @@ class ExpenseReport {
 
   @protected
   set total(double value) {
-    assert(value != null);
     value = roundToSignificantDigits(value, 2);
     double previousValue = total;
     if (value != previousValue) {
@@ -1104,7 +1091,7 @@ class ExpenseReport {
 
   /// The program (assignment) against which this expense report is to be
   /// billed.
-  Program _program;
+  Program? _program;
   Program get program {
     _owner._checkDisposed();
     return _program ??= Program._(_data[Keys.program]);
@@ -1130,7 +1117,7 @@ class ExpenseReport {
   String get task => _owner._checkDisposed(_data[Keys.taskDescription]);
 
   /// The time period that this expense report covers.
-  DateRange _period;
+  DateRange? _period;
   DateRange get period {
     _owner._checkDisposed();
     return _period ??= DateRange._fromStartEnd(_data[Keys.fromDate], _data[Keys.toDate]);
@@ -1150,7 +1137,7 @@ class ExpenseReport {
   ///
   /// Mutations on this list or to the expenses therein will notify registered
   /// [InvoiceListener] listeners.
-  Expenses _expenses;
+  Expenses? _expenses;
   Expenses get expenses {
     _owner._checkDisposed();
     return _expenses ??= Expenses._fromData(_owner, this, _data);
@@ -1185,7 +1172,12 @@ class Expenses with ForwardingIterable<Expense>, DisallowCollectionConversion<Ex
   @protected
   Iterable<Expense> get delegate => _data;
 
-  Expense add({DateTime date, ExpenseType type, double amount, String description}) {
+  Expense add({
+    required DateTime date,
+    required ExpenseType type,
+    required double amount,
+    required String description,
+  }) {
     _owner._checkDisposed();
     // Order is important here; set this first to force the parent to run its
     // lazy total calculation before adding the expense to _data.
@@ -1237,12 +1229,12 @@ class Expense {
   Expense._(this._owner, this._parent, this._data);
 
   factory Expense._fromParts({
-    @required Invoice owner,
-    @required ExpenseReport parent,
-    DateTime date,
-    ExpenseType type,
-    double amount,
-    String description,
+    required Invoice owner,
+    required ExpenseReport parent,
+    required DateTime date,
+    required ExpenseType type,
+    required double amount,
+    required String description,
   }) {
     return Expense._(owner, parent, <String, dynamic>{
       Keys.date: date,
@@ -1263,7 +1255,7 @@ class Expense {
   ///
   /// When this is changed, [InvoiceListener.onExpenseUpdated] listeners
   /// will be notified.
-  DateTime _date;
+  DateTime? _date;
   DateTime get date {
     _owner._checkDisposed();
     return _date ??= DateTime.parse(_data[Keys.date]);
@@ -1283,7 +1275,7 @@ class Expense {
   ///
   /// When this is changed, [InvoiceListener.onExpenseUpdated] listeners
   /// will be notified.
-  ExpenseType _type;
+  ExpenseType? _type;
   ExpenseType get type {
     _owner._checkDisposed();
     return _type ??= ExpenseType._(_data[Keys.expenseType]);
@@ -1303,7 +1295,7 @@ class Expense {
   ///
   /// When this is changed, [InvoiceListener.onExpenseUpdated] listeners
   /// will be notified.
-  double get amount => _owner._checkDisposed(() => _data[Keys.amount].toDouble());
+  double get amount => _owner._checkDisposed(() => _data[Keys.amount].toDouble())!;
   set amount(double value) {
     _owner._checkDisposed();
     double previousAmount = amount;
@@ -1322,7 +1314,7 @@ class Expense {
   ///
   /// When this is changed, [InvoiceListener.onExpenseUpdated] listeners
   /// will be notified.
-  String get description => _owner._checkDisposed(() => _data[Keys.description]);
+  String get description => _owner._checkDisposed(() => _data[Keys.description])!;
   set description(String value) {
     _owner._checkDisposed();
     String previousValue = description;
@@ -1334,7 +1326,7 @@ class Expense {
   }
 
   /// The order in which the expense was originally added.
-  int get ordinal => _owner._checkDisposed(() => _data[Keys.ordinal]);
+  int get ordinal => _owner._checkDisposed(() => _data[Keys.ordinal])!;
 }
 
 /// Class representing the type of an expense line item.
@@ -1419,7 +1411,7 @@ class Accomplishments
   ///
   /// Registered [InvoiceListener.onAccomplishmentInserted] listeners will be
   /// notified.
-  Accomplishment add({Program program}) {
+  Accomplishment add({required Program program}) {
     _owner._checkDisposed();
     // TODO: this list should probably be sorted.
     final int insertIndex = _data.length - 1;
@@ -1441,8 +1433,8 @@ class Accomplishment {
   Accomplishment._(this._owner, this._data, [this._program]);
 
   factory Accomplishment._fromParts({
-    @required Invoice owner,
-    Program program,
+    required Invoice owner,
+    required Program program,
   }) {
     Map<String, dynamic> data = <String, dynamic>{
       Keys.program: program._data,
@@ -1459,13 +1451,13 @@ class Accomplishment {
 
   /// The program (assignment) against which this accomplishment is to be
   /// recorded.
-  Program _program;
+  Program? _program;
   Program get program {
     _owner._checkDisposed();
     return _program ??= Program._(_data[Keys.program]);
   }
 
-  String get description => _owner._checkDisposed(() => _data[Keys.description]);
+  String get description => _owner._checkDisposed(() => _data[Keys.description])!;
   set description(String value) {
     _owner._checkDisposed();
     String previousValue = description;

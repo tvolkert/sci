@@ -1,16 +1,14 @@
-// @dart=2.9
-
 import 'package:flutter/foundation.dart';
 
 import 'invoice.dart';
 import 'track_invoice_opened_mixin.dart';
 
 mixin TrackInvoiceDirtyMixin on TrackInvoiceOpenedMixin {
-  InvoiceListener _listener;
-  bool _isInvoiceDirty;
+  late InvoiceListener _listener;
+  bool _isInvoiceDirty = false;
 
   void _updateIsInvoiceDirty() {
-    final bool isDirty = InvoiceBinding.instance.invoice?.isDirty ?? false;
+    final bool isDirty = InvoiceBinding.instance!.invoice?.isDirty ?? false;
     if (isDirty != _isInvoiceDirty) {
       _isInvoiceDirty = isDirty;
       onInvoiceDirtyChanged();
@@ -26,13 +24,13 @@ mixin TrackInvoiceDirtyMixin on TrackInvoiceOpenedMixin {
   void initInstance() {
     super.initInstance();
     _listener = InvoiceListener(onInvoiceDirtyChanged: _handleInvoiceDirtyChanged);
-    InvoiceBinding.instance.addListener(_listener);
+    InvoiceBinding.instance!.addListener(_listener);
     _updateIsInvoiceDirty();
   }
 
   @override
   destroy() {
-    InvoiceBinding.instance.removeListener(_listener);
+    InvoiceBinding.instance!.removeListener(_listener);
     super.destroy();
   }
 

@@ -1,5 +1,3 @@
-// @dart=2.9
-
 import 'dart:convert';
 import 'dart:io' show HttpStatus;
 import 'dart:ui';
@@ -19,12 +17,12 @@ mixin UserBinding on AppBindingBase {
   }
 
   /// The singleton instance of this object.
-  static UserBinding _instance;
-  static UserBinding get instance => _instance;
+  static UserBinding? _instance;
+  static UserBinding? get instance => _instance;
 
   /// The currently logged-in user, or null if no user is logged in.
-  User _user;
-  User get user => _user;
+  User? _user;
+  User? get user => _user;
 
   List<AsyncCallback> _postLoginCallbacks = <AsyncCallback>[];
 
@@ -89,18 +87,19 @@ mixin UserBinding on AppBindingBase {
     Duration timeout = httpTimeout,
   }) async {
     final Uri uri = Server.uri(Server.loginUrl);
-    final http.Response response = await HttpBinding.instance.client
+    final http.Response response = await HttpBinding.instance!.client
         .get(uri, headers: _authHeaders(username, password))
         .timeout(timeout);
     if (response.statusCode == HttpStatus.ok) {
       Map<String, dynamic> loginData = json.decode(response.body).cast<String, dynamic>();
-      int lastInvoiceId = loginData[Keys.lastInvoiceId];
+      int? lastInvoiceId = loginData[Keys.lastInvoiceId];
       bool passwordRequiresReset = loginData[Keys.passwordRequiresReset];
-      _user = User._(username, password, lastInvoiceId, passwordRequiresReset);
-      if (_user.isPostLogin) {
+      final User user = User._(username, password, lastInvoiceId, passwordRequiresReset);
+      if (user.isPostLogin) {
         await _runPostLoginCallbacks();
       }
-      return _user;
+      _user = user;
+      return user;
     } else if (response.statusCode == HttpStatus.forbidden) {
       throw const InvalidCredentials();
     } else {
@@ -115,7 +114,7 @@ mixin UserBinding on AppBindingBase {
   /// legal to call this method when the user is already logged out, in which
   /// case this is a no-op.
   void logout() {
-    UserBinding.instance._user = null;
+    UserBinding.instance!._user = null;
   }
 }
 
@@ -129,16 +128,14 @@ class User {
     this._password,
     this.lastInvoiceId,
     this.passwordRequiresReset,
-  )   : assert(username != null),
-        assert(_password != null),
-        assert(passwordRequiresReset != null);
+  );
 
   /// The user's login / username.
   final String username;
   final String _password;
 
   /// The ID of the last invoice that the user opened.
-  final int lastInvoiceId;
+  final int? lastInvoiceId;
 
   /// True if this user is required to reset their password upon login.
   final bool passwordRequiresReset;
@@ -147,8 +144,8 @@ class User {
 
   bool get isPostLogin => !passwordRequiresReset;
 
-  http.BaseClient authenticate([http.BaseClient client]) {
-    return _AuthenticatedClient._(client ?? HttpBinding.instance.client, this);
+  http.BaseClient authenticate([http.BaseClient? client]) {
+    return _AuthenticatedClient._(client ?? HttpBinding.instance!.client, this);
   }
 
   /// Updates the user's password.
@@ -167,9 +164,9 @@ class User {
     final http.Response response = await authenticate().put(url, body: password).timeout(timeout);
     if (response.statusCode == HttpStatus.ok) {
       User newUser = User._(username, password, lastInvoiceId, false);
-      UserBinding.instance._user = newUser;
+      UserBinding.instance!._user = newUser;
       if (!wasPostLogin && newUser.isPostLogin) {
-        await UserBinding.instance._runPostLoginCallbacks();
+        await UserBinding.instance!._runPostLoginCallbacks();
       }
       return newUser;
     } else {
