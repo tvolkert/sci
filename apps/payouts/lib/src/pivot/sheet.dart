@@ -43,7 +43,7 @@ class Sheet extends StatelessWidget {
     );
   }
 
-  static Future<T> open<T>({
+  static Future<T?> open<T>({
     required BuildContext context,
     required Widget content,
     EdgeInsetsGeometry padding = const EdgeInsets.all(8),
@@ -169,7 +169,7 @@ class Prompt extends StatelessWidget {
         options: options,
         selectedOption: selectedOption,
       ),
-    );
+    ) as Future<int>;
   }
 }
 
@@ -185,7 +185,7 @@ class DialogTracker<T> {
   bool _isDialogClosing = false;
   _AsyncResult<T>? _result;
 
-  Future<T> open({
+  Future<T?> open({
     required BuildContext context,
     bool barrierDismissible = true,
     String barrierLabel = 'Dismiss',
@@ -235,9 +235,9 @@ class DialogTracker<T> {
         );
       },
     ).then((T? value) {
-      _result = _AsyncResult.value(value);
+      _result = _AsyncResult<T>.value(value);
     }).catchError((dynamic error, StackTrace stack) {
-      _result = _AsyncResult.error(error, stack);
+      _result = _AsyncResult<T>.error(error, stack);
     });
     return _completer.future;
   }
@@ -264,7 +264,7 @@ class _AsyncResult<T> {
 
   const _AsyncResult.error(Object this.error, StackTrace this.stack) : value = null;
 
-  final FutureOr<T>? value;
+  final T? value;
   final Object? error;
   final StackTrace? stack;
 

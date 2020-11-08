@@ -1,5 +1,3 @@
-// @dart=2.9
-
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io' show HttpStatus;
@@ -24,7 +22,6 @@ typedef InvoiceComparator = int Function(Map<String, dynamic> a, Map<String, dyn
 int _compareInvoiceNumber(Map<String, dynamic> a, Map<String, dynamic> b) {
   final String aVal = a['invoice_number'];
   final String bVal = b['invoice_number'];
-  assert(aVal != null && bVal != null);
   return aVal.compareTo(bVal);
 }
 
@@ -36,8 +33,8 @@ int _compareBillingPeriod(Map<String, dynamic> a, Map<String, dynamic> b) {
 }
 
 int _compareSubmitted(Map<String, dynamic> a, Map<String, dynamic> b) {
-  final int aVal = a['submitted'];
-  final int bVal = b['submitted'];
+  final int? aVal = a['submitted'];
+  final int? bVal = b['submitted'];
   if (aVal == bVal) {
     return 0;
   } else if (aVal == null) {
@@ -71,7 +68,7 @@ const Map<String, InvoiceComparator> _invoiceComparators = <String, InvoiceCompa
 class OpenInvoiceIntent extends Intent {
   const OpenInvoiceIntent({this.context});
 
-  final BuildContext context;
+  final BuildContext? context;
 }
 
 class OpenInvoiceAction extends ContextAction<OpenInvoiceIntent>
@@ -83,18 +80,18 @@ class OpenInvoiceAction extends ContextAction<OpenInvoiceIntent>
   static final OpenInvoiceAction instance = OpenInvoiceAction._();
 
   @override
-  Future<void> invoke(OpenInvoiceIntent intent, [BuildContext context]) async {
-    context ??= intent.context ?? primaryFocus.context;
+  Future<void> invoke(OpenInvoiceIntent intent, [BuildContext? context]) async {
+    context ??= intent.context ?? primaryFocus!.context;
     if (context == null) {
       throw StateError('No context in which to invoke $runtimeType');
     }
 
     final bool canProceed = await checkForUnsavedChanges(context);
     if (canProceed) {
-      final int invoiceId = await OpenInvoiceSheet.open(context: context);
+      final int? invoiceId = await OpenInvoiceSheet.open(context: context);
       if (invoiceId != null) {
         await TaskMonitor.of(context).monitor<Invoice>(
-          future: InvoiceBinding.instance.loadInvoice(invoiceId),
+          future: InvoiceBinding.instance!.loadInvoice(invoiceId),
           inProgressMessage: 'Opening invoice',
           completedMessage: 'Invoice opened',
         );
@@ -104,12 +101,12 @@ class OpenInvoiceAction extends ContextAction<OpenInvoiceIntent>
 }
 
 class OpenInvoiceSheet extends StatefulWidget {
-  const OpenInvoiceSheet({Key key}) : super(key: key);
+  const OpenInvoiceSheet({Key? key}) : super(key: key);
 
   @override
   _OpenInvoiceSheetState createState() => _OpenInvoiceSheetState();
 
-  static Future<int> open({BuildContext context}) {
+  static Future<int?> open({required BuildContext context}) {
     return pivot.Sheet.open<int>(
       context: context,
       content: OpenInvoiceSheet(),
@@ -118,24 +115,24 @@ class OpenInvoiceSheet extends StatefulWidget {
 }
 
 class _OpenInvoiceSheetState extends State<OpenInvoiceSheet> {
-  List<Map<String, dynamic>> invoices;
-  int _selectedInvoiceId;
+  List<Map<String, dynamic>>? invoices;
+  int? _selectedInvoiceId;
 
-  void _handleInvoiceSelected(int invoiceId) {
+  void _handleInvoiceSelected(int? invoiceId) {
     setState(() {
       _selectedInvoiceId = invoiceId;
     });
   }
 
   void _handleOk() {
-    Navigator.of(context).pop(_selectedInvoiceId);
+    Navigator.of(context)!.pop(_selectedInvoiceId);
   }
 
   @override
   void initState() {
     super.initState();
     final Uri url = Server.uri(Server.invoicesUrl);
-    UserBinding.instance.user.authenticate().get(url).then((http.Response response) {
+    UserBinding.instance!.user!.authenticate().get(url).then((http.Response response) {
       if (!mounted) {
         return;
       }
@@ -204,7 +201,7 @@ class _OpenInvoiceSheetState extends State<OpenInvoiceSheet> {
               SizedBox(width: 4),
               pivot.CommandPushButton(
                 label: 'Cancel',
-                onPressed: () => Navigator.of(context).pop(),
+                onPressed: () => Navigator.of(context)!.pop(),
               ),
             ],
           ),
@@ -216,24 +213,27 @@ class _OpenInvoiceSheetState extends State<OpenInvoiceSheet> {
 
 class InvoicesView extends StatelessWidget {
   const InvoicesView({
-    Key key,
+    Key? key,
     this.invoices,
-    this.onInvoiceSelected,
+    required this.onInvoiceSelected,
   }) : super(key: key);
 
-  final List<Map<String, dynamic>> invoices;
-  final ValueChanged<int> onInvoiceSelected;
+  final List<Map<String, dynamic>>? invoices;
+  final ValueChanged<int?> onInvoiceSelected;
 
   @override
   Widget build(BuildContext context) {
     if (invoices == null) {
-      return InvoicesTable(invoices: const <Map<String, dynamic>>[]);
-    } else if (invoices.isEmpty) {
+      return InvoicesTable(
+        invoices: const <Map<String, dynamic>>[],
+        onInvoiceSelected: onInvoiceSelected,
+      );
+    } else if (invoices!.isEmpty) {
       // TODO: what should this be?
       return Text('TODO');
     } else {
       return InvoicesTable(
-        invoices: invoices,
+        invoices: invoices!,
         onInvoiceSelected: onInvoiceSelected,
       );
     }
@@ -242,13 +242,13 @@ class InvoicesView extends StatelessWidget {
 
 class InvoicesTable extends StatefulWidget {
   const InvoicesTable({
-    Key key,
-    this.invoices,
-    this.onInvoiceSelected,
+    Key? key,
+    required this.invoices,
+    required this.onInvoiceSelected,
   }) : super(key: key);
 
   final List<Map<String, dynamic>> invoices;
-  final ValueChanged<int> onInvoiceSelected;
+  final ValueChanged<int?> onInvoiceSelected;
 
   @override
   _InvoicesTableState createState() => _InvoicesTableState();
@@ -256,13 +256,13 @@ class InvoicesTable extends StatefulWidget {
 
 class _InvoicesTableState extends State<InvoicesTable>
     with SingleTickerProviderStateMixin<InvoicesTable> {
-  pivot.TableViewMetricsController _metricsController;
-  pivot.TableViewSelectionController _selectionController;
-  pivot.TableViewSortController _sortController;
-  pivot.TableViewSortListener _sortListener;
-  pivot.ScrollController _scrollController;
-  AnimationController _scrollAnimationController;
-  List<pivot.TableColumnController> _columns;
+  late pivot.TableViewMetricsController _metricsController;
+  late pivot.TableViewSelectionController _selectionController;
+  late pivot.TableViewSortController _sortController;
+  late pivot.TableViewSortListener _sortListener;
+  late pivot.ScrollController _scrollController;
+  late AnimationController _scrollAnimationController;
+  late List<pivot.TableColumnController> _columns;
 
   @override
   initState() {
@@ -319,24 +319,22 @@ class _InvoicesTableState extends State<InvoicesTable>
   }
 
   void _handleSelectionChanged() {
-    if (widget.onInvoiceSelected != null) {
-      final int rowIndex = _selectionController.selectedIndex;
-      widget.onInvoiceSelected(rowIndex >= 0 ? widget.invoices[rowIndex]['invoice_id'] : null);
-    }
+    final int rowIndex = _selectionController.selectedIndex;
+    widget.onInvoiceSelected(rowIndex >= 0 ? widget.invoices[rowIndex]['invoice_id'] : null);
   }
 
   void _handleSortChanged(pivot.TableViewSortController controller) {
     assert(controller == _sortController);
     assert(controller.length == 1);
 
-    Map<String, dynamic> selectedItem;
+    Map<String, dynamic>? selectedItem;
     if (_selectionController.selectedIndex != -1) {
       selectedItem = widget.invoices[_selectionController.selectedIndex];
     }
 
     final String sortKey = controller.keys.first;
-    final pivot.SortDirection direction = controller[sortKey];
-    final InvoiceComparator basicComparator = _invoiceComparators[sortKey];
+    final pivot.SortDirection? direction = controller[sortKey];
+    final InvoiceComparator basicComparator = _invoiceComparators[sortKey]!;
     InvoiceComparator comparator = (Map<String, dynamic> a, Map<String, dynamic> b) {
       int result = basicComparator(a, b);
       if (direction == pivot.SortDirection.descending) {
@@ -350,20 +348,19 @@ class _InvoicesTableState extends State<InvoicesTable>
       int selectedIndex = binarySearch(widget.invoices, selectedItem, compare: comparator);
       assert(selectedIndex >= 0);
       _selectionController.selectedIndex = selectedIndex;
-      assert(_metricsController.metrics != null);
       final Rect rowBounds = _metricsController.metrics.getRowBounds(selectedIndex);
       _scrollController.scrollToVisible(rowBounds, animation: _scrollAnimationController);
     }
   }
 
   Widget _renderBillingPeriodCell({
-    BuildContext context,
-    int rowIndex,
-    int columnIndex,
-    bool rowHighlighted,
-    bool rowSelected,
-    bool isEditing,
-    bool isRowDisabled,
+    required BuildContext context,
+    required int rowIndex,
+    required int columnIndex,
+    required bool rowHighlighted,
+    required bool rowSelected,
+    required bool isEditing,
+    required bool isRowDisabled,
   }) {
     return CellWrapper(
       selected: rowSelected,
@@ -371,18 +368,21 @@ class _InvoicesTableState extends State<InvoicesTable>
     );
   }
 
-  Widget _renderBillingPeriodHeader({BuildContext context, int columnIndex}) {
+  Widget _renderBillingPeriodHeader({
+    required BuildContext context,
+    required int columnIndex,
+  }) {
     return SingleLineText(data: 'Billing Period');
   }
 
   Widget _renderInvoiceNumberCell({
-    BuildContext context,
-    int rowIndex,
-    int columnIndex,
-    bool rowHighlighted,
-    bool rowSelected,
-    bool isEditing,
-    bool isRowDisabled,
+    required BuildContext context,
+    required int rowIndex,
+    required int columnIndex,
+    required bool rowHighlighted,
+    required bool rowSelected,
+    required bool isEditing,
+    required bool isRowDisabled,
   }) {
     return CellWrapper(
       selected: rowSelected,
@@ -390,18 +390,21 @@ class _InvoicesTableState extends State<InvoicesTable>
     );
   }
 
-  Widget _renderInvoiceNumberHeader({BuildContext context, int columnIndex}) {
+  Widget _renderInvoiceNumberHeader({
+    required BuildContext context,
+    required int columnIndex,
+  }) {
     return SingleLineText(data: 'Invoice Number');
   }
 
   Widget _renderSubmittedCell({
-    BuildContext context,
-    int rowIndex,
-    int columnIndex,
-    bool rowHighlighted,
-    bool rowSelected,
-    bool isEditing,
-    bool isRowDisabled,
+    required BuildContext context,
+    required int rowIndex,
+    required int columnIndex,
+    required bool rowHighlighted,
+    required bool rowSelected,
+    required bool isEditing,
+    required bool isRowDisabled,
   }) {
     return CellWrapper(
       selected: rowSelected,
@@ -409,18 +412,21 @@ class _InvoicesTableState extends State<InvoicesTable>
     );
   }
 
-  Widget _renderSubmittedHeader({BuildContext context, int columnIndex}) {
+  Widget _renderSubmittedHeader({
+    required BuildContext context,
+    required int columnIndex,
+  }) {
     return SingleLineText(data: 'Submitted');
   }
 
   Widget _renderResubmitCell({
-    BuildContext context,
-    int rowIndex,
-    int columnIndex,
-    bool rowHighlighted,
-    bool rowSelected,
-    bool isEditing,
-    bool isRowDisabled,
+    required BuildContext context,
+    required int rowIndex,
+    required int columnIndex,
+    required bool rowHighlighted,
+    required bool rowSelected,
+    required bool isEditing,
+    required bool isRowDisabled,
   }) {
     return CellWrapper(
       selected: rowSelected,
@@ -428,7 +434,10 @@ class _InvoicesTableState extends State<InvoicesTable>
     );
   }
 
-  Widget _renderResubmitHeader({BuildContext context, int columnIndex}) {
+  Widget _renderResubmitHeader({
+    required BuildContext context,
+    required int columnIndex,
+  }) {
     return SingleLineText(data: '');
   }
 
@@ -452,9 +461,9 @@ class _InvoicesTableState extends State<InvoicesTable>
 
 class CellWrapper extends StatelessWidget {
   const CellWrapper({
-    Key key,
-    this.selected,
-    this.child,
+    Key? key,
+    required this.selected,
+    required this.child,
   }) : super(key: key);
 
   final bool selected;
@@ -489,10 +498,9 @@ class CellWrapper extends StatelessWidget {
 
 class SingleLineText extends StatelessWidget {
   const SingleLineText({
-    Key key,
-    @required this.data,
-  })  : assert(data != null),
-        super(key: key);
+    Key? key,
+    required this.data,
+  })  : super(key: key);
 
   final String data;
 
@@ -510,8 +518,8 @@ class SingleLineText extends StatelessWidget {
 
 class BillingPeriodCell extends StatelessWidget {
   const BillingPeriodCell({
-    Key key,
-    this.invoice,
+    Key? key,
+    required this.invoice,
   }) : super(key: key);
 
   final Map<String, dynamic> invoice;
@@ -534,8 +542,8 @@ class BillingPeriodCell extends StatelessWidget {
 
 class InvoiceNumberCell extends StatelessWidget {
   const InvoiceNumberCell({
-    Key key,
-    this.invoice,
+    Key? key,
+    required this.invoice,
   }) : super(key: key);
 
   final Map<String, dynamic> invoice;
@@ -549,8 +557,8 @@ class InvoiceNumberCell extends StatelessWidget {
 
 class SubmittedCell extends StatelessWidget {
   const SubmittedCell({
-    Key key,
-    this.invoice,
+    Key? key,
+    required this.invoice,
   }) : super(key: key);
 
   final Map<String, dynamic> invoice;
@@ -559,7 +567,7 @@ class SubmittedCell extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    int submitted = invoice['submitted'];
+    int? submitted = invoice['submitted'];
     if (submitted == null) {
       return Container();
     } else {
@@ -571,8 +579,8 @@ class SubmittedCell extends StatelessWidget {
 
 class ResubmitCell extends StatelessWidget {
   const ResubmitCell({
-    Key key,
-    this.invoice,
+    Key? key,
+    required this.invoice,
   }) : super(key: key);
 
   final Map<String, dynamic> invoice;

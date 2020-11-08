@@ -1,5 +1,3 @@
-// @dart=2.9
-
 import 'package:flutter/widgets.dart';
 
 import 'package:payouts/src/model/invoice.dart';
@@ -10,7 +8,7 @@ import 'package:payouts/ui/common/task_monitor.dart';
 class SaveInvoiceIntent extends Intent {
   const SaveInvoiceIntent({this.context});
 
-  final BuildContext context;
+  final BuildContext? context;
 }
 
 class SaveInvoiceAction extends ContextAction<SaveInvoiceIntent>
@@ -41,14 +39,14 @@ class SaveInvoiceAction extends ContextAction<SaveInvoiceIntent>
   }
 
   @override
-  Future<void> invoke(SaveInvoiceIntent intent, [BuildContext context]) async {
-    context ??= intent.context ?? primaryFocus.context;
+  Future<void> invoke(SaveInvoiceIntent intent, [BuildContext? context]) async {
+    context ??= intent.context ?? primaryFocus!.context;
     if (context == null) {
       throw StateError('No context in which to invoke $runtimeType');
     }
 
     await TaskMonitor.of(context).monitor<void>(
-      future: InvoiceBinding.instance.save(),
+      future: InvoiceBinding.instance!.save(),
       inProgressMessage: 'Saving invoice...',
       completedMessage: 'Invoice saved',
     );

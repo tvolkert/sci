@@ -1,5 +1,3 @@
-// @dart=2.9
-
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io' show HttpStatus;
@@ -22,7 +20,7 @@ import 'warn_on_unsaved_changes_mixin.dart';
 class CreateInvoiceIntent extends Intent {
   const CreateInvoiceIntent({this.context});
 
-  final BuildContext context;
+  final BuildContext? context;
 }
 
 class CreateInvoiceAction extends ContextAction<CreateInvoiceIntent>
@@ -34,18 +32,18 @@ class CreateInvoiceAction extends ContextAction<CreateInvoiceIntent>
   static final CreateInvoiceAction instance = CreateInvoiceAction._();
 
   @override
-  Future<void> invoke(CreateInvoiceIntent intent, [BuildContext context]) async {
-    context ??= intent.context ?? primaryFocus.context;
+  Future<void> invoke(CreateInvoiceIntent intent, [BuildContext? context]) async {
+    context ??= intent.context ?? primaryFocus!.context;
     if (context == null) {
       throw StateError('No context in which to invoke $runtimeType');
     }
 
     final bool canProceed = await checkForUnsavedChanges(context);
     if (canProceed) {
-      final NewInvoiceProperties properties = await CreateInvoiceSheet.open(context: context);
+      final NewInvoiceProperties? properties = await CreateInvoiceSheet.open(context: context);
       if (properties != null) {
         await TaskMonitor.of(context).monitor(
-          future: InvoiceBinding.instance.createInvoice(properties),
+          future: InvoiceBinding.instance!.createInvoice(properties),
           inProgressMessage: 'Creating invoice',
           completedMessage: 'Invoice created',
         );
@@ -55,12 +53,12 @@ class CreateInvoiceAction extends ContextAction<CreateInvoiceIntent>
 }
 
 class CreateInvoiceSheet extends StatefulWidget {
-  const CreateInvoiceSheet({Key key}) : super(key: key);
+  const CreateInvoiceSheet({Key? key}) : super(key: key);
 
   @override
   _CreateInvoiceSheetState createState() => _CreateInvoiceSheetState();
 
-  static Future<NewInvoiceProperties> open({BuildContext context}) {
+  static Future<NewInvoiceProperties?> open({required BuildContext context}) {
     return pivot.Sheet.open<NewInvoiceProperties>(
       context: context,
       content: CreateInvoiceSheet(),
@@ -69,10 +67,10 @@ class CreateInvoiceSheet extends StatefulWidget {
 }
 
 class _CreateInvoiceSheetState extends State<CreateInvoiceSheet> {
-  List<Map<String, dynamic>> _billingPeriods;
-  TextEditingController _invoiceNumberController;
-  pivot.TableViewSelectionController _selectionController;
-  pivot.TableViewRowDisablerController _disablerController;
+  List<Map<String, dynamic>>? _billingPeriods;
+  late TextEditingController _invoiceNumberController;
+  late pivot.TableViewSelectionController _selectionController;
+  late pivot.TableViewRowDisablerController _disablerController;
 
   bool _canProceed = false;
   bool get canProceed => _canProceed;
@@ -92,16 +90,16 @@ class _CreateInvoiceSheetState extends State<CreateInvoiceSheet> {
   }
 
   void _handleOk() {
-    final Map<String, dynamic> selectedItem = _billingPeriods[_selectionController.selectedIndex];
+    final Map<String, dynamic> selectedItem = _billingPeriods![_selectionController.selectedIndex];
     final String billingStart = selectedItem[Keys.billingPeriod];
-    Navigator.of(context).pop(NewInvoiceProperties(
+    Navigator.of(context)!.pop(NewInvoiceProperties(
       invoiceNumber: _invoiceNumberController.text,
       billingStart: billingStart,
     ));
   }
 
   bool _isRowDisabled(int rowIndex) {
-    final Map<String, dynamic> row = _billingPeriods[rowIndex];
+    final Map<String, dynamic> row = _billingPeriods![rowIndex];
     return row.containsKey(Keys.invoiceNumber);
   }
 
@@ -115,7 +113,7 @@ class _CreateInvoiceSheetState extends State<CreateInvoiceSheet> {
     _disablerController = pivot.TableViewRowDisablerController(filter: _isRowDisabled);
 
     final Uri url = Server.uri(Server.newInvoiceParametersUrl);
-    UserBinding.instance.user.authenticate().get(url).then((http.Response response) {
+    UserBinding.instance!.user!.authenticate().get(url).then((http.Response response) {
       if (!mounted) {
         return;
       }
@@ -143,22 +141,22 @@ class _CreateInvoiceSheetState extends State<CreateInvoiceSheet> {
   static final intl.DateFormat dateFormat = intl.DateFormat('M/d/yyyy');
 
   Widget _renderBillingPeriod({
-    BuildContext context,
-    int rowIndex,
-    int columnIndex,
-    bool rowSelected,
-    bool rowHighlighted,
-    bool isEditing,
-    bool isRowDisabled,
+    required BuildContext context,
+    required int rowIndex,
+    required int columnIndex,
+    required bool rowSelected,
+    required bool rowHighlighted,
+    required bool isEditing,
+    required bool isRowDisabled,
   }) {
     assert(!isEditing);
-    final Map<String, dynamic> row = _billingPeriods[rowIndex];
+    final Map<String, dynamic> row = _billingPeriods![rowIndex];
     final String startDateValue = row[Keys.billingPeriod];
     final DateTime startDate = DateTime.parse(startDateValue);
     final DateTime endDate = startDate.add(const Duration(days: 14));
     final String formattedStartDate = dateFormat.format(startDate);
     final String formattedEndDate = dateFormat.format(endDate);
-    final String invoiceNumber = row[Keys.invoiceNumber];
+    final String? invoiceNumber = row[Keys.invoiceNumber];
 
     Widget result = Padding(
       padding: EdgeInsets.fromLTRB(0, 2, 0, 2),
@@ -323,7 +321,7 @@ class _CreateInvoiceSheetState extends State<CreateInvoiceSheet> {
               SizedBox(width: 4),
               pivot.CommandPushButton(
                 label: 'Cancel',
-                onPressed: () => Navigator.of(context).pop(),
+                onPressed: () => Navigator.of(context)!.pop(),
               ),
             ],
           ),

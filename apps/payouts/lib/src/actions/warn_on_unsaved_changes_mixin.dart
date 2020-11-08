@@ -1,5 +1,3 @@
-// @dart=2.9
-
 import 'package:flutter/material.dart' show Theme;
 import 'package:flutter/widgets.dart';
 
@@ -34,7 +32,7 @@ mixin WarnOnUnsavedChangesMixin on TrackInvoiceDirtyMixin {
       message: 'Save Changes?',
       body: Text(
         'This invoice has been modified.  Do you want to save your changes?',
-        style: Theme.of(context).textTheme.bodyText2.copyWith(height: 1.25),
+        style: Theme.of(context).textTheme.bodyText2!.copyWith(height: 1.25),
       ),
       options: ['Save', 'Discard', 'Cancel'],
     );
@@ -43,13 +41,13 @@ mixin WarnOnUnsavedChangesMixin on TrackInvoiceDirtyMixin {
       case 0:
         // Save
         final SaveInvoiceIntent intent = SaveInvoiceIntent(context: context);
-        final Future<void> saveFuture = Actions.invoke<SaveInvoiceIntent>(context, intent);
+        final Future<void> saveFuture = Actions.invoke<SaveInvoiceIntent>(context, intent) as Future<void>;
         await saveFuture;
         return true;
       case 1:
         // Discard
         return true;
-      case 2:
+      default:
         // Cancel
         return false;
     }

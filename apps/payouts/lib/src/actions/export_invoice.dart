@@ -1,5 +1,3 @@
-// @dart=2.9
-
 import 'dart:async';
 
 import 'package:flutter/material.dart';
@@ -10,7 +8,7 @@ import 'package:payouts/src/pivot.dart' as pivot;
 class ExportInvoiceIntent extends Intent {
   const ExportInvoiceIntent({this.context});
 
-  final BuildContext context;
+  final BuildContext? context;
 }
 
 class ExportInvoiceAction extends ContextAction<ExportInvoiceIntent> {
@@ -23,8 +21,8 @@ class ExportInvoiceAction extends ContextAction<ExportInvoiceIntent> {
   bool isEnabled(ExportInvoiceIntent intent) => false;
 
   @override
-  Future<void> invoke(ExportInvoiceIntent intent, [BuildContext context]) async {
-    context ??= intent.context ?? primaryFocus.context;
+  Future<void> invoke(ExportInvoiceIntent intent, [BuildContext? context]) async {
+    context ??= intent.context ?? primaryFocus!.context;
     if (context == null) {
       throw StateError('No context in which to invoke $runtimeType');
     }
@@ -35,12 +33,12 @@ class ExportInvoiceAction extends ContextAction<ExportInvoiceIntent> {
 }
 
 class ExportInvoiceSheet extends StatefulWidget {
-  const ExportInvoiceSheet({Key key}) : super(key: key);
+  const ExportInvoiceSheet({Key? key}) : super(key: key);
 
   @override
   _ExportInvoiceSheetState createState() => _ExportInvoiceSheetState();
 
-  static Future<void> open({BuildContext context}) {
+  static Future<void> open({required BuildContext context}) {
     return pivot.Sheet.open<void>(
       context: context,
       content: ExportInvoiceSheet(),
@@ -68,12 +66,12 @@ class _ExportInvoiceSheetState extends State<ExportInvoiceSheet> {
             children: [
               pivot.CommandPushButton(
                 label: 'OK',
-                onPressed: () => Navigator.of(context).pop(),
+                onPressed: () => Navigator.of(context)!.pop(),
               ),
               SizedBox(width: 4),
               pivot.CommandPushButton(
                 label: 'Cancel',
-                onPressed: () => Navigator.of(context).pop(),
+                onPressed: () => Navigator.of(context)!.pop(),
               ),
             ],
           ),

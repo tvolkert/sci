@@ -1,5 +1,3 @@
-// @dart=2.9
-
 import 'dart:async';
 
 import 'package:flutter/material.dart';
@@ -12,7 +10,7 @@ import 'package:payouts/ui/common/task_monitor.dart';
 class DeleteInvoiceIntent extends Intent {
   const DeleteInvoiceIntent({this.context});
 
-  final BuildContext context;
+  final BuildContext? context;
 }
 
 class DeleteInvoiceAction extends ContextAction<DeleteInvoiceIntent> with TrackInvoiceOpenedMixin {
@@ -33,8 +31,8 @@ class DeleteInvoiceAction extends ContextAction<DeleteInvoiceIntent> with TrackI
   bool isEnabled(DeleteInvoiceIntent intent) => isInvoiceOpened;
 
   @override
-  Future<void> invoke(DeleteInvoiceIntent intent, [BuildContext context]) async {
-    context ??= intent.context ?? primaryFocus.context;
+  Future<void> invoke(DeleteInvoiceIntent intent, [BuildContext? context]) async {
+    context ??= intent.context ?? primaryFocus!.context;
     if (context == null) {
       throw StateError('No context in which to invoke $runtimeType');
     }
@@ -45,14 +43,14 @@ class DeleteInvoiceAction extends ContextAction<DeleteInvoiceIntent> with TrackI
       message: 'Permanently Delete Invoice?',
       body: Text(
         'Are you sure you want to delete this invoice? Invoices cannot be recovered after they are deleted.',
-        style: Theme.of(context).textTheme.bodyText2.copyWith(height: 1.25),
+        style: Theme.of(context).textTheme.bodyText2!.copyWith(height: 1.25),
       ),
       options: ['OK', 'Cancel'],
     );
 
     if (selectedOption == 0) {
       await TaskMonitor.of(context).monitor<void>(
-        future: InvoiceBinding.instance.delete(),
+        future: InvoiceBinding.instance!.delete(),
         inProgressMessage: 'Deleting invoice...',
         completedMessage: 'Invoice deleted',
       );

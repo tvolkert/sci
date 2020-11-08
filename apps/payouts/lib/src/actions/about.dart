@@ -1,5 +1,3 @@
-// @dart=2.9
-
 import 'dart:async';
 import 'dart:convert';
 
@@ -12,7 +10,7 @@ import 'package:payouts/src/pivot.dart' as pivot;
 class AboutIntent extends Intent {
   const AboutIntent({this.context});
 
-  final BuildContext context;
+  final BuildContext? context;
 }
 
 class AboutAction extends ContextAction<AboutIntent> {
@@ -21,8 +19,8 @@ class AboutAction extends ContextAction<AboutIntent> {
   static final AboutAction instance = AboutAction._();
 
   @override
-  Future<void> invoke(AboutIntent intent, [BuildContext context]) async {
-    context ??= intent.context ?? primaryFocus.context;
+  Future<void> invoke(AboutIntent intent, [BuildContext? context]) async {
+    context ??= intent.context ?? primaryFocus!.context;
     if (context == null) {
       throw StateError('No context in which to invoke $runtimeType');
     }
@@ -33,16 +31,15 @@ class AboutAction extends ContextAction<AboutIntent> {
 
 class AboutSheet extends StatelessWidget {
   const AboutSheet({
-    Key key,
-    @required this.flutterVersionData,
-  })  : assert(flutterVersionData != null),
-        super(key: key);
+    Key? key,
+    required this.flutterVersionData,
+  })  : super(key: key);
 
   final Map<String, String> flutterVersionData;
 
   @override
   Widget build(BuildContext context) {
-    final TextStyle bodyTextStyle = Theme.of(context).textTheme.bodyText2;
+    final TextStyle bodyTextStyle = Theme.of(context).textTheme.bodyText2!;
     return SizedBox(
       width: 300,
       child: Padding(
@@ -106,7 +103,7 @@ class AboutSheet extends StatelessWidget {
                     children: [
                       pivot.CommandPushButton(
                         label: 'OK',
-                        onPressed: () => Navigator.of(context).pop(),
+                        onPressed: () => Navigator.of(context)!.pop(),
                       ),
                     ],
                   ),
@@ -119,7 +116,7 @@ class AboutSheet extends StatelessWidget {
     );
   }
 
-  static Future<T> open<T>({BuildContext context}) async {
+  static Future<void> open({required BuildContext context}) async {
     Map<String, String> flutterVersionData = await rootBundle.loadStructuredData<Map<String, String>>(
       'assets/flutter_version.json',
           (String value) async {
@@ -127,7 +124,7 @@ class AboutSheet extends StatelessWidget {
         return decoded.cast<String, String>();
       },
     );
-    return pivot.Sheet.open<T>(
+    return pivot.Sheet.open<void>(
       context: context,
       padding: EdgeInsets.zero,
       content: AboutSheet(
@@ -138,7 +135,7 @@ class AboutSheet extends StatelessWidget {
 }
 
 class FlutterVersion extends StatefulWidget {
-  const FlutterVersion({@required this.data}) : assert(data != null);
+  const FlutterVersion({required this.data});
 
   final Map<String, String> data;
 
@@ -147,7 +144,7 @@ class FlutterVersion extends StatefulWidget {
 }
 
 class _FlutterVersionState extends State<FlutterVersion> {
-  TextEditingController _controller;
+  late TextEditingController _controller;
 
   static final _dartSdkVersion = RegExp(r'[0-9.]+ \(build [^ ]+ ([0-9a-f]+)\)');
 
@@ -155,9 +152,9 @@ class _FlutterVersionState extends State<FlutterVersion> {
     StringBuffer buf = StringBuffer()
       ..writeln('Flutter version: ${widget.data['frameworkVersion']}')
       ..writeln('Flutter channel: ${widget.data['channel']}')
-      ..writeln('Flutter revision: ${widget.data['frameworkRevision'].substring(0, 7)}')
-      ..writeln('Flutter engine revision: ${widget.data['engineRevision'].substring(0, 7)}')
-      ..writeln('Flutter Dart revision: ${_dartSdkVersion.firstMatch(widget.data['dartSdkVersion']).group(1)}');
+      ..writeln('Flutter revision: ${widget.data['frameworkRevision']!.substring(0, 7)}')
+      ..writeln('Flutter engine revision: ${widget.data['engineRevision']!.substring(0, 7)}')
+      ..writeln('Flutter Dart revision: ${_dartSdkVersion.firstMatch(widget.data['dartSdkVersion']!)!.group(1)}');
     _controller.text = buf.toString();
   }
 

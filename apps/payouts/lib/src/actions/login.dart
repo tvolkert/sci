@@ -1,5 +1,3 @@
-// @dart=2.9
-
 import 'dart:async';
 import 'dart:io';
 
@@ -19,7 +17,7 @@ typedef ChangePasswordCallback = void Function(String password);
 class LoginIntent extends Intent {
   const LoginIntent({this.context});
 
-  final BuildContext context;
+  final BuildContext? context;
 }
 
 class LoginAction extends ContextAction<LoginIntent> {
@@ -28,8 +26,8 @@ class LoginAction extends ContextAction<LoginIntent> {
   static final LoginAction instance = LoginAction._();
 
   @override
-  Future<void> invoke(LoginIntent intent, [BuildContext context]) async {
-    context ??= intent.context ?? primaryFocus.context;
+  Future<void> invoke(LoginIntent intent, [BuildContext? context]) async {
+    context ??= intent.context ?? primaryFocus!.context;
     if (context == null) {
       throw StateError('No context in which to invoke $runtimeType');
     }
@@ -43,21 +41,21 @@ class LoginAction extends ContextAction<LoginIntent> {
 
 class LoginSheet extends StatefulWidget {
   const LoginSheet({
-    Key key,
+    Key? key,
     this.username,
     this.password,
   }) : super(key: key);
 
   /// The pre-populated value of the username field.
-  final String username;
+  final String? username;
 
   /// The pre-populated value of the password field.
-  final String password;
+  final String? password;
 
   @override
   _LoginSheetState createState() => _LoginSheetState();
 
-  static Future<void> open({BuildContext context, String username, String password}) {
+  static Future<void> open({required BuildContext context, String? username, String? password}) {
     return pivot.Sheet.open<void>(
       context: context,
       barrierColor: const Color(0x00000000),
@@ -91,19 +89,9 @@ class _LoginSheetState extends State<LoginSheet> {
       'encountered an error. Please report this problem to Keith Volkert '
       '(keith@satelliteconsulting.com).';
 
-  String _activityText;
-  String get activityText => _activityText;
-  set activityText(String value) {
-    if (value != _activityText) {
-      setState(() {
-        _activityText = value;
-      });
-    }
-  }
-
-  String _errorText;
-  String get errorText => _errorText;
-  set errorText(String value) {
+  String? _errorText;
+  String? get errorText => _errorText;
+  set errorText(String? value) {
     if (value != _errorText) {
       setState(() {
         _errorText = value;
@@ -121,7 +109,7 @@ class _LoginSheetState extends State<LoginSheet> {
     }
   }
 
-  bool _passwordNeedsReset;
+  late bool _passwordNeedsReset;
   bool get passwordNeedsReset => _passwordNeedsReset;
   set passwordNeedsReset(bool value) {
     if (value != _passwordNeedsReset) {
@@ -133,20 +121,20 @@ class _LoginSheetState extends State<LoginSheet> {
 
   Future<void> _initialize() async {
     phase = _LoginPhase.initializing;
-    final int invoiceId = UserBinding.instance.user.lastInvoiceId;
+    final int? invoiceId = UserBinding.instance!.user!.lastInvoiceId;
     if (invoiceId != null) {
-      await InvoiceBinding.instance.loadInvoice(invoiceId);
+      await InvoiceBinding.instance!.loadInvoice(invoiceId);
     }
   }
 
   void _close() {
-    Navigator.of(context).pop<void>();
+    Navigator.of(context)!.pop<void>();
   }
 
   Future<void> _handleAttemptLogin(String username, String password, bool setCookie) async {
     phase = _LoginPhase.authenticating;
     try {
-      final User user = await UserBinding.instance.login(username, password);
+      final User user = await UserBinding.instance!.login(username, password);
       passwordNeedsReset = user.passwordRequiresReset;
       if (user.isPostLogin) {
         _close();
@@ -163,15 +151,15 @@ class _LoginSheetState extends State<LoginSheet> {
   }
 
   Future<void> _handleAttemptChangePassword(String password) async {
-    assert(UserBinding.instance.user != null);
+    assert(UserBinding.instance!.user != null);
     phase = _LoginPhase.changingPassword;
-    final User user = await UserBinding.instance.user.updatePassword(password);
+    final User user = await UserBinding.instance!.user!.updatePassword(password);
     if (user.isPostLogin) {
       _close();
     }
   }
 
-  static String _statusTextFor(_LoginPhase phase) {
+  static String? _statusTextFor(_LoginPhase phase) {
     switch (phase) {
       case _LoginPhase.authenticating:
         return 'Logging In...';
@@ -187,13 +175,13 @@ class _LoginSheetState extends State<LoginSheet> {
   @override
   void initState() {
     super.initState();
-    _passwordNeedsReset = UserBinding.instance.user?.passwordRequiresReset ?? false;
-    UserBinding.instance.addPostLoginCallback(_initialize);
+    _passwordNeedsReset = UserBinding.instance!.user?.passwordRequiresReset ?? false;
+    UserBinding.instance!.addPostLoginCallback(_initialize);
   }
 
   @override
   void dispose() {
-    UserBinding.instance.removePostLoginCallback(_initialize);
+    UserBinding.instance!.removePostLoginCallback(_initialize);
     super.dispose();
   }
 
@@ -219,20 +207,20 @@ class _LoginSheetState extends State<LoginSheet> {
 
 class _LoginPane extends StatefulWidget {
   const _LoginPane({
-    Key key,
-    this.username,
-    this.password,
-    this.setCookie,
-    this.activityStatusText,
-    this.errorText,
-    this.onAttemptLogin,
+    Key? key,
+    required this.username,
+    required this.password,
+    required this.setCookie,
+    required this.activityStatusText,
+    required this.errorText,
+    required this.onAttemptLogin,
   }) : super(key: key);
 
   /// The pre-populated value of the username field.
-  final String username;
+  final String? username;
 
   /// The pre-populated value of the password field.
-  final String password;
+  final String? password;
 
   /// Whether to default to remembering the user's username and password.
   final bool setCookie;
@@ -242,10 +230,10 @@ class _LoginPane extends StatefulWidget {
   ///
   /// If this is non-null, an animated activity indicator will also be shown to
   /// the user, and the "Log In" button will be disabled.
-  final String activityStatusText;
+  final String? activityStatusText;
 
   /// An optional error message to display to the user.
-  final String errorText;
+  final String? errorText;
 
   /// Callback to invoke when the user attempts to login.
   final LoginCallback onAttemptLogin;
@@ -255,9 +243,9 @@ class _LoginPane extends StatefulWidget {
 }
 
 class _LoginPaneState extends State<_LoginPane> {
-  TextEditingController _usernameController;
-  TextEditingController _passwordController;
-  bool _setCookie;
+  late TextEditingController _usernameController;
+  late TextEditingController _passwordController;
+  late bool _setCookie;
 
   void _handleAttemptLogin() {
     widget.onAttemptLogin(_usernameController.text, _passwordController.text, _setCookie);
@@ -319,7 +307,7 @@ class _LoginPaneState extends State<_LoginPane> {
                         child: pivot.ScrollPane(
                           horizontalScrollBarPolicy: pivot.ScrollBarPolicy.stretch,
                           view: Text(
-                            widget.errorText,
+                            widget.errorText!,
                             style: defaultStyle.copyWith(color: const Color(0xffb71624)),
                           ),
                         ),
@@ -403,7 +391,7 @@ class _LoginPaneState extends State<_LoginPane> {
                         child: pivot.ActivityIndicator(),
                       ),
                       SizedBox(width: 4),
-                      Text(widget.activityStatusText),
+                      Text(widget.activityStatusText!),
                     ],
                   ),
                 ),
@@ -421,9 +409,9 @@ class _LoginPaneState extends State<_LoginPane> {
 
 class _ResetPasswordPane extends StatefulWidget {
   const _ResetPasswordPane({
-    Key key,
-    this.activityStatusText,
-    this.onAttemptChangePassword,
+    Key? key,
+    required this.activityStatusText,
+    required this.onAttemptChangePassword,
   }) : super(key: key);
 
   /// An optional message to display to the user indicating that an
@@ -431,7 +419,7 @@ class _ResetPasswordPane extends StatefulWidget {
   ///
   /// If this is non-null, an animated activity indicator will also be shown to
   /// the user, and the "Change Password" button will be disabled.
-  final String activityStatusText;
+  final String? activityStatusText;
 
   /// Callback to invoke when the user attempts to change their password.
   final ChangePasswordCallback onAttemptChangePassword;
@@ -441,12 +429,12 @@ class _ResetPasswordPane extends StatefulWidget {
 }
 
 class _ResetPasswordPaneState extends State<_ResetPasswordPane> {
-  TextEditingController _passwordController;
-  TextEditingController _confirmPasswordController;
+  late TextEditingController _passwordController;
+  late TextEditingController _confirmPasswordController;
 
-  String _errorText;
-  String get errorText => _errorText;
-  set errorText(String value) {
+  String? _errorText;
+  String? get errorText => _errorText;
+  set errorText(String? value) {
     if (value != _errorText) {
       setState(() {
         _errorText = value;
@@ -505,7 +493,7 @@ class _ResetPasswordPaneState extends State<_ResetPasswordPane> {
                             child: pivot.ScrollPane(
                               horizontalScrollBarPolicy: pivot.ScrollBarPolicy.stretch,
                               view: Text(
-                                errorText,
+                                errorText!,
                                 style: defaultStyle.copyWith(color: const Color(0xffb71624)),
                               ),
                             ),
@@ -580,7 +568,7 @@ class _ResetPasswordPaneState extends State<_ResetPasswordPane> {
                         child: pivot.ActivityIndicator(),
                       ),
                       SizedBox(width: 4),
-                      Text(widget.activityStatusText),
+                      Text(widget.activityStatusText!),
                     ],
                   ),
                 ),

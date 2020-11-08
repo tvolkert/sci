@@ -1,5 +1,3 @@
-// @dart=2.9
-
 import 'dart:async';
 
 import 'package:flutter/material.dart';
@@ -11,7 +9,7 @@ import 'package:payouts/src/pivot.dart' as pivot;
 class AddTimesheetIntent extends Intent {
   const AddTimesheetIntent({this.context});
 
-  final BuildContext context;
+  final BuildContext? context;
 }
 
 class AddTimesheetAction extends ContextAction<AddTimesheetIntent> {
@@ -20,15 +18,15 @@ class AddTimesheetAction extends ContextAction<AddTimesheetIntent> {
   static final AddTimesheetAction instance = AddTimesheetAction._();
 
   @override
-  Future<void> invoke(AddTimesheetIntent intent, [BuildContext context]) async {
-    context ??= intent.context ?? primaryFocus.context;
+  Future<void> invoke(AddTimesheetIntent intent, [BuildContext? context]) async {
+    context ??= intent.context ?? primaryFocus!.context;
     if (context == null) {
       throw StateError('No context in which to invoke $runtimeType');
     }
 
-    final _TimesheetMetadata metadata = await AddTimesheetSheet.open(context: context);
+    final _TimesheetMetadata? metadata = await AddTimesheetSheet.open(context: context);
     if (metadata != null) {
-      InvoiceBinding.instance.invoice.timesheets.add(
+      InvoiceBinding.instance!.invoice!.timesheets.add(
         program: metadata.program,
         chargeNumber: metadata.chargeNumber,
         requestor: metadata.requestor,
@@ -39,12 +37,12 @@ class AddTimesheetAction extends ContextAction<AddTimesheetIntent> {
 }
 
 class AddTimesheetSheet extends StatefulWidget {
-  const AddTimesheetSheet({Key key}) : super(key: key);
+  const AddTimesheetSheet({Key? key}) : super(key: key);
 
   @override
   _AddTimesheetSheetState createState() => _AddTimesheetSheetState();
 
-  static Future<_TimesheetMetadata> open({BuildContext context}) {
+  static Future<_TimesheetMetadata?> open({required BuildContext context}) {
     return pivot.Sheet.open<_TimesheetMetadata>(
       context: context,
       content: AddTimesheetSheet(),
@@ -53,18 +51,18 @@ class AddTimesheetSheet extends StatefulWidget {
 }
 
 class _AddTimesheetSheetState extends State<AddTimesheetSheet> {
-  List<Program> _assignments;
+  late List<Program> _assignments;
   bool _requiresChargeNumber = false;
   bool _requiresRequestor = false;
-  pivot.Flag _programFlag;
-  pivot.Flag _chargeNumberFlag;
-  pivot.Flag _requestorFlag;
-  pivot.ListViewSelectionController _programSelectionController;
-  TextEditingController _chargeNumberController;
-  TextEditingController _requestorController;
-  TextEditingController _taskController;
+  pivot.Flag? _programFlag;
+  pivot.Flag? _chargeNumberFlag;
+  pivot.Flag? _requestorFlag;
+  late pivot.ListViewSelectionController _programSelectionController;
+  late TextEditingController _chargeNumberController;
+  late TextEditingController _requestorController;
+  late TextEditingController _taskController;
 
-  Widget _buildProgram({BuildContext context, Program item}) {
+  Widget _buildProgram({required BuildContext context, required Program? item}) {
     return pivot.ListButton.defaultBuilder(
       context: context,
       item: item == null ? '' : item.name,
@@ -72,11 +70,11 @@ class _AddTimesheetSheetState extends State<AddTimesheetSheet> {
   }
 
   Widget _buildProgramItem({
-    BuildContext context,
-    Program item,
-    bool isSelected,
-    bool isHighlighted,
-    bool isDisabled,
+    required BuildContext context,
+    required Program item,
+    required bool isSelected,
+    required bool isHighlighted,
+    required bool isDisabled,
   }) {
     return pivot.ListButton.defaultItemBuilder(
       context: context,
@@ -87,14 +85,14 @@ class _AddTimesheetSheetState extends State<AddTimesheetSheet> {
     );
   }
 
-  Program get _selectedProgram {
+  Program? get _selectedProgram {
     return _programSelectionController.selectedIndex >= 0
         ? _assignments[_programSelectionController.selectedIndex]
         : null;
   }
 
   void _handleProgramSelected() {
-    final Program selectedProgram = _selectedProgram;
+    final Program selectedProgram = _selectedProgram!;
     setState(() {
       _requiresChargeNumber = selectedProgram.requiresChargeNumber;
       _requiresRequestor = selectedProgram.requiresRequestor;
@@ -104,7 +102,7 @@ class _AddTimesheetSheetState extends State<AddTimesheetSheet> {
   void _handleOk() {
     bool isInputValid = true;
 
-    final Program selectedProgram = _selectedProgram;
+    final Program? selectedProgram = _selectedProgram;
     final String chargeNumber = _chargeNumberController.text.trim();
     final String requestor = _requestorController.text.trim();
     final String task = _taskController.text.trim();
@@ -153,19 +151,19 @@ class _AddTimesheetSheetState extends State<AddTimesheetSheet> {
 
     if (isInputValid) {
       final _TimesheetMetadata metadata = _TimesheetMetadata(
-        program: selectedProgram,
+        program: selectedProgram!,
         chargeNumber: chargeNumber,
         requestor: requestor,
         task: task,
       );
-      Navigator.of(context).pop<_TimesheetMetadata>(metadata);
+      Navigator.of(context)!.pop<_TimesheetMetadata>(metadata);
     }
   }
 
   @override
   void initState() {
     super.initState();
-    _assignments = AssignmentsBinding.instance.assignments;
+    _assignments = AssignmentsBinding.instance!.assignments!;
     _programSelectionController = pivot.ListViewSelectionController();
     _programSelectionController.addListener(_handleProgramSelected);
     _chargeNumberController = TextEditingController();
@@ -257,7 +255,7 @@ class _AddTimesheetSheetState extends State<AddTimesheetSheet> {
               SizedBox(width: 6),
               pivot.CommandPushButton(
                 label: 'Cancel',
-                onPressed: () => Navigator.of(context).pop(),
+                onPressed: () => Navigator.of(context)!.pop(),
               ),
             ],
           ),
@@ -270,10 +268,10 @@ class _AddTimesheetSheetState extends State<AddTimesheetSheet> {
 @immutable
 class _TimesheetMetadata {
   const _TimesheetMetadata({
-    @required this.program,
-    @required this.chargeNumber,
-    @required this.requestor,
-    @required this.task,
+    required this.program,
+    required this.chargeNumber,
+    required this.requestor,
+    required this.task,
   });
 
   final Program program;
