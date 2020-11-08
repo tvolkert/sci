@@ -1,5 +1,3 @@
-// @dart=2.9
-
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:intl/intl.dart' as intl;
@@ -8,7 +6,7 @@ import 'package:payouts/splitter.dart';
 import 'package:payouts/src/pivot.dart' as pivot;
 
 class ExpenseReportsView extends StatelessWidget {
-  const ExpenseReportsView({Key key}) : super(key: key);
+  const ExpenseReportsView({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -43,7 +41,7 @@ class ExpenseReportsView extends StatelessWidget {
                           padding: EdgeInsets.fromLTRB(11, 11, 11, 9),
                           child: DefaultTextStyle(
                             style:
-                            Theme.of(context).textTheme.bodyText2.copyWith(color: Colors.black),
+                            Theme.of(context).textTheme.bodyText2!.copyWith(color: Colors.black),
                             child: Table(
                               columnWidths: {
                                 0: IntrinsicColumnWidth(),
@@ -153,9 +151,9 @@ class ExpensesTableView extends StatefulWidget {
 }
 
 class _ExpensesTableViewState extends State<ExpensesTableView> {
-  pivot.TableViewSelectionController _selectionController;
-  pivot.TableViewSortController _sortController;
-  pivot.TableViewEditorController _editorcontroller;
+  late pivot.TableViewSelectionController _selectionController;
+  late pivot.TableViewSortController _sortController;
+  late pivot.TableViewEditorController _editorcontroller;
 
   final List<List<String>> data = [
     ['2015-10-12', 'Lodging', r'$219.05', 'Hotel'],
@@ -181,8 +179,8 @@ class _ExpensesTableViewState extends State<ExpensesTableView> {
 
   pivot.TableHeaderRenderer _renderHeader(String name) {
     return ({
-      BuildContext context,
-      int columnIndex,
+      required BuildContext context,
+      required int columnIndex,
     }) {
       return Text(
         name,
@@ -194,13 +192,13 @@ class _ExpensesTableViewState extends State<ExpensesTableView> {
   }
 
   Widget _renderDate({
-    BuildContext context,
-    int rowIndex,
-    int columnIndex,
-    bool rowSelected,
-    bool rowHighlighted,
-    bool isEditing,
-    bool isRowDisabled,
+    required BuildContext context,
+    required int rowIndex,
+    required int columnIndex,
+    required bool rowSelected,
+    required bool rowHighlighted,
+    required bool isEditing,
+    required bool isRowDisabled,
   }) {
     final String date = data[rowIndex][0];
     final DateTime dateTime = DateTime.parse(date);
@@ -224,13 +222,13 @@ class _ExpensesTableViewState extends State<ExpensesTableView> {
   }
 
   Widget _renderType({
-    BuildContext context,
-    int rowIndex,
-    int columnIndex,
-    bool rowSelected,
-    bool rowHighlighted,
-    bool isEditing,
-    bool isRowDisabled,
+    required BuildContext context,
+    required int rowIndex,
+    required int columnIndex,
+    required bool rowSelected,
+    required bool rowHighlighted,
+    required bool isEditing,
+    required bool isRowDisabled,
   }) {
     final String type = data[rowIndex][1];
     if (isEditing) {
@@ -270,18 +268,18 @@ class _ExpensesTableViewState extends State<ExpensesTableView> {
           child: Text('Yet another type'),
         ),
       ],
-      onMenuItemSelected: (String value) {},
+      onMenuItemSelected: (String? value) {},
     );
   }
 
   Widget _renderAmount({
-    BuildContext context,
-    int rowIndex,
-    int columnIndex,
-    bool rowSelected,
-    bool rowHighlighted,
-    bool isEditing,
-    bool isRowDisabled,
+    required BuildContext context,
+    required int rowIndex,
+    required int columnIndex,
+    required bool rowSelected,
+    required bool rowHighlighted,
+    required bool isEditing,
+    required bool isRowDisabled,
   }) {
     final String amount = data[rowIndex][2];
     TextStyle style = DefaultTextStyle.of(context).style;
@@ -303,13 +301,13 @@ class _ExpensesTableViewState extends State<ExpensesTableView> {
   }
 
   Widget _renderDescription({
-    BuildContext context,
-    int rowIndex,
-    int columnIndex,
-    bool rowSelected,
-    bool rowHighlighted,
-    bool isEditing,
-    bool isRowDisabled,
+    required BuildContext context,
+    required int rowIndex,
+    required int columnIndex,
+    required bool rowSelected,
+    required bool rowHighlighted,
+    required bool isEditing,
+    required bool isRowDisabled,
   }) {
     final String description = data[rowIndex][3];
     TextStyle style = DefaultTextStyle.of(context).style;
@@ -387,13 +385,12 @@ class _ExpensesTableViewState extends State<ExpensesTableView> {
 
 class ExpenseCellWrapper extends StatelessWidget {
   const ExpenseCellWrapper({
-    Key key,
+    Key? key,
     this.rowIndex = 0,
     this.rowHighlighted = false,
     this.rowSelected = false,
-    this.child,
-  })  : assert(rowIndex != null),
-        super(key: key);
+    required this.child,
+  })  : super(key: key);
 
   final int rowIndex;
   final bool rowHighlighted;
@@ -422,8 +419,8 @@ class ExpenseCellWrapper extends StatelessWidget {
 
 class ExpenseReportData {
   const ExpenseReportData({
-    this.title,
-    this.amount,
+    required this.title,
+    required this.amount,
   });
   final String title;
   final double amount;
@@ -480,9 +477,9 @@ class ExpenseReportListTile extends StatelessWidget {
   ///
   /// Requires one of its ancestors to be a [Material] widget.
   const ExpenseReportListTile({
-    Key key,
-    @required this.title,
-    @required this.amount,
+    Key? key,
+    required this.title,
+    required this.amount,
     this.enabled = true,
     this.onTap,
     this.mouseCursor,
@@ -490,10 +487,7 @@ class ExpenseReportListTile extends StatelessWidget {
     this.focusColor,
     this.hoverColor,
     this.autofocus = false,
-  })  : assert(enabled != null),
-        assert(selected != null),
-        assert(autofocus != null),
-        super(key: key);
+  })  : super(key: key);
 
   final String title;
   final double amount;
@@ -508,7 +502,7 @@ class ExpenseReportListTile extends StatelessWidget {
   /// Called when the user taps this list tile.
   ///
   /// Inoperative if [enabled] is false.
-  final GestureTapCallback onTap;
+  final GestureTapCallback? onTap;
 
   /// The cursor for a mouse pointer when it enters or is hovering over the
   /// widget.
@@ -520,7 +514,7 @@ class ExpenseReportListTile extends StatelessWidget {
   ///  * [MaterialState.disabled].
   ///
   /// If this property is null, [MaterialStateMouseCursor.clickable] will be used.
-  final MouseCursor mouseCursor;
+  final MouseCursor? mouseCursor;
 
   /// If this tile is also [enabled] then icons and text are rendered with the same color.
   ///
@@ -529,22 +523,22 @@ class ExpenseReportListTile extends StatelessWidget {
   final bool selected;
 
   /// The color for the tile's [Material] when it has the input focus.
-  final Color focusColor;
+  final Color? focusColor;
 
   /// The color for the tile's [Material] when a pointer is hovering over it.
-  final Color hoverColor;
+  final Color? hoverColor;
 
   /// {@macro flutter.widgets.Focus.autofocus}
   final bool autofocus;
 
-  Color _textColor(ThemeData theme, ListTileTheme tileTheme, Color defaultColor) {
+  Color? _textColor(ThemeData theme, ListTileTheme tileTheme, Color? defaultColor) {
     if (!enabled)
       return theme.disabledColor;
 
-    if (selected && tileTheme?.selectedColor != null)
+    if (selected && tileTheme.selectedColor != null)
       return tileTheme.selectedColor;
 
-    if (!selected && tileTheme?.textColor != null)
+    if (!selected && tileTheme.textColor != null)
       return tileTheme.textColor;
 
     if (selected) {
@@ -554,20 +548,16 @@ class ExpenseReportListTile extends StatelessWidget {
   }
 
   TextStyle _textStyle(ThemeData theme, ListTileTheme tileTheme) {
-    TextStyle style;
-    if (tileTheme != null) {
-      switch (tileTheme.style) {
-        case ListTileStyle.drawer:
-          style = theme.textTheme.bodyText1;
-          break;
-        case ListTileStyle.list:
-          style = theme.textTheme.subtitle1;
-          break;
-      }
-    } else {
-      style = theme.textTheme.subtitle1;
+    late TextStyle style;
+    switch (tileTheme.style) {
+      case ListTileStyle.drawer:
+        style = theme.textTheme.bodyText1!;
+        break;
+      case ListTileStyle.list:
+        style = theme.textTheme.subtitle1!;
+        break;
     }
-    final Color color = _textColor(theme, tileTheme, style.color);
+    final Color? color = _textColor(theme, tileTheme, style.color);
     return style.copyWith(fontFamily: 'Verdana', fontSize: 11.0, color: color);
   }
 
@@ -627,16 +617,13 @@ enum _ListTileSlot {
 
 class _ListTile extends RenderObjectWidget {
   const _ListTile({
-    Key key,
-    this.title,
-    this.trailing,
-    @required this.textDirection,
-    @required this.titleBaselineType,
+    Key? key,
+    required this.title,
+    required this.trailing,
+    required this.textDirection,
+    required this.titleBaselineType,
     this.selected = false,
-  })  : assert(textDirection != null),
-        assert(titleBaselineType != null),
-        assert(selected != null),
-        super(key: key);
+  })  : super(key: key);
 
   final Widget title;
   final Widget trailing;
@@ -686,15 +673,15 @@ class _ListTileElement extends RenderObjectElement {
   void forgetChild(Element child) {
     assert(slotToChild.values.contains(child));
     assert(childToSlot.keys.contains(child));
-    final _ListTileSlot slot = childToSlot[child];
+    final _ListTileSlot slot = childToSlot[child]!;
     childToSlot.remove(child);
     slotToChild.remove(slot);
     super.forgetChild(child);
   }
 
   void _mountChild(Widget widget, _ListTileSlot slot) {
-    final Element oldChild = slotToChild[slot];
-    final Element newChild = updateChild(oldChild, widget, slot);
+    final Element? oldChild = slotToChild[slot];
+    final Element? newChild = updateChild(oldChild, widget, slot);
     if (oldChild != null) {
       slotToChild.remove(slot);
       childToSlot.remove(oldChild);
@@ -706,15 +693,15 @@ class _ListTileElement extends RenderObjectElement {
   }
 
   @override
-  void mount(Element parent, dynamic newSlot) {
+  void mount(Element? parent, dynamic newSlot) {
     super.mount(parent, newSlot);
     _mountChild(widget.title, _ListTileSlot.title);
     _mountChild(widget.trailing, _ListTileSlot.trailing);
   }
 
   void _updateChild(Widget widget, _ListTileSlot slot) {
-    final Element oldChild = slotToChild[slot];
-    final Element newChild = updateChild(oldChild, widget, slot);
+    final Element? oldChild = slotToChild[slot];
+    final Element? newChild = updateChild(oldChild, widget, slot);
     if (oldChild != null) {
       childToSlot.remove(oldChild);
       slotToChild.remove(slot);
@@ -733,7 +720,7 @@ class _ListTileElement extends RenderObjectElement {
     _updateChild(widget.trailing, _ListTileSlot.trailing);
   }
 
-  void _updateRenderObject(RenderBox child, _ListTileSlot slot) {
+  void _updateRenderObject(RenderBox? child, _ListTileSlot slot) {
     switch (slot) {
       case _ListTileSlot.title:
         renderObject.title = child;
@@ -745,39 +732,36 @@ class _ListTileElement extends RenderObjectElement {
   }
 
   @override
-  void insertRenderObjectChild(RenderObject child, dynamic slotValue) {
+  void insertRenderObjectChild(RenderBox child, dynamic slotValue) {
     assert(child is RenderBox);
     assert(slotValue is _ListTileSlot);
     final _ListTileSlot slot = slotValue as _ListTileSlot;
-    _updateRenderObject(child as RenderBox, slot);
+    _updateRenderObject(child, slot);
     assert(renderObject.childToSlot.keys.contains(child));
     assert(renderObject.slotToChild.keys.contains(slot));
   }
 
   @override
-  void removeRenderObjectChild(RenderObject child, dynamic slot) {
+  void removeRenderObjectChild(RenderBox child, dynamic slot) {
     assert(child is RenderBox);
     assert(renderObject.childToSlot.keys.contains(child));
-    _updateRenderObject(null, renderObject.childToSlot[child]);
+    _updateRenderObject(null, renderObject.childToSlot[child]!);
     assert(!renderObject.childToSlot.keys.contains(child));
     assert(!renderObject.slotToChild.keys.contains(slot));
   }
 
   @override
-  void moveRenderObjectChild(RenderObject child, dynamic oldSlot, dynamic newSlot) {
+  void moveRenderObjectChild(RenderBox child, dynamic oldSlot, dynamic newSlot) {
     assert(false, 'not reachable');
   }
 }
 
 class _RenderListTile extends RenderBox {
   _RenderListTile({
-    @required TextDirection textDirection,
-    @required TextBaseline titleBaselineType,
-    @required bool selected,
-  })  : assert(textDirection != null),
-        assert(titleBaselineType != null),
-        assert(selected != null),
-        _textDirection = textDirection,
+    required TextDirection textDirection,
+    required TextBaseline titleBaselineType,
+    required bool selected,
+  })  : _textDirection = textDirection,
         _titleBaselineType = titleBaselineType,
         _selected = selected;
 
@@ -792,7 +776,7 @@ class _RenderListTile extends RenderBox {
   final Map<_ListTileSlot, RenderBox> slotToChild = <_ListTileSlot, RenderBox>{};
   final Map<RenderBox, _ListTileSlot> childToSlot = <RenderBox, _ListTileSlot>{};
 
-  RenderBox _updateChild(RenderBox oldChild, RenderBox newChild, _ListTileSlot slot) {
+  RenderBox? _updateChild(RenderBox? oldChild, RenderBox? newChild, _ListTileSlot slot) {
     assert(oldChild != newChild);
     if (oldChild != null) {
       dropChild(oldChild);
@@ -807,28 +791,27 @@ class _RenderListTile extends RenderBox {
     return newChild;
   }
 
-  RenderBox _title;
-  RenderBox get title => _title;
-  set title(RenderBox value) {
+  RenderBox? _title;
+  RenderBox? get title => _title;
+  set title(RenderBox? value) {
     _title = _updateChild(_title, value, _ListTileSlot.title);
   }
 
-  RenderBox _trailing;
-  RenderBox get trailing => _trailing;
-  set trailing(RenderBox value) {
+  RenderBox? _trailing;
+  RenderBox? get trailing => _trailing;
+  set trailing(RenderBox? value) {
     _trailing = _updateChild(_trailing, value, _ListTileSlot.trailing);
   }
 
   // The returned list is ordered for hit testing.
   Iterable<RenderBox> get _children sync* {
-    if (title != null) yield title;
-    if (trailing != null) yield trailing;
+    if (title != null) yield title!;
+    if (trailing != null) yield trailing!;
   }
 
   TextDirection get textDirection => _textDirection;
   TextDirection _textDirection;
   set textDirection(TextDirection value) {
-    assert(value != null);
     if (_textDirection == value) return;
     _textDirection = value;
     markNeedsLayout();
@@ -837,7 +820,6 @@ class _RenderListTile extends RenderBox {
   TextBaseline get titleBaselineType => _titleBaselineType;
   TextBaseline _titleBaselineType;
   set titleBaselineType(TextBaseline value) {
-    assert(value != null);
     if (_titleBaselineType == value) return;
     _titleBaselineType = value;
     markNeedsLayout();
@@ -846,7 +828,6 @@ class _RenderListTile extends RenderBox {
   bool get selected => _selected;
   bool _selected;
   set selected(bool value) {
-    assert(value != null);
     if (_selected == value) return;
     _selected = value;
     markNeedsPaint();
@@ -877,7 +858,7 @@ class _RenderListTile extends RenderBox {
   @override
   List<DiagnosticsNode> debugDescribeChildren() {
     final List<DiagnosticsNode> value = <DiagnosticsNode>[];
-    void add(RenderBox child, String name) {
+    void add(RenderBox? child, String name) {
       if (child != null) value.add(child.toDiagnosticsNode(name: name));
     }
 
@@ -889,11 +870,11 @@ class _RenderListTile extends RenderBox {
   @override
   bool get sizedByParent => false;
 
-  static double _minWidth(RenderBox box, double height) {
+  static double _minWidth(RenderBox? box, double height) {
     return box == null ? 0.0 : box.getMinIntrinsicWidth(height);
   }
 
-  static double _maxWidth(RenderBox box, double height) {
+  static double _maxWidth(RenderBox? box, double height) {
     return box == null ? 0.0 : box.getMaxIntrinsicWidth(height);
   }
 
@@ -909,7 +890,7 @@ class _RenderListTile extends RenderBox {
 
   @override
   double computeMinIntrinsicHeight(double width) {
-    return title.getMinIntrinsicHeight(width);
+    return title == null ? 0 : title!.getMinIntrinsicHeight(width);
   }
 
   @override
@@ -918,13 +899,15 @@ class _RenderListTile extends RenderBox {
   }
 
   @override
-  double computeDistanceToActualBaseline(TextBaseline baseline) {
-    assert(title != null);
-    final BoxParentData parentData = title.parentData as BoxParentData;
-    return parentData.offset.dy + title.getDistanceToActualBaseline(baseline);
+  double? computeDistanceToActualBaseline(TextBaseline baseline) {
+    if (title == null) {
+      return null;
+    }
+    final BoxParentData parentData = title!.parentData as BoxParentData;
+    return parentData.offset.dy + title!.getDistanceToActualBaseline(baseline)!;
   }
 
-  static Size _layoutBox(RenderBox box, BoxConstraints constraints) {
+  static Size _layoutBox(RenderBox? box, BoxConstraints constraints) {
     if (box == null) return Size.zero;
     box.layout(constraints, parentUsesSize: true);
     return box.size;
@@ -948,7 +931,7 @@ class _RenderListTile extends RenderBox {
     final Size trailingSize = _layoutBox(trailing, looseConstraints);
     assert(tileWidth != trailingSize.width, 'Trailing widget consumes entire tile width. Please use a sized widget.');
 
-    title.getMinIntrinsicWidth(looseConstraints.maxHeight);
+    title!.getMinIntrinsicWidth(looseConstraints.maxHeight);
 
     final double adjustedTrailingWidth = trailingSize.width > 0 ? trailingSize.width + _horizontalTitleGap : 0.0;
     final BoxConstraints titleConstraints = looseConstraints.tighten(
@@ -962,17 +945,13 @@ class _RenderListTile extends RenderBox {
 
     switch (textDirection) {
       case TextDirection.rtl:
-        {
-          _positionBox(title, Offset(adjustedTrailingWidth, titleY));
-          if (hasTrailing) _positionBox(trailing, Offset(0.0, trailingY));
-          break;
-        }
+        _positionBox(title!, Offset(adjustedTrailingWidth, titleY));
+        if (hasTrailing) _positionBox(trailing!, Offset(0.0, trailingY));
+        break;
       case TextDirection.ltr:
-        {
-          _positionBox(title, Offset(_horizontalPadding, titleY));
-          if (hasTrailing) _positionBox(trailing, Offset(tileWidth - trailingSize.width - _horizontalPadding, trailingY));
-          break;
-        }
+        _positionBox(title!, Offset(_horizontalPadding, titleY));
+        if (hasTrailing) _positionBox(trailing!, Offset(tileWidth - trailingSize.width - _horizontalPadding, trailingY));
+        break;
     }
 
     size = constraints.constrain(Size(tileWidth, tileHeight));
@@ -982,7 +961,7 @@ class _RenderListTile extends RenderBox {
 
   @override
   void paint(PaintingContext context, Offset offset) {
-    void doPaint(RenderBox child) {
+    void doPaint(RenderBox? child) {
       if (child != null) {
         final BoxParentData parentData = child.parentData as BoxParentData;
         context.paintChild(child, parentData.offset + offset);
@@ -1001,8 +980,7 @@ class _RenderListTile extends RenderBox {
   bool hitTestSelf(Offset position) => true;
 
   @override
-  bool hitTestChildren(BoxHitTestResult result, {@required Offset position}) {
-    assert(position != null);
+  bool hitTestChildren(BoxHitTestResult result, {required Offset position}) {
     for (final RenderBox child in _children) {
       final BoxParentData parentData = child.parentData as BoxParentData;
       final bool isHit = result.addWithPaintOffset(

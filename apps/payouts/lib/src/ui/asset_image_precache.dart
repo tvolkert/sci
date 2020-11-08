@@ -1,12 +1,10 @@
-// @dart=2.9
-
 import 'package:flutter/widgets.dart';
 
 class AssetImagePrecache extends StatefulWidget {
   const AssetImagePrecache({
-    Key key,
-    this.paths,
-    this.child,
+    Key? key,
+    required this.paths,
+    required this.child,
   }) : super(key: key);
 
   final List<String> paths;
@@ -17,7 +15,7 @@ class AssetImagePrecache extends StatefulWidget {
 }
 
 class _AssetImagePrecacheState extends State<AssetImagePrecache> {
-  Iterable<Future<void>> _futures;
+  Iterable<Future<void>>? _futures;
   bool _isComplete = false;
 
   @override
@@ -29,7 +27,7 @@ class _AssetImagePrecacheState extends State<AssetImagePrecache> {
       _futures = widget.paths
           .map<AssetImage>((String path) => AssetImage(path))
           .map<Future<void>>((AssetImage image) => precacheImage(image, context));
-      Future.wait<void>(_futures).then((void _) {
+      Future.wait<void>(_futures!).then((void _) {
         _futures = null;
         _isComplete = true;
       });

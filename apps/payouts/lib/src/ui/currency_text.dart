@@ -1,17 +1,15 @@
-// @dart=2.9
-
 import 'package:flutter/widgets.dart';
 
 import 'package:payouts/src/model/constants.dart';
 
 class CurrencyText extends StatelessWidget {
   const CurrencyText({
-    Key key,
+    Key? key,
     this.prefix,
-    this.amount,
+    required this.amount,
   }) : super(key: key);
 
-  final String prefix;
+  final String? prefix;
   final double amount;
 
   @override

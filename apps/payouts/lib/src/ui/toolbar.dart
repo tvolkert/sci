@@ -1,5 +1,3 @@
-// @dart=2.9
-
 import 'package:flutter/widgets.dart';
 import 'package:flutter/material.dart' show PopupMenuEntry, PopupMenuItem;
 
@@ -7,9 +5,9 @@ import 'package:payouts/src/actions.dart';
 import 'package:payouts/src/pivot.dart' as pivot;
 
 class Toolbar extends StatelessWidget {
-  const Toolbar({Key key}) : super(key: key);
+  const Toolbar({Key? key}) : super(key: key);
 
-  static void _onMenuItemSelected(BuildContext context, String value) {
+  static void _onMenuItemSelected(BuildContext context, String? value) {
     switch (value) {
       case 'about':
         Actions.invoke(context, AboutIntent(context: context));
@@ -93,7 +91,7 @@ class Toolbar extends StatelessWidget {
                       child: Text('Provide feedback'),
                     ),
                   ],
-                  onMenuItemSelected: (String value) {
+                  onMenuItemSelected: (String? value) {
                     _onMenuItemSelected(context, value);
                   },
                 ),

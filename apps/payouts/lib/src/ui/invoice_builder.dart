@@ -1,15 +1,13 @@
-// @dart=2.9
-
 import 'package:flutter/widgets.dart';
 
 import 'package:payouts/src/model/invoice.dart';
 
-typedef InvoiceBuilder = Widget Function(BuildContext context, Invoice invoice);
+typedef InvoiceBuilder = Widget Function(BuildContext context, Invoice? invoice);
 
 class InvoiceListenerBuilder extends StatefulWidget {
   const InvoiceListenerBuilder({
-    Key key,
-    this.builder,
+    Key? key,
+    required this.builder,
   }) : super(key: key);
 
   final InvoiceBuilder builder;
@@ -19,26 +17,26 @@ class InvoiceListenerBuilder extends StatefulWidget {
 }
 
 class _InvoiceListenerBuilderState extends State<InvoiceListenerBuilder> {
-  InvoiceListener _listener;
-  Invoice _invoice;
+  late InvoiceListener _listener;
+  Invoice? _invoice;
 
-  void _handleInvoiceChanged(Invoice oldInvoice) {
+  void _handleInvoiceChanged(Invoice? oldInvoice) {
     setState(() {
-      _invoice = InvoiceBinding.instance.invoice;
+      _invoice = InvoiceBinding.instance!.invoice;
     });
   }
 
   @override
   void initState() {
     super.initState();
-    _invoice = InvoiceBinding.instance.invoice;
+    _invoice = InvoiceBinding.instance!.invoice;
     _listener = InvoiceListener(onInvoiceChanged: _handleInvoiceChanged);
-    InvoiceBinding.instance.addListener(_listener);
+    InvoiceBinding.instance!.addListener(_listener);
   }
 
   @override
   void dispose() {
-    InvoiceBinding.instance.removeListener(_listener);
+    InvoiceBinding.instance!.removeListener(_listener);
     super.dispose();
   }
 

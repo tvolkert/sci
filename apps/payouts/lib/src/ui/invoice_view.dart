@@ -1,5 +1,3 @@
-// @dart=2.9
-
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart' show Ink, Theme;
 import 'package:flutter/painting.dart';
@@ -19,24 +17,23 @@ import 'review.dart';
 import 'timesheets_view.dart';
 
 class InvoiceView extends StatefulWidget {
-  const InvoiceView({Key key}) : super(key: key);
+  const InvoiceView({Key? key}) : super(key: key);
 
   @override
   _InvoiceViewState createState() => _InvoiceViewState();
 }
 
 class _InvoiceViewState extends State<InvoiceView> {
-  InvoiceListener _listener;
-  bool _isSubmitted; // ignore: unused_field
-  double _total;
+  late InvoiceListener _listener;
+  late bool _isSubmitted; // ignore: unused_field
+  late double _total;
 
   Invoice get invoice {
-    final Invoice invoice = InvoiceBinding.instance.invoice;
-    assert(invoice != null);
+    final Invoice invoice = InvoiceBinding.instance!.invoice!;
     return invoice;
   }
 
-  void _handleInvoiceChanged(Invoice previousInvoice) {
+  void _handleInvoiceChanged(Invoice? previousInvoice) {
     setState(() {
       _total = invoice.total;
       _isSubmitted = invoice.isSubmitted;
@@ -67,19 +64,19 @@ class _InvoiceViewState extends State<InvoiceView> {
     final Invoice invoice = this.invoice;
     _isSubmitted = invoice.isSubmitted;
     _total = invoice.total;
-    InvoiceBinding.instance.addListener(_listener);
+    InvoiceBinding.instance!.addListener(_listener);
   }
 
   @override
   void dispose() {
-    InvoiceBinding.instance.removeListener(_listener);
+    InvoiceBinding.instance!.removeListener(_listener);
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return InvoiceListenerBuilder(
-      builder: (BuildContext context, Invoice invoice) {
+      builder: (BuildContext context, Invoice? invoice) {
         // TODO: Remove Ink when it's no longer needed.
         return Ink(
           decoration: const BoxDecoration(color: Color(0xffc8c8bb)),
@@ -93,7 +90,7 @@ class _InvoiceViewState extends State<InvoiceView> {
                   child: Row(
                     children: [
                       const InvoiceNumberEditor(),
-                      BillingPeriodView(invoice.billingPeriod),
+                      BillingPeriodView(invoice!.billingPeriod),
                       const Spacer(),
                       InvoiceTotalView(total: _total),
                     ],
@@ -135,25 +132,21 @@ class _InvoiceViewState extends State<InvoiceView> {
 }
 
 class InvoiceNumberEditor extends StatefulWidget {
-  const InvoiceNumberEditor({Key key}) : super(key: key);
+  const InvoiceNumberEditor({Key? key}) : super(key: key);
 
   @override
   _InvoiceNumberEditorState createState() => _InvoiceNumberEditorState();
 }
 
 class _InvoiceNumberEditorState extends State<InvoiceNumberEditor> {
-  InvoiceListener _listener;
-  TextEditingController _invoiceNumberEditor;
-  bool _isSubmitted;
-  String _invoiceNumber;
+  late InvoiceListener _listener;
+  TextEditingController? _invoiceNumberEditor;
+  late bool _isSubmitted;
+  late String _invoiceNumber;
 
-  Invoice get invoice {
-    final Invoice invoice = InvoiceBinding.instance.invoice;
-    assert(invoice != null);
-    return invoice;
-  }
+  Invoice get invoice => InvoiceBinding.instance!.invoice!;
 
-  void _handleInvoiceChanged(Invoice previousInvoice) {
+  void _handleInvoiceChanged(Invoice? previousInvoice) {
     setState(() {
       _invoiceNumber = invoice.invoiceNumber;
       _isSubmitted = invoice.isSubmitted;
@@ -177,7 +170,7 @@ class _InvoiceNumberEditorState extends State<InvoiceNumberEditor> {
   }
 
   void _handleSaveEdit() {
-    invoice.invoiceNumber = _invoiceNumberEditor.text;
+    invoice.invoiceNumber = _invoiceNumberEditor!.text;
     setState(() => _invoiceNumberEditor = null);
   }
 
@@ -204,12 +197,12 @@ class _InvoiceNumberEditorState extends State<InvoiceNumberEditor> {
     final Invoice invoice = this.invoice;
     _isSubmitted = invoice.isSubmitted;
     _invoiceNumber = invoice.invoiceNumber;
-    InvoiceBinding.instance.addListener(_listener);
+    InvoiceBinding.instance!.addListener(_listener);
   }
 
   @override
   void dispose() {
-    InvoiceBinding.instance.removeListener(_listener);
+    InvoiceBinding.instance!.removeListener(_listener);
     _invoiceNumberEditor?.dispose();
     super.dispose();
   }
@@ -222,7 +215,7 @@ class _InvoiceNumberEditorState extends State<InvoiceNumberEditor> {
         offset: Offset(0, -1),
         child: Text(
           _invoiceNumber,
-          style: Theme.of(context).textTheme.bodyText2.copyWith(fontWeight: FontWeight.bold),
+          style: Theme.of(context).textTheme.bodyText2!.copyWith(fontWeight: FontWeight.bold),
         ),
       );
     } else {
@@ -247,7 +240,7 @@ class _InvoiceNumberEditorState extends State<InvoiceNumberEditor> {
             icon: 'assets/pencil.png',
             showTooltip: false,
             isToolbar: true,
-            onPressed: _isSubmitted && false ? null : _handleToggleEdit,
+            onPressed: _isSubmitted ? null : _handleToggleEdit,
           ),
         ),
       ],
@@ -284,8 +277,8 @@ class BillingPeriodView extends StatelessWidget {
 
 class InvoiceTotalView extends StatelessWidget {
   const InvoiceTotalView({
-    Key key,
-    @required this.total,
+    Key? key,
+    required this.total,
   }) : super(key: key);
 
   final double total;

@@ -1,5 +1,3 @@
-// @dart=2.9
-
 import 'package:flutter/material.dart' show Divider;
 import 'package:flutter/widgets.dart';
 
@@ -10,9 +8,9 @@ import 'invoice_view.dart';
 import 'toolbar.dart';
 
 class PayoutsHome extends StatelessWidget {
-  const PayoutsHome({Key key}) : super(key: key);
+  const PayoutsHome({Key? key}) : super(key: key);
 
-  static Widget _buildInvoiceArea(BuildContext context, Invoice invoice) {
+  static Widget _buildInvoiceArea(BuildContext context, Invoice? invoice) {
     if (invoice != null) {
       return const InvoiceView();
     }

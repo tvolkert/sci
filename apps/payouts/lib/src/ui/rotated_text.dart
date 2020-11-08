@@ -1,17 +1,12 @@
-// @dart=2.9
-
 import 'package:flutter/widgets.dart';
 
 class RotatedText extends StatelessWidget {
   const RotatedText({
-    Key key,
-    @required this.offset,
-    @required this.angle,
-    @required this.text,
-  })  : assert(offset != null),
-        assert(angle != null),
-        assert(text != null),
-        super(key: key);
+    Key? key,
+    required this.offset,
+    required this.angle,
+    required this.text,
+  })  : super(key: key);
 
   final Offset offset;
   final double angle;

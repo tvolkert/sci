@@ -1,11 +1,9 @@
-// @dart=2.9
-
 import 'package:flutter/material.dart';
 
 import 'package:payouts/src/pivot.dart' as pivot;
 
 class AccomplishmentsView extends StatelessWidget {
-  const AccomplishmentsView({Key key}) : super(key: key);
+  const AccomplishmentsView({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -51,7 +49,7 @@ class AccomplishmentsView extends StatelessWidget {
 
 class AccomplishmentsEntryField extends StatefulWidget {
   const AccomplishmentsEntryField({
-    Key key,
+    Key? key,
     this.minLines = 2,
     this.maxLines = 20,
     this.readOnly = false,
@@ -61,14 +59,14 @@ class AccomplishmentsEntryField extends StatefulWidget {
   final int minLines;
   final int maxLines;
   final bool readOnly;
-  final String initialText;
+  final String? initialText;
 
   @override
   _AccomplishmentsEntryFieldState createState() => _AccomplishmentsEntryFieldState();
 }
 
 class _AccomplishmentsEntryFieldState extends State<AccomplishmentsEntryField> {
-  TextEditingController controller;
+  late TextEditingController controller;
 
   @override
   void initState() {

@@ -1,5 +1,3 @@
-// @dart=2.9
-
 import 'dart:math' as math;
 
 import 'package:flutter/gestures.dart';
@@ -14,15 +12,15 @@ import 'package:payouts/src/pivot.dart' as pivot;
 import 'rotated_text.dart';
 
 class TimesheetsView extends StatefulWidget {
-  const TimesheetsView({Key key}) : super(key: key);
+  const TimesheetsView({Key? key}) : super(key: key);
 
   @override
   _TimesheetsViewState createState() => _TimesheetsViewState();
 }
 
 class _TimesheetsViewState extends State<TimesheetsView> {
-  InvoiceListener _listener;
-  List<_TimesheetRow> _timesheetRows;
+  late InvoiceListener _listener;
+  late List<_TimesheetRow> _timesheetRows;
 
   _TimesheetRow _buildTimesheetRow(Timesheet timesheet) {
     return _TimesheetRow(timesheet: timesheet);
@@ -44,11 +42,7 @@ class _TimesheetsViewState extends State<TimesheetsView> {
     Actions.invoke(context, AddTimesheetIntent(context: context));
   }
 
-  Invoice get invoice {
-    final Invoice invoice = InvoiceBinding.instance.invoice;
-    assert(invoice != null);
-    return invoice;
-  }
+  Invoice get invoice => InvoiceBinding.instance!.invoice!;
 
   @override
   void initState() {
@@ -57,13 +51,13 @@ class _TimesheetsViewState extends State<TimesheetsView> {
       onTimesheetInserted: _handleTimesheetInserted,
       onTimesheetsRemoved: _handleTimesheetsRemoved,
     );
-    InvoiceBinding.instance.addListener(_listener);
+    InvoiceBinding.instance!.addListener(_listener);
     _timesheetRows = invoice.timesheets.map<_TimesheetRow>(_buildTimesheetRow).toList();
   }
 
   @override
   void dispose() {
-    InvoiceBinding.instance.removeListener(_listener);
+    InvoiceBinding.instance!.removeListener(_listener);
     super.dispose();
   }
 
@@ -128,10 +122,10 @@ class _TimesheetsViewState extends State<TimesheetsView> {
 }
 
 class _HeaderRow extends StatelessWidget {
-  const _HeaderRow({Key key}) : super(key: key);
+  const _HeaderRow({Key? key}) : super(key: key);
 
   Iterable<_DateHeading> _buildDateHeadings() {
-    return InvoiceBinding.instance.invoice.billingPeriod
+    return InvoiceBinding.instance!.invoice!.billingPeriod
         .map<String>((DateTime date) => DateFormats.md.format(date))
         .map<_DateHeading>((String date) => _DateHeading(date));
   }
@@ -150,7 +144,7 @@ class _HeaderRow extends StatelessWidget {
 }
 
 class _DateHeading extends StatelessWidget {
-  const _DateHeading(this.text) : assert(text != null);
+  const _DateHeading(this.text);
 
   final String text;
 
@@ -166,9 +160,9 @@ class _DateHeading extends StatelessWidget {
 
 class _HoursInput extends StatefulWidget {
   const _HoursInput({
-    Key key,
-    this.hours,
-    this.hoursIndex,
+    Key? key,
+    required this.hours,
+    required this.hoursIndex,
     this.isWeekend = false,
   }) : super(key: key);
 
@@ -181,19 +175,19 @@ class _HoursInput extends StatefulWidget {
 }
 
 class _HoursInputState extends State<_HoursInput> {
-  TextEditingController _controller;
-  TextEditingValue _lastValidValue;
+  late TextEditingController _controller;
+  late TextEditingValue _lastValidValue;
 
   void _handleEdit() {
     final String text = _controller.text;
-    if (text == _lastValidValue?.text) {
+    if (text == _lastValidValue.text) {
       // Shortcut to trivial success
       _lastValidValue = _controller.value;
       return;
     }
 
     bool valid = true;
-    double value = text.isEmpty ? 0 : double.tryParse(text);
+    double? value = text.isEmpty ? 0 : double.tryParse(text);
 
     if (value == null) {
       valid = false;
@@ -209,7 +203,7 @@ class _HoursInputState extends State<_HoursInput> {
 
     if (valid) {
       _lastValidValue = _controller.value;
-      widget.hours[widget.hoursIndex] = value;
+      widget.hours[widget.hoursIndex] = value!;
     } else {
       _controller.value = _lastValidValue;
       SystemSound.play(SystemSoundType.alert);
@@ -223,6 +217,7 @@ class _HoursInputState extends State<_HoursInput> {
     final String text = initialValue == 0 ? '' : NumberFormats.maybeDecimal.format(initialValue);
     _controller = TextEditingController(text: text);
     _controller.addListener(_handleEdit);
+    _lastValidValue = _controller.value;
   }
 
   @override
@@ -253,8 +248,8 @@ class _HoursInputState extends State<_HoursInput> {
 
 class _TimesheetRow extends StatefulWidget {
   const _TimesheetRow({
-    Key key,
-    @required this.timesheet,
+    Key? key,
+    required this.timesheet,
   }) : super(key: key);
 
   final Timesheet timesheet;
@@ -263,17 +258,17 @@ class _TimesheetRow extends StatefulWidget {
   State<StatefulWidget> createState() => _TimesheetRowState();
 
   static Timesheet of(BuildContext context) {
-    _TimesheetScope scope = context.dependOnInheritedWidgetOfExactType<_TimesheetScope>();
+    _TimesheetScope scope = context.dependOnInheritedWidgetOfExactType<_TimesheetScope>()!;
     return scope.state.widget.timesheet;
   }
 }
 
 class _TimesheetRowState extends State<_TimesheetRow> {
-  InvoiceListener _invoiceListener;
+  late InvoiceListener _invoiceListener;
   int _updateCount = 0;
 
   void _handleTimesheetUpdated(int index, String key, dynamic previousValue) {
-    if (InvoiceBinding.instance.invoice.timesheets[index] == widget.timesheet) {
+    if (InvoiceBinding.instance!.invoice!.timesheets[index] == widget.timesheet) {
       setState(() {
         _updateCount++;
       });
@@ -281,14 +276,14 @@ class _TimesheetRowState extends State<_TimesheetRow> {
   }
 
   void _handleTimesheetHoursUpdated(int index, int dayIndex, double previousHours) {
-    if (InvoiceBinding.instance.invoice.timesheets[index] == widget.timesheet) {
+    if (InvoiceBinding.instance!.invoice!.timesheets[index] == widget.timesheet) {
       setState(() {
         _updateCount++;
       });
     }
   }
 
-  Widget _tableRow;
+  Widget? _tableRow;
   Widget _buildTableRow() {
     return _tableRow ??= pivot.TableRow(
       height: pivot.IntrinsicTablePaneRowHeight(),
@@ -298,7 +293,7 @@ class _TimesheetRowState extends State<_TimesheetRow> {
           return _HoursInput(
             hours: widget.timesheet.hours,
             hoursIndex: index,
-            isWeekend: InvoiceBinding.instance.invoice.billingPeriod[index].weekday > 5,
+            isWeekend: InvoiceBinding.instance!.invoice!.billingPeriod[index].weekday > 5,
           );
         }),
         const _TimesheetFooter(),
@@ -314,12 +309,12 @@ class _TimesheetRowState extends State<_TimesheetRow> {
       onTimesheetUpdated: _handleTimesheetUpdated,
       onTimesheetHoursUpdated: _handleTimesheetHoursUpdated,
     );
-    InvoiceBinding.instance.addListener(_invoiceListener);
+    InvoiceBinding.instance!.addListener(_invoiceListener);
   }
 
   @override
   void dispose() {
-    InvoiceBinding.instance.removeListener(_invoiceListener);
+    InvoiceBinding.instance!.removeListener(_invoiceListener);
     super.dispose();
   }
 
@@ -354,10 +349,10 @@ class _TimesheetRowState extends State<_TimesheetRow> {
 
 class _TimesheetScope extends InheritedWidget {
   const _TimesheetScope({
-    Key key,
-    this.state,
-    this.updateCount,
-    Widget child,
+    Key? key,
+    required this.state,
+    required this.updateCount,
+    required Widget child,
   }) : super(key: key, child: child);
 
   final _TimesheetRowState state;
@@ -370,7 +365,7 @@ class _TimesheetScope extends InheritedWidget {
 }
 
 class _TimesheetHeader extends StatelessWidget {
-  const _TimesheetHeader({Key key}) : super(key: key);
+  const _TimesheetHeader({Key? key}) : super(key: key);
 
   static void _handleEdit(Timesheet timesheet) {
     print('TODO: edit timesheet ${timesheet.name}');
@@ -429,7 +424,7 @@ class _TimesheetHeader extends StatelessWidget {
 }
 
 class _TimesheetFooter extends StatelessWidget {
-  const _TimesheetFooter({Key key}) : super(key: key);
+  const _TimesheetFooter({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -449,7 +444,7 @@ class _TimesheetFooter extends StatelessWidget {
 }
 
 class _DividerRow extends StatelessWidget {
-  const _DividerRow({Key key}) : super(key: key);
+  const _DividerRow({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -485,7 +480,7 @@ class _DividerRow extends StatelessWidget {
 }
 
 class _FooterRow extends StatefulWidget {
-  const _FooterRow({Key key}) : super(key: key);
+  const _FooterRow({Key? key}) : super(key: key);
 
   @override
   _FooterRowState createState() => _FooterRowState();
@@ -494,8 +489,8 @@ class _FooterRow extends StatefulWidget {
 double _sum(double a, double b) => a + b;
 
 class _FooterRowState extends State<_FooterRow> {
-  InvoiceListener _invoiceListener;
-  Widget _row;
+  late InvoiceListener _invoiceListener;
+  Widget? _row;
 
   void _handleTimesheetUpdated(int index, String key, dynamic previousValue) {
     if (key == Keys.rate) {
@@ -508,7 +503,7 @@ class _FooterRowState extends State<_FooterRow> {
   }
 
   double _computeTotalHoursForDay(int index) {
-    return InvoiceBinding.instance.invoice.timesheets
+    return InvoiceBinding.instance!.invoice!.timesheets
         .map<double>((Timesheet timesheet) => timesheet.hours[index])
         .fold<double>(0, _sum);
   }
@@ -524,12 +519,12 @@ class _FooterRowState extends State<_FooterRow> {
       onTimesheetUpdated: _handleTimesheetUpdated,
       onTimesheetHoursUpdated: _handleTimesheetHoursUpdated,
     );
-    InvoiceBinding.instance.addListener(_invoiceListener);
+    InvoiceBinding.instance!.addListener(_invoiceListener);
   }
 
   @override
   void dispose() {
-    InvoiceBinding.instance.removeListener(_invoiceListener);
+    InvoiceBinding.instance!.removeListener(_invoiceListener);
     super.dispose();
   }
 
@@ -538,7 +533,7 @@ class _FooterRowState extends State<_FooterRow> {
     return _row ??= pivot.TableRow(
       children: [
         const Text('Daily Totals', maxLines: 1, style: TextStyle(fontStyle: FontStyle.italic)),
-        ...List<Widget>.generate(InvoiceBinding.instance.invoice.billingPeriod.length, _toHours),
+        ...List<Widget>.generate(InvoiceBinding.instance!.invoice!.billingPeriod.length, _toHours),
         const pivot.EmptyTableCell(),
         const pivot.EmptyTableCell(),
       ],
@@ -547,7 +542,7 @@ class _FooterRowState extends State<_FooterRow> {
 }
 
 class _FooterHours extends StatelessWidget {
-  const _FooterHours({Key key, this.hours}) : super(key: key);
+  const _FooterHours({Key? key, required this.hours}) : super(key: key);
 
   final double hours;
 

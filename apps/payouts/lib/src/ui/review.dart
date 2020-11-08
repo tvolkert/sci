@@ -1,5 +1,3 @@
-// @dart=2.9
-
 import 'dart:math' as math;
 
 import 'package:flutter/gestures.dart';
@@ -14,7 +12,7 @@ import 'accomplishments_view.dart';
 import 'rotated_text.dart';
 
 class ReviewAndSubmit extends StatelessWidget {
-  const ReviewAndSubmit({Key key}) : super(key: key);
+  const ReviewAndSubmit({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -506,7 +504,7 @@ class ReviewAndSubmit extends StatelessWidget {
 }
 
 class SummaryDateHeading extends StatelessWidget {
-  const SummaryDateHeading(this.text) : assert(text != null);
+  const SummaryDateHeading(this.text);
 
   final String text;
 
@@ -522,11 +520,10 @@ class SummaryDateHeading extends StatelessWidget {
 
 class SummaryRowHeader extends StatelessWidget {
   const SummaryRowHeader({
-    Key key,
-    @required this.label,
+    Key? key,
+    required this.label,
     this.isAggregate = false,
-  })  : assert(label != null),
-        super(key: key);
+  })  : super(key: key);
 
   final String label;
   final bool isAggregate;
@@ -556,13 +553,7 @@ class CertifyAndSubmit extends StatefulWidget {
 }
 
 class _CertifyAndSubmitState extends State<CertifyAndSubmit> {
-  bool certified;
-
-  @override
-  void initState() {
-    super.initState();
-    certified = false;
-  }
+  bool certified = false;
 
   void _handleSubmit() {}
 
@@ -600,13 +591,12 @@ class _CertifyAndSubmitState extends State<CertifyAndSubmit> {
 
 class DailyTotalHours extends StatelessWidget {
   const DailyTotalHours({
-    @required this.amount,
+    required this.amount,
     this.isWeekend = false,
     this.isAggregate = false,
     this.isWeeklyTotal = false,
-    Key key,
-  })  : assert(amount != null),
-        super(key: key);
+    Key? key,
+  })  : super(key: key);
 
   final double amount;
   final bool isWeekend;
@@ -627,13 +617,12 @@ class DailyTotalHours extends StatelessWidget {
 
 class DailyTotalDollars extends StatelessWidget {
   const DailyTotalDollars({
-    @required this.amount,
+    required this.amount,
     this.isWeekend = false,
     this.isAggregate = false,
     this.isWeeklyTotal = false,
-    Key key,
-  })  : assert(amount != null),
-        super(key: key);
+    Key? key,
+  })  : super(key: key);
 
   final double amount;
   final bool isWeekend;
@@ -653,20 +642,19 @@ class DailyTotalDollars extends StatelessWidget {
 
 class DailyTotal extends StatelessWidget {
   const DailyTotal({
-    @required this.amount,
+    required this.amount,
     this.isWeekend = false,
     this.isAggregate = false,
     this.isWeeklyTotal = false,
     this.cautionIfExceeded,
-    Key key,
-  })  : assert(amount != null),
-        super(key: key);
+    Key? key,
+  })  : super(key: key);
 
   final double amount;
   final bool isWeekend;
   final bool isAggregate;
   final bool isWeeklyTotal;
-  final double cautionIfExceeded;
+  final double? cautionIfExceeded;
 
   static final intl.NumberFormat numberFormat = intl.NumberFormat('#.#');
 
@@ -679,7 +667,7 @@ class DailyTotal extends StatelessWidget {
     if (isWeeklyTotal) {
       style = style.copyWith(fontWeight: FontWeight.bold);
     }
-    if (cautionIfExceeded != null && amount > cautionIfExceeded && !isWeeklyTotal) {
+    if (cautionIfExceeded != null && amount > cautionIfExceeded! && !isWeeklyTotal) {
       style = style.copyWith(color: const Color(0xffb71c28));
     }
 
@@ -708,9 +696,7 @@ class TestBorder extends TableBorder {
   const TestBorder({
     this.aggregateColumns = const <int>[],
     this.lastRowIsAggregate = false,
-  })  : assert(aggregateColumns != null),
-        assert(lastRowIsAggregate != null),
-        super(
+  })  : super(
           top: _outsideBorder,
           right: _outsideBorder,
           bottom: _outsideBorder,
@@ -741,21 +727,10 @@ class TestBorder extends TableBorder {
   void paint(
     Canvas canvas,
     Rect rect, {
-    @required Iterable<double> rows,
-    @required Iterable<double> columns,
+    required Iterable<double> rows,
+    required Iterable<double> columns,
   }) {
-    // properties can't be null
-    assert(top != null);
-    assert(right != null);
-    assert(bottom != null);
-    assert(left != null);
-
-    // arguments can't be null
-    assert(canvas != null);
-    assert(rect != null);
-    assert(rows != null);
     assert(rows.isEmpty || (rows.first >= 0.0 && rows.last <= rect.height));
-    assert(columns != null);
     assert(columns.isEmpty ||
         (columns.first >= 0.0 &&
             rect.width - columns.last >= -Tolerance.defaultTolerance.distance));
@@ -855,9 +830,9 @@ class TestBorder extends TableBorder {
 
 class TerraCheckbox extends StatelessWidget {
   const TerraCheckbox({
-    Key key,
-    @required this.value,
-    @required this.onChanged,
+    Key? key,
+    required this.value,
+    required this.onChanged,
   });
 
   final bool value;
@@ -902,10 +877,9 @@ class TerraCheckbox extends StatelessWidget {
 
 class CheckMarkPainter extends CustomPainter {
   const CheckMarkPainter({
-    @required this.checked,
+    required this.checked,
     this.color = const Color(0xff2b5580),
-  })  : assert(checked != null),
-        assert(color != null);
+  });
 
   final bool checked;
   final Color color;
@@ -934,7 +908,7 @@ class CheckMarkPainter extends CustomPainter {
   @override
   bool shouldRepaint(CustomPainter old) {
     assert(old is CheckMarkPainter);
-    CheckMarkPainter oldPainter = old;
+    CheckMarkPainter oldPainter = old as CheckMarkPainter;
     return checked != oldPainter.checked;
   }
 }
