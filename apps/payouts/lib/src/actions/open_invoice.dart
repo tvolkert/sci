@@ -20,21 +20,21 @@ import 'warn_on_unsaved_changes_mixin.dart';
 typedef InvoiceComparator = int Function(Map<String, dynamic> a, Map<String, dynamic> b);
 
 int _compareInvoiceNumber(Map<String, dynamic> a, Map<String, dynamic> b) {
-  final String aVal = a['invoice_number'];
-  final String bVal = b['invoice_number'];
+  final String aVal = a[Keys.invoiceNumber];
+  final String bVal = b[Keys.invoiceNumber];
   return aVal.compareTo(bVal);
 }
 
 int _compareBillingPeriod(Map<String, dynamic> a, Map<String, dynamic> b) {
-  final String aVal = a['billing_start'];
-  final String bVal = b['billing_start'];
+  final String aVal = a[Keys.billingStart];
+  final String bVal = b[Keys.billingStart];
   // String comparison should work since we're using YYYY-MM-DD format.
   return aVal.compareTo(bVal);
 }
 
 int _compareSubmitted(Map<String, dynamic> a, Map<String, dynamic> b) {
-  final int? aVal = a['submitted'];
-  final int? bVal = b['submitted'];
+  final int? aVal = a[Keys.submitted];
+  final int? bVal = b[Keys.submitted ];
   if (aVal == bVal) {
     return 0;
   } else if (aVal == null) {
@@ -47,8 +47,8 @@ int _compareSubmitted(Map<String, dynamic> a, Map<String, dynamic> b) {
 }
 
 int _compareResubmit(Map<String, dynamic> a, Map<String, dynamic> b) {
-  final bool aVal = a['resubmit'];
-  final bool bVal = b['resubmit'];
+  final bool aVal = a[Keys.resubmit];
+  final bool bVal = b[Keys.resubmit];
   if (aVal == bVal) {
     return 0;
   } else if (aVal) {
@@ -59,10 +59,10 @@ int _compareResubmit(Map<String, dynamic> a, Map<String, dynamic> b) {
 }
 
 const Map<String, InvoiceComparator> _invoiceComparators = <String, InvoiceComparator>{
-  'invoice_number': _compareInvoiceNumber,
-  'billing_start': _compareBillingPeriod,
-  'submitted': _compareSubmitted,
-  'resubmit': _compareResubmit,
+  Keys.invoiceNumber: _compareInvoiceNumber,
+  Keys.billingStart: _compareBillingPeriod,
+  Keys.submitted: _compareSubmitted,
+  Keys.resubmit: _compareResubmit,
 };
 
 class OpenInvoiceIntent extends Intent {
@@ -280,25 +280,25 @@ class _InvoicesTableState extends State<InvoicesTable>
     );
     _columns = <pivot.TableColumnController>[
       pivot.TableColumnController(
-        key: 'billing_start',
+        key: Keys.billingStart,
         width: pivot.ConstrainedTableColumnWidth(width: 150, minWidth: 50),
         cellRenderer: _renderBillingPeriodCell,
         headerRenderer: _renderBillingPeriodHeader,
       ),
       pivot.TableColumnController(
-        key: 'invoice_number',
+        key: Keys.invoiceNumber,
         width: pivot.ConstrainedTableColumnWidth(width: 125, minWidth: 50),
         cellRenderer: _renderInvoiceNumberCell,
         headerRenderer: _renderInvoiceNumberHeader,
       ),
       pivot.TableColumnController(
-        key: 'submitted',
+        key: Keys.submitted,
         width: pivot.ConstrainedTableColumnWidth(width: 125, minWidth: 50),
         cellRenderer: _renderSubmittedCell,
         headerRenderer: _renderSubmittedHeader,
       ),
       pivot.TableColumnController(
-        key: 'resubmit',
+        key: Keys.resubmit,
         width: pivot.FlexTableColumnWidth(),
         cellRenderer: _renderResubmitCell,
         headerRenderer: _renderResubmitHeader,
@@ -320,7 +320,7 @@ class _InvoicesTableState extends State<InvoicesTable>
 
   void _handleSelectionChanged() {
     final int rowIndex = _selectionController.selectedIndex;
-    widget.onInvoiceSelected(rowIndex >= 0 ? widget.invoices[rowIndex]['invoice_id'] : null);
+    widget.onInvoiceSelected(rowIndex >= 0 ? widget.invoices[rowIndex][Keys.invoiceId] : null);
   }
 
   void _handleSortChanged(pivot.TableViewSortController controller) {
@@ -528,8 +528,8 @@ class BillingPeriodCell extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    String start = invoice['billing_start'];
-    int duration = invoice['billing_duration'];
+    String start = invoice[Keys.billingStart];
+    int duration = invoice[Keys.billingDuration];
     DateTime startDate = DateTime.parse(start);
     DateTime endDate = startDate.add(Duration(days: duration));
     StringBuffer buf = StringBuffer()
@@ -550,7 +550,7 @@ class InvoiceNumberCell extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final String invoiceNumber = invoice['invoice_number'];
+    final String invoiceNumber = invoice[Keys.invoiceNumber];
     return SingleLineText(data: invoiceNumber);
   }
 }
@@ -567,7 +567,7 @@ class SubmittedCell extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    int? submitted = invoice['submitted'];
+    int? submitted = invoice[Keys.submitted];
     if (submitted == null) {
       return Container();
     } else {
@@ -587,7 +587,7 @@ class ResubmitCell extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final bool resubmit = invoice['resubmit'];
+    final bool resubmit = invoice[Keys.resubmit];
     return resubmit ? Image.asset('assets/exclamation.png', width: 16, height: 16) : Container();
   }
 }
