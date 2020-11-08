@@ -1,5 +1,3 @@
-// @dart=2.9
-
 import 'dart:async';
 
 import 'package:flutter/material.dart';
@@ -8,8 +6,8 @@ import 'package:payouts/src/pivot.dart' as pivot;
 
 class TaskMonitor extends StatefulWidget {
   const TaskMonitor({
-    Key key,
-    this.child,
+    Key? key,
+    required this.child,
   }) : super(key: key);
 
   final Widget child;
@@ -24,7 +22,7 @@ class TaskMonitor extends StatefulWidget {
   ///
   /// This is guaranteed to be non-null (or throw).
   static TaskMonitorState of(BuildContext context) {
-    _TaskMonitorScope scope = context.dependOnInheritedWidgetOfExactType<_TaskMonitorScope>();
+    _TaskMonitorScope? scope = context.dependOnInheritedWidgetOfExactType<_TaskMonitorScope>();
     assert(() {
       if (scope == null) {
         FlutterError.reportError(FlutterErrorDetails(
@@ -35,7 +33,7 @@ class TaskMonitor extends StatefulWidget {
       }
       return true;
     }());
-    return scope.taskMonitorState;
+    return scope!.taskMonitorState;
   }
 }
 
@@ -64,13 +62,10 @@ class TaskMonitorState extends State<TaskMonitor> {
   /// The [future], [inProgressMessage], and [completedMessage] arguments must
   /// all be non-null.
   Future<T> monitor<T>({
-    @required Future<T> future,
-    @required String inProgressMessage,
-    @required String completedMessage,
+    required Future<T> future,
+    required String inProgressMessage,
+    required String completedMessage,
   }) {
-    assert(future != null);
-    assert(inProgressMessage != null);
-    assert(completedMessage != null);
     assert(() {
       if (isActive) {
         FlutterError.reportError(FlutterErrorDetails(
@@ -87,10 +82,10 @@ class TaskMonitorState extends State<TaskMonitor> {
       _isActive = true;
     });
 
-    _FutureCompletion<T> completion;
+    _FutureCompletion<T>? completion;
     future.then((T value) {
       completion = _FutureCompletion.value(value);
-    }).catchError((dynamic error, StackTrace stackTrace) {
+    }).catchError((Object error, StackTrace stackTrace) {
       completion = _FutureCompletion.error(error, stackTrace);
     });
 
@@ -128,7 +123,7 @@ class TaskMonitorState extends State<TaskMonitor> {
         }
         return true;
       }());
-      completion.complete(completer);
+      completion!.complete(completer);
     }).catchError((dynamic error, StackTrace stackTrace) {
       completer.completeError(error, stackTrace);
     }).whenComplete(() {
@@ -151,15 +146,15 @@ class TaskMonitorState extends State<TaskMonitor> {
 
 class _FutureCompletion<T> {
   const _FutureCompletion.value([this.value]) : error = null, stackTrace = null;
-  const _FutureCompletion.error(this.error, this.stackTrace) : assert(error != null), value = null;
+  const _FutureCompletion.error(Object this.error, StackTrace this.stackTrace) : value = null;
 
-  final T value;
-  final dynamic error;
-  final StackTrace stackTrace;
+  final T? value;
+  final Object? error;
+  final StackTrace? stackTrace;
 
   void complete(Completer<T> completer) {
     if (error != null) {
-      completer.completeError(error, stackTrace);
+      completer.completeError(error!, stackTrace);
     } else {
       completer.complete(value);
     }
@@ -168,9 +163,9 @@ class _FutureCompletion<T> {
 
 class _TaskMonitorScope extends InheritedWidget {
   const _TaskMonitorScope({
-    Key key,
-    this.taskMonitorState,
-    Widget child,
+    Key? key,
+    required this.taskMonitorState,
+    required Widget child,
   }) : super(key: key, child: child);
 
   final TaskMonitorState taskMonitorState;
@@ -183,16 +178,13 @@ class _TaskMonitorScope extends InheritedWidget {
 
 class TaskStatus<T> extends StatefulWidget {
   const TaskStatus({
-    Key key,
-    @required this.future,
-    @required this.inProgressMessage,
-    @required this.completedMessage,
-    this.themeData,
-    this.textStyle,
-  })  : assert(future != null),
-        assert(inProgressMessage != null),
-        assert(completedMessage != null),
-        super(key: key);
+    Key? key,
+    required this.future,
+    required this.inProgressMessage,
+    required this.completedMessage,
+    required this.themeData,
+    required this.textStyle,
+  })  : super(key: key);
 
   final Future<T> future;
   final String inProgressMessage;
@@ -216,10 +208,10 @@ enum _Status {
 }
 
 class _TaskStatusState<T> extends State<TaskStatus<T>> with TickerProviderStateMixin {
-  AnimationController _controller;
-  Animation<double> _fadeAnimation;
+  late AnimationController _controller;
+  late Animation<double> _fadeAnimation;
   _Status _status = _Status.inProgress;
-  String _errorMessage;
+  String? _errorMessage;
 
   static const Duration _delayBeforeFade = Duration(milliseconds: 1750);
   static const Duration _fadeDuration = Duration(milliseconds: 265);
@@ -256,7 +248,7 @@ class _TaskStatusState<T> extends State<TaskStatus<T>> with TickerProviderStateM
   Future<void> _monitorFuture() async {
     Future<T> future = widget.future;
     _Status status;
-    String errorMessage;
+    String? errorMessage;
     try {
       await future;
       status = _Status.success;
@@ -284,7 +276,7 @@ class _TaskStatusState<T> extends State<TaskStatus<T>> with TickerProviderStateM
     await _controller.forward();
 
     // This triggers the completion of the future that was returned in the API.
-    Navigator.of(context).pop<void>();
+    Navigator.of(context)!.pop<void>();
   }
 
   Widget _graphicForStatus() {
@@ -304,7 +296,6 @@ class _TaskStatusState<T> extends State<TaskStatus<T>> with TickerProviderStateM
           painter: _ExclamationImagePainter(),
         );
     }
-    throw FallThroughError();
   }
 
   String _textForStatus() {
@@ -314,54 +305,56 @@ class _TaskStatusState<T> extends State<TaskStatus<T>> with TickerProviderStateM
       case _Status.success:
         return widget.completedMessage;
       case _Status.failure:
-        return _errorMessage;
+        return _errorMessage!;
     }
-    throw FallThroughError();
   }
 
   @override
   Widget build(BuildContext context) {
-    Widget result = Align(
-      alignment: Alignment.center,
-      child: FadeTransition(
-        opacity: _fadeAnimation,
-        child: AnimatedSize(
-          curve: Curves.elasticOut,
-          duration: const Duration(milliseconds: 250),
-          vsync: this,
-          child: SizedBox(
-            width: _status == _Status.failure ? 400 : 200,
-            height: _status == _Status.failure ? 400 : 200,
-            child: DecoratedBox(
-              decoration: BoxDecoration(
-                color: const Color(0x33000000),
-                borderRadius: BorderRadius.circular(20),
-              ),
-              child: Padding(
-                padding: EdgeInsets.all(2),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    SizedBox(
-                      width: 128,
-                      height: 128,
-                      child: Align(
-                        alignment: Alignment.center,
-                        child: _graphicForStatus(),
+    return Theme(
+      data: widget.themeData,
+      child: Align(
+        alignment: Alignment.center,
+        child: FadeTransition(
+          opacity: _fadeAnimation,
+          child: AnimatedSize(
+            curve: Curves.elasticOut,
+            duration: const Duration(milliseconds: 250),
+            vsync: this,
+            child: SizedBox(
+              width: _status == _Status.failure ? 400 : 200,
+              height: _status == _Status.failure ? 400 : 200,
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  color: const Color(0x33000000),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Padding(
+                  padding: EdgeInsets.all(2),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      SizedBox(
+                        width: 128,
+                        height: 128,
+                        child: Align(
+                          alignment: Alignment.center,
+                          child: _graphicForStatus(),
+                        ),
                       ),
-                    ),
-                    SizedBox(height: 20),
-                    Text(
-                      _textForStatus(),
-                      textAlign: TextAlign.center,
-                      style: widget.textStyle.copyWith(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 18,
-                        color: const Color(0xffffffff),
+                      SizedBox(height: 20),
+                      Text(
+                        _textForStatus(),
+                        textAlign: TextAlign.center,
+                        style: widget.textStyle.copyWith(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 18,
+                          color: const Color(0xffffffff),
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
             ),
@@ -369,15 +362,6 @@ class _TaskStatusState<T> extends State<TaskStatus<T>> with TickerProviderStateM
         ),
       ),
     );
-
-    if (widget.themeData != null) {
-      result = Theme(
-        data: widget.themeData,
-        child: result,
-      );
-    }
-
-    return result;
   }
 }
 
