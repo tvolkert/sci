@@ -1,5 +1,3 @@
-// @dart=2.9
-
 import 'package:flutter/material.dart';
 import 'package:flutter/painting.dart';
 import 'package:flutter/rendering.dart';
@@ -93,7 +91,7 @@ class PayoutsApp extends StatelessWidget {
 }
 
 class PayoutsScaffold extends StatelessWidget {
-  const PayoutsScaffold({Key key}) : super(key: key);
+  const PayoutsScaffold({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {

@@ -1,5 +1,3 @@
-// @dart=2.9
-
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/widgets.dart';
@@ -12,9 +10,9 @@ void main() {
 class BugReport extends StatelessWidget {
   pivot.BasicTableCellRenderer _basicRenderer(String columnName) {
     return ({
-      BuildContext context,
-      int rowIndex,
-      int columnIndex,
+      required BuildContext context,
+      required int rowIndex,
+      required int columnIndex,
     }) {
       return Padding(
         padding: EdgeInsets.all(2),
@@ -24,10 +22,9 @@ class BugReport extends StatelessWidget {
   }
 
   Widget _renderBar({
-    BuildContext context,
-    int rowIndex,
-    int columnIndex,
-    String columnName,
+    required BuildContext context,
+    required int rowIndex,
+    required int columnIndex,
   }) {
     return MouseRegion(
       cursor: SystemMouseCursors.click,
