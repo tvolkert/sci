@@ -39,11 +39,11 @@ mixin InvoiceBinding on AppBindingBase, ListenerNotifier<InvoiceListener>, Invoi
       final Map<String, dynamic> invoiceData = json.decode(response.body).cast<String, dynamic>();
       final Invoice? previousInvoice = _invoice;
       final Invoice invoice = Invoice._(this, invoiceId, invoiceData);
+      _invoice = invoice;
       onInvoiceChanged(previousInvoice);
       if (previousInvoice != null) {
         previousInvoice._dispose();
       }
-      _invoice = invoice;
       return invoice;
     } else if (response.statusCode == HttpStatus.forbidden) {
       throw const InvalidCredentials();

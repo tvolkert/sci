@@ -95,10 +95,10 @@ mixin UserBinding on AppBindingBase {
       int? lastInvoiceId = loginData[Keys.lastInvoiceId];
       bool passwordRequiresReset = loginData[Keys.passwordRequiresReset];
       final User user = User._(username, password, lastInvoiceId, passwordRequiresReset);
+      _user = user;
       if (user.isPostLogin) {
         await _runPostLoginCallbacks();
       }
-      _user = user;
       return user;
     } else if (response.statusCode == HttpStatus.forbidden) {
       throw const InvalidCredentials();
@@ -163,7 +163,7 @@ class User {
     final Uri url = Server.uri(Server.passwordUrl);
     final http.Response response = await authenticate().put(url, body: password).timeout(timeout);
     if (response.statusCode == HttpStatus.ok) {
-      User newUser = User._(username, password, lastInvoiceId, false);
+      final User newUser = User._(username, password, lastInvoiceId, false);
       UserBinding.instance!._user = newUser;
       if (!wasPostLogin && newUser.isPostLogin) {
         await UserBinding.instance!._runPostLoginCallbacks();

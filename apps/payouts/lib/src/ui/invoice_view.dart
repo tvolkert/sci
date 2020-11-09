@@ -28,16 +28,20 @@ class _InvoiceViewState extends State<InvoiceView> {
   late bool _isSubmitted; // ignore: unused_field
   late double _total;
 
-  Invoice get invoice {
-    final Invoice invoice = InvoiceBinding.instance!.invoice!;
-    return invoice;
-  }
+  Invoice get invoice => InvoiceBinding.instance!.invoice!;
 
   void _handleInvoiceChanged(Invoice? previousInvoice) {
-    setState(() {
-      _total = invoice.total;
-      _isSubmitted = invoice.isSubmitted;
-    });
+    if (InvoiceBinding.instance!.invoice == null) {
+      setState(() {
+        _total = 0;
+        _isSubmitted = false;
+      });
+    } else {
+      setState(() {
+        _total = invoice.total;
+        _isSubmitted = invoice.isSubmitted;
+      });
+    }
   }
 
   void _handleInvoiceTotalChanged(double previousTotal) {
@@ -69,6 +73,7 @@ class _InvoiceViewState extends State<InvoiceView> {
 
   @override
   void dispose() {
+    print('disposing invoice view');
     InvoiceBinding.instance!.removeListener(_listener);
     super.dispose();
   }
@@ -147,10 +152,17 @@ class _InvoiceNumberEditorState extends State<InvoiceNumberEditor> {
   Invoice get invoice => InvoiceBinding.instance!.invoice!;
 
   void _handleInvoiceChanged(Invoice? previousInvoice) {
-    setState(() {
-      _invoiceNumber = invoice.invoiceNumber;
-      _isSubmitted = invoice.isSubmitted;
-    });
+    if (InvoiceBinding.instance!.invoice == null) {
+      setState(() {
+        _invoiceNumber = '';
+        _isSubmitted = false;
+      });
+    } else {
+      setState(() {
+        _invoiceNumber = invoice.invoiceNumber;
+        _isSubmitted = invoice.isSubmitted;
+      });
+    }
   }
 
   void _handleInvoiceNumberChanged(String previousInvoiceNumber) {
