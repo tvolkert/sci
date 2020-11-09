@@ -438,8 +438,8 @@ class RenderBasicListView extends RenderSegment {
     this.length = length;
   }
 
-  late double _itemHeight;
-  double get itemHeight => _itemHeight;
+  double? _itemHeight;
+  double get itemHeight => _itemHeight!;
   set itemHeight(double value) {
     if (_itemHeight == value) return;
     _itemHeight = value;
@@ -448,8 +448,8 @@ class RenderBasicListView extends RenderSegment {
     markNeedsBuild();
   }
 
-  late int _length;
-  int get length => _length;
+  int? _length;
+  int get length => _length!;
   set length(int value) {
     assert(value >= 0);
     if (_length == value) return;
