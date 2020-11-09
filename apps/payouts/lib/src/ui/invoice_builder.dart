@@ -30,7 +30,10 @@ class _InvoiceListenerBuilderState extends State<InvoiceListenerBuilder> {
   void initState() {
     super.initState();
     _invoice = InvoiceBinding.instance!.invoice;
-    _listener = InvoiceListener(onInvoiceChanged: _handleInvoiceChanged);
+    _listener = InvoiceListener(
+      onInvoiceOpened: _handleInvoiceChanged,
+      onInvoiceClosed: _handleInvoiceChanged,
+    );
     InvoiceBinding.instance!.addListener(_listener);
   }
 

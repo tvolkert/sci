@@ -26,6 +26,16 @@ class _TimesheetsViewState extends State<TimesheetsView> {
     return _TimesheetRow(timesheet: timesheet);
   }
 
+  void _initTimesheetRows() {
+    setState(() {
+      _timesheetRows = invoice.timesheets.map<_TimesheetRow>(_buildTimesheetRow).toList();
+    });
+  }
+
+  void _handleInvoiceOpened(Invoice? oldInvoice) {
+    _initTimesheetRows();
+  }
+
   void _handleTimesheetInserted(int index) {
     setState(() {
       _timesheetRows.insert(index, _buildTimesheetRow(invoice.timesheets[index]));
@@ -48,11 +58,12 @@ class _TimesheetsViewState extends State<TimesheetsView> {
   void initState() {
     super.initState();
     _listener = InvoiceListener(
+      onInvoiceOpened: _handleInvoiceOpened,
       onTimesheetInserted: _handleTimesheetInserted,
       onTimesheetsRemoved: _handleTimesheetsRemoved,
     );
     InvoiceBinding.instance!.addListener(_listener);
-    _timesheetRows = invoice.timesheets.map<_TimesheetRow>(_buildTimesheetRow).toList();
+    _initTimesheetRows();
   }
 
   @override

@@ -40,7 +40,7 @@ mixin InvoiceBinding on AppBindingBase, ListenerNotifier<InvoiceListener>, Invoi
       final Invoice? previousInvoice = _invoice;
       final Invoice invoice = Invoice._(this, invoiceId, invoiceData);
       _invoice = invoice;
-      onInvoiceChanged(previousInvoice);
+      onInvoiceOpened(previousInvoice);
       if (previousInvoice != null) {
         previousInvoice._dispose();
       }
@@ -94,7 +94,7 @@ mixin InvoiceBinding on AppBindingBase, ListenerNotifier<InvoiceListener>, Invoi
     await Future<void>.delayed(const Duration(seconds: 1));
     final Invoice? previousInvoice = _invoice;
     _invoice = null;
-    onInvoiceChanged(previousInvoice);
+    onInvoiceClosed(previousInvoice);
     if (previousInvoice != null) {
       previousInvoice._dispose();
     }
@@ -215,7 +215,8 @@ typedef InvoiceExpensesRemovedHandler = void Function(
 @immutable
 class InvoiceListener {
   const InvoiceListener({
-    this.onInvoiceChanged,
+    this.onInvoiceOpened,
+    this.onInvoiceClosed,
     this.onInvoiceNumberChanged,
     this.onInvoiceTotalChanged,
     this.onSubmitted,
@@ -233,7 +234,8 @@ class InvoiceListener {
     this.onExpensesRemoved,
   });
 
-  final InvoiceChangedHandler? onInvoiceChanged;
+  final InvoiceChangedHandler? onInvoiceOpened;
+  final InvoiceChangedHandler? onInvoiceClosed;
   final InvoiceNumberChangedHandler? onInvoiceNumberChanged;
   final InvoiceTotalChangedHandler? onInvoiceTotalChanged;
   final InvoiceSubmittedHandler? onSubmitted;
@@ -253,10 +255,19 @@ class InvoiceListener {
 
 mixin InvoiceListenerNotifier on ListenerNotifier<InvoiceListener> {
   @protected
-  void onInvoiceChanged(Invoice? oldInvoice) {
+  void onInvoiceOpened(Invoice? oldInvoice) {
     notifyListeners((InvoiceListener listener) {
-      if (listener.onInvoiceChanged != null) {
-        listener.onInvoiceChanged!(oldInvoice);
+      if (listener.onInvoiceOpened != null) {
+        listener.onInvoiceOpened!(oldInvoice);
+      }
+    });
+  }
+
+  @protected
+  void onInvoiceClosed(Invoice? oldInvoice) {
+    notifyListeners((InvoiceListener listener) {
+      if (listener.onInvoiceClosed != null) {
+        listener.onInvoiceClosed!(oldInvoice);
       }
     });
   }

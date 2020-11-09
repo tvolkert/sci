@@ -30,7 +30,10 @@ mixin TrackInvoiceOpenedMixin {
   @protected
   @mustCallSuper
   void initInstance() {
-    _listener = InvoiceListener(onInvoiceChanged: _handleInvoiceChanged);
+    _listener = InvoiceListener(
+      onInvoiceOpened: _handleInvoiceChanged,
+      onInvoiceClosed: _handleInvoiceChanged,
+    );
     InvoiceBinding.instance!.addListener(_listener);
     _updateIsInvoiceOpened();
   }
