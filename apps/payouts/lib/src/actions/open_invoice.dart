@@ -110,6 +110,7 @@ class OpenInvoiceSheet extends StatefulWidget {
     return pivot.Sheet.open<int>(
       context: context,
       content: OpenInvoiceSheet(),
+      barrierDismissible: true,
     );
   }
 }

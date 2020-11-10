@@ -46,6 +46,7 @@ class AddTimesheetSheet extends StatefulWidget {
     return pivot.Sheet.open<_TimesheetMetadata>(
       context: context,
       content: AddTimesheetSheet(),
+      barrierDismissible: true,
     );
   }
 }

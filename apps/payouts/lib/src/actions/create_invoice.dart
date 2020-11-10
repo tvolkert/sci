@@ -62,6 +62,7 @@ class CreateInvoiceSheet extends StatefulWidget {
     return pivot.Sheet.open<NewInvoiceProperties>(
       context: context,
       content: CreateInvoiceSheet(),
+      barrierDismissible: true,
     );
   }
 }
