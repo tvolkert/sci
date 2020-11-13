@@ -13,7 +13,9 @@ class EditTimesheetIntent extends Intent {
 }
 
 class EditTimesheetAction extends ContextAction<EditTimesheetIntent> with TrackInvoiceOpenedMixin {
-  EditTimesheetAction._();
+  EditTimesheetAction._() {
+    initInstance();
+  }
 
   static final EditTimesheetAction instance = EditTimesheetAction._();
 

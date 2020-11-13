@@ -12,7 +12,9 @@ class DeleteTimesheetIntent extends Intent {
 }
 
 class DeleteTimesheetAction extends ContextAction<DeleteTimesheetIntent> with TrackInvoiceOpenedMixin {
-  DeleteTimesheetAction._();
+  DeleteTimesheetAction._() {
+    initInstance();
+  }
 
   static final DeleteTimesheetAction instance = DeleteTimesheetAction._();
 
