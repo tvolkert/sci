@@ -62,10 +62,6 @@ class _RawTimesheetsViewState extends State<_RawTimesheetsView> {
     });
   }
 
-  void _handleAddTimesheet() {
-    Actions.invoke(context, AddTimesheetIntent(context: context));
-  }
-
   Invoice get invoice => InvoiceBinding.instance!.invoice!;
 
   @override
@@ -96,10 +92,10 @@ class _RawTimesheetsViewState extends State<_RawTimesheetsView> {
         children: <Widget>[
           Padding(
             padding: EdgeInsets.only(bottom: 7),
-            child: pivot.LinkButton(
+            child: pivot.ActionLinkButton(
               image: AssetImage('assets/table_add.png'),
               text: 'Add hours line item',
-              onPressed: _handleAddTimesheet,
+              intent: AddTimesheetIntent(context: context),
             ),
           ),
           if (_timesheetRows.isNotEmpty) Expanded(
