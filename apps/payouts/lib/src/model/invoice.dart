@@ -663,6 +663,14 @@ class Program {
   int get assignmentId => _data[Keys.assignmentId];
 
   Map<String, dynamic> serialize() => _data;
+
+  @override
+  int get hashCode => assignmentId.hashCode;
+
+  @override
+  bool operator ==(Object other) {
+    return other is Program && other.assignmentId == assignmentId;
+  }
 }
 
 /// Class that represents the list of timesheets in an invoice.
@@ -674,9 +682,8 @@ class Timesheets with ForwardingIterable<Timesheet>, DisallowCollectionConversio
   factory Timesheets._fromRawData(Invoice owner, Map<String, dynamic> invoiceData) {
     final List<dynamic> rawTimesheets = invoiceData[Keys.timesheets];
     final List<Map<String, dynamic>> timesheets = rawTimesheets.cast<Map<String, dynamic>>();
-    final List<Timesheet> view = timesheets
-        .map<Timesheet>((Map<String, dynamic> data) => Timesheet._(owner, data))
-        .toList();
+    final List<Timesheet> view =
+        timesheets.map<Timesheet>((Map<String, dynamic> data) => Timesheet._(owner, data)).toList();
     return Timesheets._(owner, timesheets, view);
   }
 
@@ -698,26 +705,33 @@ class Timesheets with ForwardingIterable<Timesheet>, DisallowCollectionConversio
     return fold<double>(0, (double sum, Timesheet timesheet) => sum + timesheet.total);
   }
 
+  int indexOf(InvoiceEntryMetadata entry) {
+    for (int i = 0; i < _view.length; i++) {
+      final Timesheet timesheet = _view[i];
+      if (timesheet.program == entry.program &&
+          timesheet.chargeNumber == entry.chargeNumber &&
+          timesheet.task == entry.task) {
+        return i;
+      }
+    }
+    return -1;
+  }
+
   /// Adds a timesheet with the specified metadata to this invoice's list of
   /// timesheets.
   ///
   /// Registered [InvoiceListener.onTimesheetInserted] listeners will
   /// be notified.
-  Timesheet add({
-    required Program program,
-    required String chargeNumber,
-    required String requestor,
-    required String task,
-  }) {
+  Timesheet add(InvoiceEntryMetadata entry) {
     _owner._checkDisposed();
     // TODO: this list should probably be sorted.
-    final int insertIndex = _data.length - 1;
+    final int insertIndex = _data.length;
     final Timesheet timesheet = Timesheet._fromParts(
       owner: _owner,
-      program: program,
-      chargeNumber: chargeNumber,
-      requestor: requestor,
-      taskDescription: task,
+      program: entry.program,
+      chargeNumber: entry.chargeNumber!,
+      requestor: entry.requestor!,
+      taskDescription: entry.task!,
     );
     _view.insert(insertIndex, timesheet);
     _data.insert(insertIndex, timesheet.serialize());
@@ -726,16 +740,29 @@ class Timesheets with ForwardingIterable<Timesheet>, DisallowCollectionConversio
     return timesheet;
   }
 
+  /// Removes the specified timesheet.
+  ///
+  /// Registered [InvoiceListener.onTimesheetsRemoved] listeners will
+  /// be notified.
+  void remove(Timesheet timesheet) {
+    assert(_view[timesheet.index] == timesheet);
+    removeAt(timesheet.index);
+  }
+
   /// Removes the timesheet at the specified index.
   ///
   /// Registered [InvoiceListener.onTimesheetsRemoved] listeners will
   /// be notified.
   Timesheet removeAt(int index) {
     _owner._checkDisposed();
+    // Order is important here; set this first to force the parent to run its
+    // lazy total calculation before updating our model.
+    final double previousInvoiceTotal = _owner.total;
     final Timesheet removed = _view.removeAt(index);
     _data.removeAt(index);
     _owner._owner.onTimesheetsRemoved(index, <Timesheet>[removed]);
     _owner._setIsDirty(true);
+    _owner.total = previousInvoiceTotal - removed.total;
     return removed;
   }
 
@@ -753,10 +780,46 @@ class Timesheets with ForwardingIterable<Timesheet>, DisallowCollectionConversio
   }
 }
 
+class InvoiceEntryMetadata {
+  const InvoiceEntryMetadata({
+    required this.program,
+    required this.chargeNumber,
+    required this.requestor,
+    required this.task,
+  });
+
+  /// The program (assignment data) against which this entry is to be billed.
+  final Program program;
+
+  /// The charge number of this entry.
+  ///
+  /// No all entry types will populate this field (e.g. [Accomplishment]). For
+  /// entry types that do populate the field, if [Program.requiresChargeNumber]
+  /// is false for this entry's [program], then the charge number will be the
+  /// empty string.
+  final String? chargeNumber;
+
+  /// The name of the client who requested the work done in this entry.
+  ///
+  /// No all entry types will populate this field (e.g. [Accomplishment]). For
+  /// entry types that do populate the field, if [Program.requiresChargeNumber]
+  /// is false for this entry's [program], then the requestor will be the empty
+  /// string.
+  final String? requestor;
+
+  /// The task description for this entry.
+  ///
+  /// No all entry types will populate this field (e.g. [Accomplishment]). For
+  /// entry types that do populate the field, it serves an an optional field
+  /// that allows the consultant to describe the entry to help them organize
+  /// their invoice.
+  final String? task;
+}
+
 /// Class that represents an individual timesheet within an invoice.
 ///
 /// Mutations on this class will notify registered [InvoiceListener] listeners.
-class Timesheet {
+class Timesheet implements InvoiceEntryMetadata {
   Timesheet._(this._owner, this._data, [this._program]);
 
   factory Timesheet._fromParts({
@@ -780,7 +843,7 @@ class Timesheet {
   final Map<String, dynamic> _data;
 
   /// The index of this timesheet in the invoice's list of timesheets.
-  int get _index => _owner.timesheets._view.indexOf(this);
+  int get index => _owner.timesheets._view.indexOf(this);
 
   /// The total billed value of this timesheet.
   double get total => totalHours * program.rate;
@@ -824,33 +887,22 @@ class Timesheet {
       }
       return buf.toString();
     }
+
     return _name ??= computeName();
   }
 
-  /// The program (assignment data) against which this timesheet is to be
-  /// billed.
   Program? _program;
-  Program get program {
-    _owner._checkDisposed();
-    return _program ??= Program._(_data[Keys.program]);
-  }
 
-  /// The charge number of this timesheet.
-  ///
-  /// If [Program.requiresChargeNumber] is false this this timesheet's
-  /// [program], then the charge number will be the empty string.
+  @override
+  Program get program => _owner._checkDisposed(() => _program ??= Program._(_data[Keys.program]))!;
+
+  @override
   String get chargeNumber => _owner._checkDisposed(() => _data[Keys.chargeNumber])!;
 
-  /// The name of the client who requested the work done in this timesheet.
-  ///
-  /// If [Program.requiresRequestor] is false this this timesheet's
-  /// [program], then the requestor will be the empty string.
+  @override
   String get requestor => _owner._checkDisposed(() => _data[Keys.requestor])!;
 
-  /// The task description for this timesheet.
-  ///
-  /// This optional field allows the consultant to describe the timesheet to
-  /// help them organize their invoice.
+  @override
   String get task => _owner._checkDisposed(() => _data[Keys.taskDescription])!;
 
   /// The hour entries in this timesheet.
@@ -880,6 +932,7 @@ class Timesheet {
       String previousValue = this.chargeNumber;
       if (chargeNumber != previousValue) {
         _data[Keys.chargeNumber] = chargeNumber;
+        _name = null;
         _owner._owner.onTimesheetUpdated(timesheetsIndex, Keys.chargeNumber, previousValue);
         _owner._setIsDirty(true);
       }
@@ -888,6 +941,7 @@ class Timesheet {
       String previousValue = this.requestor;
       if (requestor != previousValue) {
         _data[Keys.requestor] = requestor;
+        _name = null;
         _owner._owner.onTimesheetUpdated(timesheetsIndex, Keys.requestor, previousValue);
         _owner._setIsDirty(true);
       }
@@ -896,6 +950,7 @@ class Timesheet {
       String previousValue = this.task;
       if (taskDescription != previousValue) {
         _data[Keys.taskDescription] = taskDescription;
+        _name = null;
         _owner._owner.onTimesheetUpdated(timesheetsIndex, Keys.taskDescription, previousValue);
         _owner._setIsDirty(true);
       }
@@ -940,7 +995,7 @@ class Hours with ForwardingIterable<double>, DisallowCollectionConversion<double
       // lazy total calculation before updating the hours value.
       final double previousTotal = _parent.totalHours;
       _data[index] = value;
-      _owner._owner.onTimesheetHoursUpdated(_parent._index, index, previousValue);
+      _owner._owner.onTimesheetHoursUpdated(_parent.index, index, previousValue);
       _owner._setIsDirty(true);
       _parent.totalHours = previousTotal + (value - previousValue);
     }
@@ -998,7 +1053,7 @@ class ExpenseReports
   }) {
     _owner._checkDisposed();
     // TODO: this list should probably be sorted.
-    final int insertIndex = _data.length - 1;
+    final int insertIndex = _data.length;
     final ExpenseReport expenseReport = ExpenseReport._fromParts(
       owner: _owner,
       program: program,
@@ -1046,7 +1101,7 @@ class ExpenseReports
 ///
 /// Mutations to the expense report or to any expenses in the report will
 /// notify registered [InvoiceListener] listeners.
-class ExpenseReport {
+class ExpenseReport implements InvoiceEntryMetadata {
   ExpenseReport._(this._owner, this._data, [this._program, this._period]);
 
   factory ExpenseReport._fromParts({
@@ -1100,31 +1155,21 @@ class ExpenseReport {
     }
   }
 
-  /// The program (assignment) against which this expense report is to be
-  /// billed.
   Program? _program;
+
+  @override
   Program get program {
     _owner._checkDisposed();
     return _program ??= Program._(_data[Keys.program]);
   }
 
-  /// The charge number of this expense report.
-  ///
-  /// If [Program.requiresChargeNumber] is false this this expense report's
-  /// [program], then the charge number will be the empty string.
+  @override
   String get chargeNumber => _owner._checkDisposed(_data[Keys.chargeNumber]);
 
-  /// The name of the client who requested the work done in this expense
-  /// report.
-  ///
-  /// If [Program.requiresRequestor] is false this this expense report's
-  /// [program], then the requestor will be the empty string.
+  @override
   String get requestor => _owner._checkDisposed(_data[Keys.requestor]);
 
-  /// The task description for this expense report.
-  ///
-  /// This optional field allows the consultant to describe the expense report
-  /// to help them organize their invoice.
+  @override
   String get task => _owner._checkDisposed(_data[Keys.taskDescription]);
 
   /// The time period that this expense report covers.
@@ -1194,7 +1239,7 @@ class Expenses with ForwardingIterable<Expense>, DisallowCollectionConversion<Ex
     // lazy total calculation before adding the expense to _data.
     final double previousTotal = _parent.total;
     // TODO: this list should probably be sorted.
-    final int insertIndex = _data.length - 1;
+    final int insertIndex = _data.length;
     final Expense expense = Expense._fromParts(
       owner: _owner,
       parent: _parent,
@@ -1425,7 +1470,7 @@ class Accomplishments
   Accomplishment add({required Program program}) {
     _owner._checkDisposed();
     // TODO: this list should probably be sorted.
-    final int insertIndex = _data.length - 1;
+    final int insertIndex = _data.length;
     final Accomplishment accomplishment = Accomplishment._fromParts(
       owner: _owner,
       program: program,
