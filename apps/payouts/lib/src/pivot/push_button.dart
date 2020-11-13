@@ -4,6 +4,7 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/painting.dart';
 import 'package:flutter/rendering.dart';
+import 'package:flutter/widgets.dart';
 
 import 'colors.dart';
 import 'sorting.dart';
@@ -140,7 +141,7 @@ class _PushButtonState<T extends Object> extends State<PushButton<T>> {
               size: Size(7, 4),
               painter: SortIndicatorPainter(
                 sortDirection: SortDirection.descending,
-                color: Colors.black,
+                color: const Color(0xff000000),
               ),
             ),
           )
@@ -340,7 +341,7 @@ class CommandPushButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return PushButton(
-      color: Colors.white,
+      color: const Color(0xffffffff),
       backgroundColor: const Color(0xff3c77b2),
       borderColor: const Color(0xff2b5580),
       padding: EdgeInsets.fromLTRB(3, 4, 4, 5),
