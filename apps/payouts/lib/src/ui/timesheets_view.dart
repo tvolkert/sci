@@ -185,11 +185,13 @@ class _HoursInput extends StatefulWidget {
     required this.hours,
     required this.hoursIndex,
     this.isWeekend = false,
+    this.enabled = true,
   }) : super(key: key);
 
   final Hours hours;
   final int hoursIndex;
   final bool isWeekend;
+  final bool enabled;
 
   @override
   _HoursInputState createState() => _HoursInputState();
@@ -263,6 +265,7 @@ class _HoursInputState extends State<_HoursInput> {
     return pivot.TextInput(
       controller: _controller,
       backgroundColor: widget.isWeekend ? const Color(0xffdddcd5) : const Color(0xffffffff),
+      enabled: widget.enabled,
     );
   }
 }
@@ -306,21 +309,25 @@ class _TimesheetRowState extends State<_TimesheetRow> {
 
   Widget? _tableRow;
   Widget _buildTableRow() {
-    return _tableRow ??= pivot.TableRow(
-      height: pivot.IntrinsicTablePaneRowHeight(),
-      children: <Widget>[
-        const _TimesheetHeader(),
-        ...List<Widget>.generate(widget.timesheet.hours.length, (int index) {
-          return _HoursInput(
-            hours: widget.timesheet.hours,
-            hoursIndex: index,
-            isWeekend: InvoiceBinding.instance!.invoice!.billingPeriod[index].weekday > 5,
-          );
-        }),
-        const _TimesheetFooter(),
-        const pivot.EmptyTableCell(),
-      ],
-    );
+    return _tableRow ??= () {
+      final bool isSubmitted = InvoiceBinding.instance!.invoice!.isSubmitted;
+      return pivot.TableRow(
+        height: pivot.IntrinsicTablePaneRowHeight(),
+        children: <Widget>[
+          const _TimesheetHeader(),
+          ...List<Widget>.generate(widget.timesheet.hours.length, (int index) {
+            return _HoursInput(
+              hours: widget.timesheet.hours,
+              hoursIndex: index,
+              isWeekend: InvoiceBinding.instance!.invoice!.billingPeriod[index].weekday > 5,
+              enabled: !isSubmitted,
+            );
+          }),
+          const _TimesheetFooter(),
+          const pivot.EmptyTableCell(),
+        ],
+      );
+    }();
   }
 
   @override
