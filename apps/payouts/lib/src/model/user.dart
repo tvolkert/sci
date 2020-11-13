@@ -144,8 +144,13 @@ class User {
 
   bool get isPostLogin => !passwordRequiresReset;
 
-  http.BaseClient authenticate([http.BaseClient? client]) {
-    return _AuthenticatedClient._(client ?? HttpBinding.instance!.client, this);
+  http.BaseClient authenticate() {
+    return authenticateClient(HttpBinding.instance!.client);
+  }
+
+  @visibleForTesting
+  http.BaseClient authenticateClient(http.BaseClient client) {
+    return _AuthenticatedClient._(client, this);
   }
 
   /// Updates the user's password.
