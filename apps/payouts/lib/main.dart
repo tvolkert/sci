@@ -30,7 +30,6 @@ void main() {
 class PayoutsApp extends StatelessWidget {
   static final Map<Type, Action<Intent>> defaultActions = <Type, Action<Intent>>{
     AboutIntent: AboutAction.instance,
-    AddTimesheetIntent: AddTimesheetAction.instance,
     CreateInvoiceIntent: CreateInvoiceAction.instance,
     DeleteInvoiceIntent: DeleteInvoiceAction.instance,
     ExportInvoiceIntent: ExportInvoiceAction.instance,

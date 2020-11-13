@@ -1,9 +1,10 @@
 import 'dart:async';
 
-import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/rendering.dart';
-import 'package:payouts/src/model/invoice.dart';
+import 'package:flutter/widgets.dart';
 
+import 'package:payouts/src/model/invoice.dart';
 import 'package:payouts/src/pivot.dart' as pivot;
 
 class AddTimesheetIntent extends Intent {
@@ -24,34 +25,27 @@ class AddTimesheetAction extends ContextAction<AddTimesheetIntent> {
       throw StateError('No context in which to invoke $runtimeType');
     }
 
-    final _TimesheetMetadata? metadata = await AddTimesheetSheet.open(context: context);
+    final InvoiceEntryMetadata? metadata = await AddTimesheetSheet.open(context: context);
     if (metadata != null) {
-      InvoiceBinding.instance!.invoice!.timesheets.add(
-        program: metadata.program,
-        chargeNumber: metadata.chargeNumber,
-        requestor: metadata.requestor,
-        task: metadata.task,
-      );
+      InvoiceBinding.instance!.invoice!.timesheets.add(metadata);
     }
   }
 }
 
-class AddTimesheetSheet extends StatefulWidget {
-  const AddTimesheetSheet({Key? key}) : super(key: key);
-
-  @override
-  _AddTimesheetSheetState createState() => _AddTimesheetSheetState();
-
-  static Future<_TimesheetMetadata?> open({required BuildContext context}) {
-    return pivot.Sheet.open<_TimesheetMetadata>(
-      context: context,
-      content: AddTimesheetSheet(),
-      barrierDismissible: true,
-    );
-  }
+enum TimesheetField {
+  program,
+  chargeNumber,
+  requestor,
 }
 
-class _AddTimesheetSheetState extends State<AddTimesheetSheet> {
+abstract class TimesheetMetadataSheet extends StatefulWidget {
+  const TimesheetMetadataSheet({Key? key}) : super(key: key);
+
+  @override
+  TimesheetMetadataSheetState createState();
+}
+
+abstract class TimesheetMetadataSheetState<T extends TimesheetMetadataSheet> extends State<T> {
   late List<Program> _assignments;
   bool _requiresChargeNumber = false;
   bool _requiresRequestor = false;
@@ -62,6 +56,7 @@ class _AddTimesheetSheetState extends State<AddTimesheetSheet> {
   late TextEditingController _chargeNumberController;
   late TextEditingController _requestorController;
   late TextEditingController _taskController;
+  bool _programIsReadOnly = false;
 
   Widget _buildProgram({required BuildContext context, required Program? item}) {
     return pivot.ListButton.defaultBuilder(
@@ -110,58 +105,84 @@ class _AddTimesheetSheetState extends State<AddTimesheetSheet> {
 
     if (selectedProgram == null) {
       isInputValid = false;
-      setState(() {
-        _programFlag = pivot.Flag(
-          messageType: pivot.MessageType.warning,
-          message: 'TODO',
-        );
-      });
+      setErrorFlag(TimesheetField.program, 'TODO');
     } else {
-      setState(() {
-        _programFlag = null;
-      });
-    }
-
-    if (_requiresChargeNumber && chargeNumber.isEmpty) {
-      isInputValid = false;
-      setState(() {
-        _chargeNumberFlag = pivot.Flag(
-          messageType: pivot.MessageType.warning,
-          message: 'TODO',
-        );
-      });
-    } else {
-      setState(() {
-        _chargeNumberFlag = null;
-      });
-    }
-
-    if (_requiresRequestor && requestor.isEmpty) {
-      isInputValid = false;
-      setState(() {
-        _requestorFlag = pivot.Flag(
-          messageType: pivot.MessageType.warning,
-          message: 'TODO',
-        );
-      });
-    } else {
-      setState(() {
-        _requestorFlag = null;
-      });
+      setErrorFlag(TimesheetField.program, null);
     }
 
     if (isInputValid) {
-      final _TimesheetMetadata metadata = _TimesheetMetadata(
+      final InvoiceEntryMetadata metadata = InvoiceEntryMetadata(
         program: selectedProgram!,
         chargeNumber: chargeNumber,
         requestor: requestor,
         task: task,
       );
-      Navigator.of(context)!.pop<_TimesheetMetadata>(metadata);
+
+      isInputValid = validateMetadata(metadata);
+      if (isInputValid) {
+        Navigator.of(context)!.pop<InvoiceEntryMetadata>(metadata);
+      }
     }
   }
 
+  @protected
+  bool validateMetadata(InvoiceEntryMetadata metadata);
+
+  @protected
+  @mustCallSuper
+  void onLoad() {
+  }
+
+  @protected
+  @nonVirtual
+  void setErrorFlag(TimesheetField field, String? message) {
+    final pivot.Flag? flag = message == null ? null : pivot.Flag(
+      messageType: pivot.MessageType.error,
+      message: message,
+    );
+    setState(() {
+      switch (field) {
+        case TimesheetField.program:
+          _programFlag = flag;
+          break;
+        case TimesheetField.chargeNumber:
+          _chargeNumberFlag = flag;
+          break;
+        case TimesheetField.requestor:
+          _requestorFlag = flag;
+          break;
+      }
+    });
+  }
+
+  @protected
+  @nonVirtual
+  set programIsReadOnly(bool value) {
+    if (value != _programIsReadOnly) {
+      setState(() {
+        _programIsReadOnly = value;
+      });
+    }
+  }
+
+  @protected
+  @nonVirtual
+  pivot.ListViewSelectionController get programSelectionController => _programSelectionController;
+
+  @protected
+  @nonVirtual
+  TextEditingController get chargeNumberController => _chargeNumberController;
+
+  @protected
+  @nonVirtual
+  TextEditingController get requestorController => _requestorController;
+
+  @protected
+  @nonVirtual
+  TextEditingController get taskController => _taskController;
+
   @override
+  @protected
   void initState() {
     super.initState();
     _assignments = AssignmentsBinding.instance!.assignments!;
@@ -170,9 +191,11 @@ class _AddTimesheetSheetState extends State<AddTimesheetSheet> {
     _chargeNumberController = TextEditingController();
     _requestorController = TextEditingController();
     _taskController = TextEditingController();
+    onLoad();
   }
 
   @override
+  @protected
   void dispose() {
     _programSelectionController.removeListener(_handleProgramSelected);
     _programSelectionController.dispose();
@@ -183,6 +206,8 @@ class _AddTimesheetSheetState extends State<AddTimesheetSheet> {
   }
 
   @override
+  @protected
+  @nonVirtual
   Widget build(BuildContext context) {
     return SizedBox(
       width: 400,
@@ -206,6 +231,7 @@ class _AddTimesheetSheetState extends State<AddTimesheetSheet> {
                       selectionController: _programSelectionController,
                       builder: _buildProgram,
                       itemBuilder: _buildProgramItem,
+                      isEnabled: !_programIsReadOnly,
                     ),
                   ),
                   if (_requiresChargeNumber)
@@ -266,17 +292,46 @@ class _AddTimesheetSheetState extends State<AddTimesheetSheet> {
   }
 }
 
-@immutable
-class _TimesheetMetadata {
-  const _TimesheetMetadata({
-    required this.program,
-    required this.chargeNumber,
-    required this.requestor,
-    required this.task,
-  });
+class AddTimesheetSheet extends TimesheetMetadataSheet {
+  const AddTimesheetSheet({Key? key}) : super(key: key);
 
-  final Program program;
-  final String chargeNumber;
-  final String requestor;
-  final String task;
+  @override
+  _AddTimesheetSheetState createState() => _AddTimesheetSheetState();
+
+  static Future<InvoiceEntryMetadata?> open({required BuildContext context}) {
+    return pivot.Sheet.open<InvoiceEntryMetadata>(
+      context: context,
+      content: AddTimesheetSheet(),
+      barrierDismissible: true,
+    );
+  }
+}
+
+class _AddTimesheetSheetState extends TimesheetMetadataSheetState<AddTimesheetSheet> {
+  @override
+  @protected
+  bool validateMetadata(InvoiceEntryMetadata metadata) {
+    bool isInputValid = true;
+
+    if (InvoiceBinding.instance!.invoice!.timesheets.indexOf(metadata) >= 0) {
+      setErrorFlag(TimesheetField.program, 'A timesheet already exists for this program');
+      isInputValid = false;
+    }
+
+    if (metadata.program.requiresChargeNumber && metadata.chargeNumber!.isEmpty) {
+      isInputValid = false;
+      setErrorFlag(TimesheetField.chargeNumber, 'TODO');
+    } else {
+      setErrorFlag(TimesheetField.chargeNumber, null);
+    }
+
+    if (metadata.program.requiresRequestor && metadata.requestor!.isEmpty) {
+      isInputValid = false;
+      setErrorFlag(TimesheetField.requestor, 'TODO');
+    } else {
+      setErrorFlag(TimesheetField.requestor, null);
+    }
+
+    return isInputValid;
+  }
 }

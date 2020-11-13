@@ -11,14 +11,28 @@ import 'package:payouts/src/pivot.dart' as pivot;
 
 import 'rotated_text.dart';
 
-class TimesheetsView extends StatefulWidget {
-  const TimesheetsView({Key? key}) : super(key: key);
-
+class TimesheetsView extends StatelessWidget {
   @override
-  _TimesheetsViewState createState() => _TimesheetsViewState();
+  Widget build(BuildContext context) {
+    return Actions(
+      actions: <Type, Action<Intent>>{
+        AddTimesheetIntent: AddTimesheetAction.instance,
+        EditTimesheetIntent: EditTimesheetAction.instance,
+        DeleteTimesheetIntent: DeleteTimesheetAction.instance,
+      },
+      child: const _RawTimesheetsView(),
+    );
+  }
 }
 
-class _TimesheetsViewState extends State<TimesheetsView> {
+class _RawTimesheetsView extends StatefulWidget {
+  const _RawTimesheetsView({Key? key}) : super(key: key);
+
+  @override
+  _RawTimesheetsViewState createState() => _RawTimesheetsViewState();
+}
+
+class _RawTimesheetsViewState extends State<_RawTimesheetsView> {
   late InvoiceListener _listener;
   late List<_TimesheetRow> _timesheetRows;
 
@@ -88,7 +102,7 @@ class _TimesheetsViewState extends State<TimesheetsView> {
               onPressed: _handleAddTimesheet,
             ),
           ),
-          Expanded(
+          if (_timesheetRows.isNotEmpty) Expanded(
             child: pivot.ScrollPane(
               horizontalScrollBarPolicy: pivot.ScrollBarPolicy.expand,
               view: Padding(
@@ -378,14 +392,6 @@ class _TimesheetScope extends InheritedWidget {
 class _TimesheetHeader extends StatelessWidget {
   const _TimesheetHeader({Key? key}) : super(key: key);
 
-  static void _handleEdit(Timesheet timesheet) {
-    print('TODO: edit timesheet ${timesheet.name}');
-  }
-
-  static void _handleDelete(Timesheet timesheet) {
-    print('TODO: delete timesheet ${timesheet.name}');
-  }
-
   static Widget _buildHeader(BuildContext context, bool hover) {
     final Timesheet timesheet = _TimesheetRow.of(context);
     return Row(
@@ -403,22 +409,22 @@ class _TimesheetHeader extends StatelessWidget {
         ),
         Opacity(
           opacity: hover ? 1 : 0,
-          child: pivot.PushButton(
+          child: pivot.ActionPushButton(
+            intent: EditTimesheetIntent(timesheet),
             padding: const EdgeInsets.fromLTRB(4, 3, 0, 3),
             icon: 'assets/pencil.png',
             showTooltip: false,
             isToolbar: true,
-            onPressed: () => _handleEdit(timesheet),
           ),
         ),
         Opacity(
           opacity: hover ? 1 : 0,
-          child: pivot.PushButton(
+          child: pivot.ActionPushButton(
+            intent: DeleteTimesheetIntent(timesheet),
             padding: const EdgeInsets.fromLTRB(4, 3, 0, 3),
             icon: 'assets/cross.png',
             showTooltip: false,
             isToolbar: true,
-            onPressed: () => _handleDelete(timesheet),
           ),
         ),
         const SizedBox(width: 1),
@@ -503,14 +509,18 @@ class _FooterRowState extends State<_FooterRow> {
   late InvoiceListener _invoiceListener;
   Widget? _row;
 
+  void _handleTimesheetsRemoved(int timesheetsIndex, Iterable<Timesheet> removed) {
+    _markRowNeedsBuilding();
+  }
+
   void _handleTimesheetUpdated(int index, String key, dynamic previousValue) {
     if (key == Keys.rate) {
-      setState(() => _row = null);
+      _markRowNeedsBuilding();
     }
   }
 
   void _handleTimesheetHoursUpdated(int index, int dayIndex, double previousHours) {
-    setState(() => _row = null);
+    _markRowNeedsBuilding();
   }
 
   double _computeTotalHoursForDay(int index) {
@@ -523,10 +533,15 @@ class _FooterRowState extends State<_FooterRow> {
     return _FooterHours(hours: _computeTotalHoursForDay(index));
   }
 
+  void _markRowNeedsBuilding() {
+    setState(() => _row = null);
+  }
+
   @override
   void initState() {
     super.initState();
     _invoiceListener = InvoiceListener(
+      onTimesheetsRemoved: _handleTimesheetsRemoved,
       onTimesheetUpdated: _handleTimesheetUpdated,
       onTimesheetHoursUpdated: _handleTimesheetHoursUpdated,
     );
