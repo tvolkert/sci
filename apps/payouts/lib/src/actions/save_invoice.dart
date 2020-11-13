@@ -46,7 +46,7 @@ class SaveInvoiceAction extends ContextAction<SaveInvoiceIntent>
     }
 
     await TaskMonitor.of(context).monitor<void>(
-      future: InvoiceBinding.instance!.save(),
+      future: InvoiceBinding.instance!.invoice!.save(),
       inProgressMessage: 'Saving invoice...',
       completedMessage: 'Invoice saved',
     );

@@ -53,7 +53,7 @@ class DeleteInvoiceAction extends ContextAction<DeleteInvoiceIntent> with TrackI
 
     if (selectedOption == 0) {
       await TaskMonitor.of(context).monitor<void>(
-        future: InvoiceBinding.instance!.delete(),
+        future: InvoiceBinding.instance!.invoice!.delete(),
         inProgressMessage: 'Deleting invoice...',
         completedMessage: 'Invoice deleted',
       );

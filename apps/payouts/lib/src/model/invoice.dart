@@ -74,31 +74,6 @@ mixin InvoiceBinding on AppBindingBase, ListenerNotifier<InvoiceListener>, Invoi
       throw HttpStatusException(response.statusCode);
     }
   }
-
-  Future<void> save() async {
-    final Uri url = Server.uri(Server.invoiceUrl);
-    final http.Client client = UserBinding.instance!.user!.authenticate();
-    final String serialized = invoice!.serialize(markAsSubmitted: true);
-    final http.Response response = await client.put(url, body: serialized);
-    if (response.statusCode == HttpStatus.noContent) {
-      invoice!._setIsDirty(false);
-    } else if (response.statusCode == HttpStatus.forbidden) {
-      throw const InvalidCredentials();
-    } else {
-      throw HttpStatusException(response.statusCode);
-    }
-  }
-
-  Future<void> delete() async {
-    // TODO
-    await Future<void>.delayed(const Duration(seconds: 1));
-    final Invoice? previousInvoice = _invoice;
-    _invoice = null;
-    onInvoiceClosed(previousInvoice);
-    if (previousInvoice != null) {
-      previousInvoice._dispose();
-    }
-  }
 }
 
 mixin AssignmentsBinding on AppBindingBase, UserBinding {
@@ -505,14 +480,6 @@ class Invoice {
   /// When this is changed, [InvoiceListener.onSubmitted] listeners will
   /// be notified.
   bool get isSubmitted => _checkDisposed(() => _data[Keys.submitted])!;
-  set isSubmitted(bool value) {
-    _checkDisposed();
-    assert(value);
-    if (value != isSubmitted) {
-      _data[Keys.submitted] = value;
-      _owner.onSubmitted();
-    }
-  }
 
   /// The billing period for the invoice.
   DateRange? _billingPeriod;
@@ -549,6 +516,45 @@ class Invoice {
   Accomplishments get accomplishments {
     _checkDisposed();
     return _accomplishments ??= Accomplishments._fromRawData(this, _data);
+  }
+
+  Future<void> save({bool markAsSubmitted = false}) async {
+    assert(!isSubmitted);
+    _checkDisposed();
+    final Uri url = Server.uri(Server.invoiceUrl);
+    final http.Client client = UserBinding.instance!.user!.authenticate();
+    final String serialized = serialize(markAsSubmitted: markAsSubmitted);
+    final http.Response response = await client.put(url, body: serialized);
+    if (response.statusCode == HttpStatus.noContent) {
+      _setIsDirty(false);
+      if (markAsSubmitted) {
+        _data[Keys.submitted] = true;
+        _owner.onSubmitted();
+      }
+    } else if (response.statusCode == HttpStatus.forbidden) {
+      throw const InvalidCredentials();
+    } else {
+      throw HttpStatusException(response.statusCode);
+    }
+  }
+
+  Future<void> delete() async {
+    assert(!isSubmitted);
+    _checkDisposed();
+    final Uri url = Server.uri(Server.invoiceUrl, query: <String, String>{
+      QueryParameters.invoiceId: '$id',
+    });
+    final http.Client client = UserBinding.instance!.user!.authenticate();
+    final http.Response response = await client.delete(url);
+    if (response.statusCode == HttpStatus.noContent) {
+      _owner._invoice = null;
+      _owner.onInvoiceClosed(this);
+      _dispose();
+    } else if (response.statusCode == HttpStatus.forbidden) {
+      throw const InvalidCredentials();
+    } else {
+      throw HttpStatusException(response.statusCode);
+    }
   }
 
   @override
@@ -698,7 +704,7 @@ class Timesheets with ForwardingIterable<Timesheet>, DisallowCollectionConversio
   /// Gets the timesheet at the specified index.
   Timesheet operator [](int index) => _owner._checkDisposed(() => _view[index])!;
 
-  /// Computes the total dollar amount for this expense report.
+  /// Computes the total dollar amount for the sum of all timesheets.
   @protected
   @visibleForTesting
   double computeTotal() {
