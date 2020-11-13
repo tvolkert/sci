@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io' show HttpHeaders, HttpStatus;
 
@@ -23,12 +24,43 @@ mixin HttpBinding on AppBindingBase {
   http.BaseClient get client {
     assert(() {
       if (debugUseFakeHttpLayer) {
-        _client ??= _FakeHttpClient();
+        _client ??= UnescapeInvalidJsonClient(_FakeHttpClient());
       }
       return true;
     }());
-    return _client ??= http.Client() as http.BaseClient;
+    return _client ??= UnescapeInvalidJsonClient(http.Client() as http.BaseClient);
   }
+}
+
+@visibleForTesting
+class UnescapeInvalidJsonClient extends http.BaseClient {
+  UnescapeInvalidJsonClient(this._delegate);
+
+  final http.BaseClient _delegate;
+
+  Stream<List<int>> _adaptStream(Stream<List<int>> input) {
+    return input
+        .transform<String>(utf8.decoder)
+        .map<String>((String chunk) => chunk.replaceAll("\\'", "'"))
+        .transform<List<int>>(utf8.encoder);
+  }
+
+  @override
+  Future<http.StreamedResponse> send(http.BaseRequest request) async {
+    final http.StreamedResponse rawResponse = await _delegate.send(request);
+    return http.StreamedResponse(
+      _adaptStream(rawResponse.stream),
+      rawResponse.statusCode,
+      contentLength: rawResponse.contentLength,
+      request: rawResponse.request,
+      headers: rawResponse.headers,
+      isRedirect: rawResponse.isRedirect,
+      persistentConnection: rawResponse.persistentConnection,
+      reasonPhrase: rawResponse.reasonPhrase,
+    );
+  }
+
+  void close() => _delegate.close();
 }
 
 @immutable
