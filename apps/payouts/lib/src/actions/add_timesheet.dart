@@ -5,6 +5,7 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter/widgets.dart';
 
 import 'package:payouts/src/model/invoice.dart';
+import 'package:payouts/src/model/track_invoice_opened_mixin.dart';
 import 'package:payouts/src/pivot.dart' as pivot;
 
 class AddTimesheetIntent extends Intent {
@@ -13,10 +14,22 @@ class AddTimesheetIntent extends Intent {
   final BuildContext? context;
 }
 
-class AddTimesheetAction extends ContextAction<AddTimesheetIntent> {
+class AddTimesheetAction extends ContextAction<AddTimesheetIntent> with TrackInvoiceOpenedMixin {
   AddTimesheetAction._();
 
   static final AddTimesheetAction instance = AddTimesheetAction._();
+
+  @override
+  @protected
+  void onInvoiceChanged() {
+    super.onInvoiceChanged();
+    notifyActionListeners();
+  }
+
+  @override
+  bool isEnabled(AddTimesheetIntent intent) {
+    return isInvoiceOpened && !InvoiceBinding.instance!.invoice!.isSubmitted;
+  }
 
   @override
   Future<void> invoke(AddTimesheetIntent intent, [BuildContext? context]) async {

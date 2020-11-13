@@ -1,3 +1,6 @@
+import 'dart:math' as math;
+import 'dart:ui' as ui;
+
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart' show Ink, Theme;
 import 'package:flutter/painting.dart';
@@ -25,8 +28,9 @@ class InvoiceView extends StatefulWidget {
 
 class _InvoiceViewState extends State<InvoiceView> {
   late InvoiceListener _listener;
-  late bool _isSubmitted; // ignore: unused_field
+  late bool _isSubmitted;
   late double _total;
+  WatermarkPainter? _watermarkPainter;
 
   Invoice get invoice => InvoiceBinding.instance!.invoice!;
 
@@ -42,7 +46,18 @@ class _InvoiceViewState extends State<InvoiceView> {
   }
 
   void _handleSubmittedChanged() {
-    setState(() => _isSubmitted = invoice.isSubmitted);
+    setState(() {
+      _isSubmitted = invoice.isSubmitted;
+      _updateWatermarkPainter();
+    });
+  }
+
+  void _updateWatermarkPainter() {
+    if (_isSubmitted) {
+      _watermarkPainter ??= WatermarkPainter('Submitted');
+    } else {
+      _watermarkPainter = null;
+    }
   }
 
   static Widget _buildTimesheetsView(BuildContext context) => TimesheetsView();
@@ -61,6 +76,7 @@ class _InvoiceViewState extends State<InvoiceView> {
     final Invoice invoice = this.invoice;
     _isSubmitted = invoice.isSubmitted;
     _total = invoice.total;
+    _updateWatermarkPainter();
     InvoiceBinding.instance!.addListener(_listener);
   }
 
@@ -75,8 +91,10 @@ class _InvoiceViewState extends State<InvoiceView> {
   Widget build(BuildContext context) {
     return InvoiceListenerBuilder(
       builder: (BuildContext context, Invoice? invoice) {
+        assert(invoice != null);
+
         // TODO: Remove Ink when it's no longer needed.
-        return Ink(
+        Widget result = Ink(
           decoration: const BoxDecoration(color: Color(0xffc8c8bb)),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -124,9 +142,75 @@ class _InvoiceViewState extends State<InvoiceView> {
             ],
           ),
         );
+
+        if (_isSubmitted) {
+          result = CustomPaint(
+            foregroundPainter: _watermarkPainter,
+            child: result,
+          );
+        }
+
+        return result;
       },
     );
   }
+}
+
+class WatermarkPainter extends CustomPainter {
+  WatermarkPainter(String watermark) : paragraph = _paragraphFor(watermark);
+
+  final ui.Paragraph paragraph;
+
+  static const double theta = math.pi / 4;
+
+  static ui.Paragraph _paragraphFor(String text) {
+    final ui.ParagraphStyle paragraphStyle = ui.ParagraphStyle(
+      fontFamily: 'Verdana',
+      fontSize: 60,
+      fontWeight: ui.FontWeight.bold,
+    );
+    final ui.ParagraphBuilder builder = ui.ParagraphBuilder(paragraphStyle)
+      ..pushStyle(ui.TextStyle(color: const Color(0x13000000)))
+      ..addText(text);
+    final ui.Paragraph paragraph = builder.build();
+    paragraph.layout(ui.ParagraphConstraints(width: double.infinity));
+    return paragraph;
+  }
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    double sinTheta = math.sin(theta);
+    double cosTheta = math.cos(theta);
+
+    canvas.clipRect(Offset.zero & size);
+    canvas.rotate(theta);
+
+    // Calculate the separation in between each repetition of the watermark
+    double dx = 1.5 * paragraph.longestLine;
+    double dy = 2 * paragraph.height;
+
+    // Prepare the origin of our graphics context
+    double x = 0;
+    double y = -size.width * sinTheta;
+    canvas.translate(x, y);
+
+    for (double yStop = size.height * cosTheta, p = 0; y < yStop; y += dy, p = 1 - p) {
+      for (double xStop = size.height * sinTheta + size.width * cosTheta; x < xStop; x += dx) {
+        canvas.drawParagraph(paragraph, Offset.zero);
+        canvas.translate(dx, 0);
+      }
+
+      // Move X origin back to its starting position & Y origin down
+      canvas.translate(-x, dy);
+      x = 0;
+
+      // Shift the x back and forth to add randomness feel to pattern
+      canvas.translate((0.5 - p) * paragraph.longestLine, 0);
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
 
 class InvoiceNumberEditor extends StatefulWidget {

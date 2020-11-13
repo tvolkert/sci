@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
-import 'package:payouts/src/model/invoice.dart';
 
+import 'package:payouts/src/model/invoice.dart';
+import 'package:payouts/src/model/track_invoice_opened_mixin.dart';
 import 'package:payouts/src/pivot.dart' as pivot;
 
 class DeleteTimesheetIntent extends Intent {
@@ -10,10 +11,22 @@ class DeleteTimesheetIntent extends Intent {
   final Timesheet timesheet;
 }
 
-class DeleteTimesheetAction extends ContextAction<DeleteTimesheetIntent> {
+class DeleteTimesheetAction extends ContextAction<DeleteTimesheetIntent> with TrackInvoiceOpenedMixin {
   DeleteTimesheetAction._();
 
   static final DeleteTimesheetAction instance = DeleteTimesheetAction._();
+
+  @override
+  @protected
+  void onInvoiceChanged() {
+    super.onInvoiceChanged();
+    notifyActionListeners();
+  }
+
+  @override
+  bool isEnabled(DeleteTimesheetIntent intent) {
+    return isInvoiceOpened && !InvoiceBinding.instance!.invoice!.isSubmitted;
+  }
 
   @override
   Future<void> invoke(DeleteTimesheetIntent intent, [BuildContext? context]) async {

@@ -23,13 +23,15 @@ class DeleteInvoiceAction extends ContextAction<DeleteInvoiceIntent> with TrackI
 
   @override
   @protected
-  void onInvoiceOpenedChanged() {
-    super.onInvoiceOpenedChanged();
+  void onInvoiceChanged() {
+    super.onInvoiceChanged();
     notifyActionListeners();
   }
 
   @override
-  bool isEnabled(DeleteInvoiceIntent intent) => isInvoiceOpened;
+  bool isEnabled(DeleteInvoiceIntent intent) {
+    return isInvoiceOpened && !InvoiceBinding.instance!.invoice!.isSubmitted;
+  }
 
   @override
   Future<void> invoke(DeleteInvoiceIntent intent, [BuildContext? context]) async {
