@@ -842,6 +842,9 @@ class Timesheet implements InvoiceEntryMetadata {
   final Invoice _owner;
   final Map<String, dynamic> _data;
 
+  /// The invoice to which this timesheet belongs.
+  Invoice get invoice => _owner;
+
   /// The index of this timesheet in the invoice's list of timesheets.
   int get index => _owner.timesheets._view.indexOf(this);
 
