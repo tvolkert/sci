@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter/painting.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter/widgets.dart';
 
 import 'package:payouts/src/actions.dart';
+import 'package:payouts/src/model/debug.dart';
 import 'package:payouts/src/model/payouts.dart';
 import 'package:payouts/src/pivot.dart' as pivot;
 import 'package:payouts/src/ui/asset_image_precache.dart';
@@ -95,13 +97,23 @@ class PayoutsScaffold extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     // TODO: remove Material if and when it is no longer needed
-    return const Material(
-      type: MaterialType.transparency,
-      child: TaskMonitor(
-        child: RequireUser(
-          child: PayoutsHome(),
-        ),
+    Widget result = const TaskMonitor(
+      child: RequireUser(
+        child: PayoutsHome(),
       ),
+    );
+
+    if (debugUseFakeHttpLayer) {
+      result = Banner(
+        location: BannerLocation.topStart,
+        message: 'FAKE DATA',
+        child: result,
+      );
+    }
+
+    return Material(
+      type: MaterialType.transparency,
+      child: result,
     );
   }
 }
