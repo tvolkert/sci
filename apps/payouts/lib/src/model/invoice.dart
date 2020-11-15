@@ -569,6 +569,9 @@ class Invoice {
   @override
   String toString() => 'Invoice $id';
 
+  /// An unmodifiable view of the raw data that backs this invoice.
+  Map<String, dynamic> get rawData => Map<String, dynamic>.unmodifiable(_data);
+
   /// Serializes this invoice to a format suitable for permanent storage or
   /// transit across the wire.
   ///
