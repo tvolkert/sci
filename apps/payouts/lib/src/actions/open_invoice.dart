@@ -125,7 +125,7 @@ class _OpenInvoiceSheetState extends State<OpenInvoiceSheet> {
     });
   }
 
-  void _handleOk() {
+  void _handleInvoiceChosen() {
     Navigator.of(context)!.pop(_selectedInvoiceId);
   }
 
@@ -171,6 +171,7 @@ class _OpenInvoiceSheetState extends State<OpenInvoiceSheet> {
                     child: InvoicesView(
                       invoices: invoices,
                       onInvoiceSelected: _handleInvoiceSelected,
+                      onInvoiceChosen: _handleInvoiceChosen,
                     ),
                   ),
                 ),
@@ -197,7 +198,7 @@ class _OpenInvoiceSheetState extends State<OpenInvoiceSheet> {
                 ),
               pivot.CommandPushButton(
                 label: 'OK',
-                onPressed: _selectedInvoiceId != null ? _handleOk : null,
+                onPressed: _selectedInvoiceId != null ? _handleInvoiceChosen : null,
               ),
               SizedBox(width: 4),
               pivot.CommandPushButton(
@@ -217,17 +218,20 @@ class InvoicesView extends StatelessWidget {
     Key? key,
     this.invoices,
     required this.onInvoiceSelected,
+    required this.onInvoiceChosen,
   }) : super(key: key);
 
   final List<Map<String, dynamic>>? invoices;
   final ValueChanged<int?> onInvoiceSelected;
+  final VoidCallback onInvoiceChosen;
 
   @override
   Widget build(BuildContext context) {
     if (invoices == null) {
       return InvoicesTable(
-        invoices: const <Map<String, dynamic>>[],
+        invoices: <Map<String, dynamic>>[],
         onInvoiceSelected: onInvoiceSelected,
+        onInvoiceChosen: onInvoiceChosen,
       );
     } else if (invoices!.isEmpty) {
       // TODO: what should this be?
@@ -236,6 +240,7 @@ class InvoicesView extends StatelessWidget {
       return InvoicesTable(
         invoices: invoices!,
         onInvoiceSelected: onInvoiceSelected,
+        onInvoiceChosen: onInvoiceChosen,
       );
     }
   }
@@ -246,10 +251,12 @@ class InvoicesTable extends StatefulWidget {
     Key? key,
     required this.invoices,
     required this.onInvoiceSelected,
+    required this.onInvoiceChosen,
   }) : super(key: key);
 
   final List<Map<String, dynamic>> invoices;
   final ValueChanged<int?> onInvoiceSelected;
+  final VoidCallback onInvoiceChosen;
 
   @override
   _InvoicesTableState createState() => _InvoicesTableState();
@@ -265,58 +272,17 @@ class _InvoicesTableState extends State<InvoicesTable>
   late AnimationController _scrollAnimationController;
   late List<pivot.TableColumnController> _columns;
 
-  @override
-  initState() {
-    super.initState();
-    _metricsController = pivot.TableViewMetricsController();
-    _selectionController = pivot.TableViewSelectionController(selectMode: pivot.SelectMode.single);
-    _selectionController.addListener(_handleSelectionChanged);
-    _sortListener = pivot.TableViewSortListener(onChanged: _handleSortChanged);
-    _sortController = pivot.TableViewSortController(sortMode: pivot.TableViewSortMode.singleColumn);
-    _sortController.addListener(_sortListener);
-    _scrollController = pivot.ScrollController();
-    _scrollAnimationController = AnimationController(
-      duration: const Duration(milliseconds: 250),
-      vsync: this,
-    );
-    _columns = <pivot.TableColumnController>[
-      pivot.TableColumnController(
-        key: Keys.billingStart,
-        width: pivot.ConstrainedTableColumnWidth(width: 150, minWidth: 50),
-        cellRenderer: _renderBillingPeriodCell,
-        headerRenderer: _renderBillingPeriodHeader,
-      ),
-      pivot.TableColumnController(
-        key: Keys.invoiceNumber,
-        width: pivot.ConstrainedTableColumnWidth(width: 125, minWidth: 50),
-        cellRenderer: _renderInvoiceNumberCell,
-        headerRenderer: _renderInvoiceNumberHeader,
-      ),
-      pivot.TableColumnController(
-        key: Keys.submitted,
-        width: pivot.ConstrainedTableColumnWidth(width: 125, minWidth: 50),
-        cellRenderer: _renderSubmittedCell,
-        headerRenderer: _renderSubmittedHeader,
-      ),
-      pivot.TableColumnController(
-        key: Keys.resubmit,
-        width: pivot.FlexTableColumnWidth(),
-        cellRenderer: _renderResubmitCell,
-        headerRenderer: _renderResubmitHeader,
-      ),
-    ];
-  }
-
-  @override
-  dispose() {
-    _metricsController.dispose();
-    _selectionController.removeListener(_handleSelectionChanged);
-    _selectionController.dispose();
-    _sortController.removeListener(_sortListener);
-    _sortController.dispose();
-    _scrollController.dispose();
-    _scrollAnimationController.dispose();
-    super.dispose();
+  static InvoiceComparator _comparator(pivot.TableViewSortController controller) {
+    final String sortKey = controller.keys.first;
+    final pivot.SortDirection? direction = controller[sortKey];
+    final InvoiceComparator basicComparator = _invoiceComparators[sortKey]!;
+    return (Map<String, dynamic> a, Map<String, dynamic> b) {
+      int result = basicComparator(a, b);
+      if (direction == pivot.SortDirection.descending) {
+        result *= -1;
+      }
+      return result;
+    };
   }
 
   void _handleSelectionChanged() {
@@ -333,16 +299,7 @@ class _InvoicesTableState extends State<InvoicesTable>
       selectedItem = widget.invoices[_selectionController.selectedIndex];
     }
 
-    final String sortKey = controller.keys.first;
-    final pivot.SortDirection? direction = controller[sortKey];
-    final InvoiceComparator basicComparator = _invoiceComparators[sortKey]!;
-    InvoiceComparator comparator = (Map<String, dynamic> a, Map<String, dynamic> b) {
-      int result = basicComparator(a, b);
-      if (direction == pivot.SortDirection.descending) {
-        result *= -1;
-      }
-      return result;
-    };
+    final InvoiceComparator comparator = _comparator(controller);
     widget.invoices.sort(comparator);
 
     if (selectedItem != null) {
@@ -443,6 +400,79 @@ class _InvoicesTableState extends State<InvoicesTable>
   }
 
   @override
+  initState() {
+    super.initState();
+    _metricsController = pivot.TableViewMetricsController();
+    _selectionController = pivot.TableViewSelectionController(selectMode: pivot.SelectMode.single);
+    _selectionController.addListener(_handleSelectionChanged);
+    _sortListener = pivot.TableViewSortListener(onChanged: _handleSortChanged);
+    _sortController = pivot.TableViewSortController(sortMode: pivot.TableViewSortMode.singleColumn);
+    _sortController.addListener(_sortListener);
+    _sortController[Keys.billingStart] = pivot.SortDirection.descending;
+    _scrollController = pivot.ScrollController();
+    _scrollAnimationController = AnimationController(
+      duration: const Duration(milliseconds: 250),
+      vsync: this,
+    );
+    _columns = <pivot.TableColumnController>[
+      pivot.TableColumnController(
+        key: Keys.billingStart,
+        width: pivot.ConstrainedTableColumnWidth(width: 150, minWidth: 50),
+        cellRenderer: _renderBillingPeriodCell,
+        headerRenderer: _renderBillingPeriodHeader,
+      ),
+      pivot.TableColumnController(
+        key: Keys.invoiceNumber,
+        width: pivot.ConstrainedTableColumnWidth(width: 125, minWidth: 50),
+        cellRenderer: _renderInvoiceNumberCell,
+        headerRenderer: _renderInvoiceNumberHeader,
+      ),
+      pivot.TableColumnController(
+        key: Keys.submitted,
+        width: pivot.ConstrainedTableColumnWidth(width: 125, minWidth: 50),
+        cellRenderer: _renderSubmittedCell,
+        headerRenderer: _renderSubmittedHeader,
+      ),
+      pivot.TableColumnController(
+        key: Keys.resubmit,
+        width: pivot.FlexTableColumnWidth(),
+        cellRenderer: _renderResubmitCell,
+        headerRenderer: _renderResubmitHeader,
+      ),
+    ];
+  }
+
+  @override
+  void didUpdateWidget(covariant InvoicesTable oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.invoices != widget.invoices) {
+      if (_sortController.isNotEmpty && widget.invoices.isNotEmpty) {
+        final InvoiceComparator comparator = _comparator(_sortController);
+        widget.invoices.sort(comparator);
+      }
+    }
+  }
+
+  void _handleDoubleTapRow(int row) {
+    assert(row >= 0);
+    if (row < widget.invoices.length) {
+      widget.onInvoiceChosen();
+    }
+  }
+
+  @override
+  dispose() {
+    _metricsController.dispose();
+    _selectionController.removeListener(_handleSelectionChanged);
+    _selectionController.dispose();
+    _sortController.removeListener(_sortListener);
+    _sortController.dispose();
+    _scrollController.dispose();
+    _scrollAnimationController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return ColoredBox(
       color: const Color(0xffffffff),
@@ -455,6 +485,7 @@ class _InvoicesTableState extends State<InvoicesTable>
         sortController: _sortController,
         scrollController: _scrollController,
         columns: _columns,
+        onDoubleTapRow: _handleDoubleTapRow,
       ),
     );
   }
