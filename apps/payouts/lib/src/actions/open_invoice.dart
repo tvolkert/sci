@@ -34,7 +34,7 @@ int _compareBillingPeriod(Map<String, dynamic> a, Map<String, dynamic> b) {
 
 int _compareSubmitted(Map<String, dynamic> a, Map<String, dynamic> b) {
   final int? aVal = a[Keys.submitted];
-  final int? bVal = b[Keys.submitted ];
+  final int? bVal = b[Keys.submitted];
   if (aVal == bVal) {
     return 0;
   } else if (aVal == null) {
@@ -115,9 +115,57 @@ class OpenInvoiceSheet extends StatefulWidget {
   }
 }
 
-class _OpenInvoiceSheetState extends State<OpenInvoiceSheet> {
-  List<Map<String, dynamic>>? invoices;
+class _OpenInvoiceSheetState extends State<OpenInvoiceSheet>
+    with SingleTickerProviderStateMixin<OpenInvoiceSheet> {
+  late pivot.TableViewMetricsController _metricsController;
+  late pivot.TableViewSelectionController _selectionController;
+  late pivot.TableViewSortController _sortController;
+  late pivot.TableViewSortListener _sortListener;
+  late pivot.ScrollController _scrollController;
+  late AnimationController _scrollAnimationController;
+  List<Map<String, dynamic>>? _invoices;
   int? _selectedInvoiceId;
+
+  static const _scrollDuration = Duration(milliseconds: 250);
+
+  static InvoiceComparator _comparator(pivot.TableViewSortController controller) {
+    final String sortKey = controller.keys.first;
+    final pivot.SortDirection? direction = controller[sortKey];
+    final InvoiceComparator basicComparator = _invoiceComparators[sortKey]!;
+    return (Map<String, dynamic> a, Map<String, dynamic> b) {
+      int result = basicComparator(a, b);
+      if (direction == pivot.SortDirection.descending) {
+        result *= -1;
+      }
+      return result;
+    };
+  }
+
+  void _handleSelectionChanged() {
+    final int rowIndex = _selectionController.selectedIndex;
+    _handleInvoiceSelected(rowIndex >= 0 ? _invoices![rowIndex][Keys.invoiceId] : null);
+  }
+
+  void _handleSortChanged(pivot.TableViewSortController controller) {
+    assert(controller == _sortController);
+    assert(controller.length == 1);
+
+    Map<String, dynamic>? selectedItem;
+    if (_selectionController.selectedIndex != -1) {
+      selectedItem = _invoices![_selectionController.selectedIndex];
+    }
+
+    final InvoiceComparator comparator = _comparator(controller);
+    _invoices!.sort(comparator);
+
+    if (selectedItem != null) {
+      int selectedIndex = binarySearch(_invoices!, selectedItem, compare: comparator);
+      assert(selectedIndex >= 0);
+      _selectionController.selectedIndex = selectedIndex;
+      final Rect rowBounds = _metricsController.metrics.getRowBounds(selectedIndex);
+      _scrollController.scrollToVisible(rowBounds, animation: _scrollAnimationController);
+    }
+  }
 
   void _handleInvoiceSelected(int? invoiceId) {
     setState(() {
@@ -129,9 +177,7 @@ class _OpenInvoiceSheetState extends State<OpenInvoiceSheet> {
     Navigator.of(context)!.pop(_selectedInvoiceId);
   }
 
-  @override
-  void initState() {
-    super.initState();
+  void _requestInvoices() {
     final Uri url = Server.uri(Server.invoicesUrl);
     UserBinding.instance!.user!.authenticate().get(url).then((http.Response response) {
       if (!mounted) {
@@ -139,10 +185,43 @@ class _OpenInvoiceSheetState extends State<OpenInvoiceSheet> {
       }
       if (response.statusCode == HttpStatus.ok) {
         setState(() {
-          invoices = json.decode(response.body).cast<Map<String, dynamic>>();
+          final List<dynamic> decoded = json.decode(response.body);
+          List<Map<String, dynamic>> invoices = _invoices = decoded.cast<Map<String, dynamic>>();
+          assert(_sortController.isNotEmpty);
+          if (invoices.isNotEmpty) {
+            final InvoiceComparator comparator = _comparator(_sortController);
+            invoices.sort(comparator);
+          }
         });
       }
     });
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _metricsController = pivot.TableViewMetricsController();
+    _selectionController = pivot.TableViewSelectionController(selectMode: pivot.SelectMode.single);
+    _selectionController.addListener(_handleSelectionChanged);
+    _sortListener = pivot.TableViewSortListener(onChanged: _handleSortChanged);
+    _sortController = pivot.TableViewSortController(sortMode: pivot.TableViewSortMode.singleColumn);
+    _sortController[Keys.billingStart] = pivot.SortDirection.descending;
+    _sortController.addListener(_sortListener);
+    _scrollController = pivot.ScrollController();
+    _scrollAnimationController = AnimationController(duration: _scrollDuration, vsync: this);
+    _requestInvoices();
+  }
+
+  @override
+  dispose() {
+    _metricsController.dispose();
+    _selectionController.removeListener(_handleSelectionChanged);
+    _selectionController.dispose();
+    _sortController.removeListener(_sortListener);
+    _sortController.dispose();
+    _scrollController.dispose();
+    _scrollAnimationController.dispose();
+    super.dispose();
   }
 
   @override
@@ -155,22 +234,25 @@ class _OpenInvoiceSheetState extends State<OpenInvoiceSheet> {
         children: [
           pivot.Border(
             title: 'Open Existing Invoice',
-            titlePadding: EdgeInsets.symmetric(horizontal: 4),
+            titlePadding: const EdgeInsets.symmetric(horizontal: 4),
             inset: 9,
             borderColor: const Color(0xff999999),
             child: Padding(
-              padding: EdgeInsets.fromLTRB(9, 13, 9, 9),
+              padding: const EdgeInsets.fromLTRB(9, 13, 9, 9),
               child: SizedBox(
                 height: 200,
                 child: DecoratedBox(
-                  decoration: BoxDecoration(
-                    border: Border.all(color: const Color(0xff999999)),
+                  decoration: const BoxDecoration(
+                    border: Border.fromBorderSide(BorderSide(color: Color(0xff999999)))
                   ),
                   child: Padding(
-                    padding: EdgeInsets.all(1),
+                    padding: const EdgeInsets.all(1),
                     child: InvoicesView(
-                      invoices: invoices,
-                      onInvoiceSelected: _handleInvoiceSelected,
+                      invoices: _invoices,
+                      metricsController: _metricsController,
+                      selectionController: _selectionController,
+                      sortController: _sortController,
+                      scrollController: _scrollController,
                       onInvoiceChosen: _handleInvoiceChosen,
                     ),
                   ),
@@ -182,7 +264,7 @@ class _OpenInvoiceSheetState extends State<OpenInvoiceSheet> {
           Row(
             mainAxisAlignment: MainAxisAlignment.end,
             children: [
-              if (invoices == null)
+              if (_invoices == null)
                 Expanded(
                   child: Row(
                     children: [
@@ -216,30 +298,33 @@ class _OpenInvoiceSheetState extends State<OpenInvoiceSheet> {
 class InvoicesView extends StatelessWidget {
   const InvoicesView({
     Key? key,
-    this.invoices,
-    required this.onInvoiceSelected,
+    required this.invoices,
+    required this.metricsController,
+    required this.selectionController,
+    required this.sortController,
+    required this.scrollController,
     required this.onInvoiceChosen,
   }) : super(key: key);
 
   final List<Map<String, dynamic>>? invoices;
-  final ValueChanged<int?> onInvoiceSelected;
+  final pivot.TableViewMetricsController metricsController;
+  final pivot.TableViewSelectionController selectionController;
+  final pivot.TableViewSortController sortController;
+  final pivot.ScrollController scrollController;
   final VoidCallback onInvoiceChosen;
 
   @override
   Widget build(BuildContext context) {
-    if (invoices == null) {
-      return InvoicesTable(
-        invoices: <Map<String, dynamic>>[],
-        onInvoiceSelected: onInvoiceSelected,
-        onInvoiceChosen: onInvoiceChosen,
-      );
-    } else if (invoices!.isEmpty) {
+    if (invoices != null && invoices!.isEmpty) {
       // TODO: what should this be?
       return Text('TODO');
     } else {
       return InvoicesTable(
-        invoices: invoices!,
-        onInvoiceSelected: onInvoiceSelected,
+        invoices: invoices ?? <Map<String, dynamic>>[],
+        metricsController: metricsController,
+        selectionController: selectionController,
+        sortController: sortController,
+        scrollController: scrollController,
         onInvoiceChosen: onInvoiceChosen,
       );
     }
@@ -250,66 +335,26 @@ class InvoicesTable extends StatefulWidget {
   const InvoicesTable({
     Key? key,
     required this.invoices,
-    required this.onInvoiceSelected,
+    required this.metricsController,
+    required this.selectionController,
+    required this.sortController,
+    required this.scrollController,
     required this.onInvoiceChosen,
   }) : super(key: key);
 
   final List<Map<String, dynamic>> invoices;
-  final ValueChanged<int?> onInvoiceSelected;
+  final pivot.TableViewMetricsController metricsController;
+  final pivot.TableViewSelectionController selectionController;
+  final pivot.TableViewSortController sortController;
+  final pivot.ScrollController scrollController;
   final VoidCallback onInvoiceChosen;
 
   @override
   _InvoicesTableState createState() => _InvoicesTableState();
 }
 
-class _InvoicesTableState extends State<InvoicesTable>
-    with SingleTickerProviderStateMixin<InvoicesTable> {
-  late pivot.TableViewMetricsController _metricsController;
-  late pivot.TableViewSelectionController _selectionController;
-  late pivot.TableViewSortController _sortController;
-  late pivot.TableViewSortListener _sortListener;
-  late pivot.ScrollController _scrollController;
-  late AnimationController _scrollAnimationController;
+class _InvoicesTableState extends State<InvoicesTable> {
   late List<pivot.TableColumnController> _columns;
-
-  static InvoiceComparator _comparator(pivot.TableViewSortController controller) {
-    final String sortKey = controller.keys.first;
-    final pivot.SortDirection? direction = controller[sortKey];
-    final InvoiceComparator basicComparator = _invoiceComparators[sortKey]!;
-    return (Map<String, dynamic> a, Map<String, dynamic> b) {
-      int result = basicComparator(a, b);
-      if (direction == pivot.SortDirection.descending) {
-        result *= -1;
-      }
-      return result;
-    };
-  }
-
-  void _handleSelectionChanged() {
-    final int rowIndex = _selectionController.selectedIndex;
-    widget.onInvoiceSelected(rowIndex >= 0 ? widget.invoices[rowIndex][Keys.invoiceId] : null);
-  }
-
-  void _handleSortChanged(pivot.TableViewSortController controller) {
-    assert(controller == _sortController);
-    assert(controller.length == 1);
-
-    Map<String, dynamic>? selectedItem;
-    if (_selectionController.selectedIndex != -1) {
-      selectedItem = widget.invoices[_selectionController.selectedIndex];
-    }
-
-    final InvoiceComparator comparator = _comparator(controller);
-    widget.invoices.sort(comparator);
-
-    if (selectedItem != null) {
-      int selectedIndex = binarySearch(widget.invoices, selectedItem, compare: comparator);
-      assert(selectedIndex >= 0);
-      _selectionController.selectedIndex = selectedIndex;
-      final Rect rowBounds = _metricsController.metrics.getRowBounds(selectedIndex);
-      _scrollController.scrollToVisible(rowBounds, animation: _scrollAnimationController);
-    }
-  }
 
   Widget _renderBillingPeriodCell({
     required BuildContext context,
@@ -402,18 +447,6 @@ class _InvoicesTableState extends State<InvoicesTable>
   @override
   initState() {
     super.initState();
-    _metricsController = pivot.TableViewMetricsController();
-    _selectionController = pivot.TableViewSelectionController(selectMode: pivot.SelectMode.single);
-    _selectionController.addListener(_handleSelectionChanged);
-    _sortListener = pivot.TableViewSortListener(onChanged: _handleSortChanged);
-    _sortController = pivot.TableViewSortController(sortMode: pivot.TableViewSortMode.singleColumn);
-    _sortController.addListener(_sortListener);
-    _sortController[Keys.billingStart] = pivot.SortDirection.descending;
-    _scrollController = pivot.ScrollController();
-    _scrollAnimationController = AnimationController(
-      duration: const Duration(milliseconds: 250),
-      vsync: this,
-    );
     _columns = <pivot.TableColumnController>[
       pivot.TableColumnController(
         key: Keys.billingStart,
@@ -442,34 +475,11 @@ class _InvoicesTableState extends State<InvoicesTable>
     ];
   }
 
-  @override
-  void didUpdateWidget(covariant InvoicesTable oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (oldWidget.invoices != widget.invoices) {
-      if (_sortController.isNotEmpty && widget.invoices.isNotEmpty) {
-        final InvoiceComparator comparator = _comparator(_sortController);
-        widget.invoices.sort(comparator);
-      }
-    }
-  }
-
   void _handleDoubleTapRow(int row) {
     assert(row >= 0);
     if (row < widget.invoices.length) {
       widget.onInvoiceChosen();
     }
-  }
-
-  @override
-  dispose() {
-    _metricsController.dispose();
-    _selectionController.removeListener(_handleSelectionChanged);
-    _selectionController.dispose();
-    _sortController.removeListener(_sortListener);
-    _sortController.dispose();
-    _scrollController.dispose();
-    _scrollAnimationController.dispose();
-    super.dispose();
   }
 
   @override
@@ -480,10 +490,10 @@ class _InvoicesTableState extends State<InvoicesTable>
         length: widget.invoices.length,
         rowHeight: 19,
         roundColumnWidthsToWholePixel: true,
-        metricsController: _metricsController,
-        selectionController: _selectionController,
-        sortController: _sortController,
-        scrollController: _scrollController,
+        metricsController: widget.metricsController,
+        selectionController: widget.selectionController,
+        sortController: widget.sortController,
+        scrollController: widget.scrollController,
         columns: _columns,
         onDoubleTapRow: _handleDoubleTapRow,
       ),
@@ -532,7 +542,7 @@ class SingleLineText extends StatelessWidget {
   const SingleLineText({
     Key? key,
     required this.data,
-  })  : super(key: key);
+  }) : super(key: key);
 
   final String data;
 
