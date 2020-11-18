@@ -2,6 +2,8 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io' show HttpStatus;
 
+import 'package:flutter/rendering.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:flutter/widgets.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
@@ -184,15 +186,42 @@ class _OpenInvoiceSheetState extends State<OpenInvoiceSheet>
         return;
       }
       if (response.statusCode == HttpStatus.ok) {
+        assert(_sortController.isNotEmpty);
+        final InvoiceComparator comparator = _comparator(_sortController);
+
         setState(() {
           final List<dynamic> decoded = json.decode(response.body);
           List<Map<String, dynamic>> invoices = _invoices = decoded.cast<Map<String, dynamic>>();
-          assert(_sortController.isNotEmpty);
           if (invoices.isNotEmpty) {
-            final InvoiceComparator comparator = _comparator(_sortController);
             invoices.sort(comparator);
           }
         });
+
+        // This ensures that we have updated metrics before we set the selected
+        // row and scroll it to visible. The idiomatic way to do this would be
+        // to post a callback using [SchedulerBinding.addPostFrameCallback],
+        // thus ensuring that layout had been performed. Unfortunately, this
+        // idiomatic way yields a frame being painted at a zero scroll offset
+        // and with no row selected (followed by a frame with the correct
+        // visual representation).
+        context.owner!.buildScope(context as Element);
+        RendererBinding.instance!.pipelineOwner.flushLayout();
+
+        List<Map<String, dynamic>> invoices = _invoices!;
+        if (invoices.isNotEmpty) {
+          final Invoice? currentInvoice = InvoiceBinding.instance!.invoice;
+          if (currentInvoice != null) {
+            final Map<String, dynamic> invoiceData = currentInvoice.rawData;
+            final int selectedIndex = binarySearch(invoices, invoiceData, compare: comparator);
+            assert(selectedIndex >= 0);
+            _selectionController.selectedIndex = selectedIndex;
+            final Rect rowBounds = _metricsController.metrics.getRowBounds(selectedIndex);
+            _scrollController.scrollToVisible(rowBounds);
+          } else {
+            _selectionController.selectedIndex = 0;
+            _scrollController.scrollOffset = Offset.zero;
+          }
+        }
       }
     });
   }
@@ -243,7 +272,7 @@ class _OpenInvoiceSheetState extends State<OpenInvoiceSheet>
                 height: 200,
                 child: DecoratedBox(
                   decoration: const BoxDecoration(
-                    border: Border.fromBorderSide(BorderSide(color: Color(0xff999999)))
+                    border: Border.fromBorderSide(BorderSide(color: Color(0xff999999))),
                   ),
                   child: Padding(
                     padding: const EdgeInsets.all(1),
