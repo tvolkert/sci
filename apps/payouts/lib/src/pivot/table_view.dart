@@ -8,6 +8,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart' hide ScrollController, TableColumnWidth;
 
 import 'basic_table_view.dart';
+import 'deferred_layout.dart';
 import 'foundation.dart';
 import 'listener_list.dart';
 import 'navigator_listener.dart';
@@ -975,7 +976,11 @@ class TableViewElement extends RenderObjectElement with TableViewElementMixin {
 
 @visibleForTesting
 class RenderTableView extends RenderSegment
-    with RenderTableViewMixin, TableViewColumnListenerMixin, TableViewSortingMixin {
+    with
+        RenderTableViewMixin,
+        TableViewColumnListenerMixin,
+        TableViewSortingMixin,
+        DeferredLayoutMixin {
   RenderTableView({
     required double rowHeight,
     required int length,
@@ -1297,8 +1302,10 @@ class RenderTableView extends RenderSegment
   }
 
   void _onPointerHover(PointerHoverEvent event) {
-    final int rowIndex = metrics.getRowAt(event.localPosition.dy);
-    highlightedRow = rowIndex != -1 && !_isRowDisabled(rowIndex) ? rowIndex : null;
+    deferMarkNeedsLayout(() {
+      final int rowIndex = metrics.getRowAt(event.localPosition.dy);
+      highlightedRow = rowIndex != -1 && !_isRowDisabled(rowIndex) ? rowIndex : null;
+    });
   }
 
   int _selectIndex = -1;
