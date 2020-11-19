@@ -9,6 +9,7 @@ import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 
 import 'package:payouts/src/model/constants.dart';
+import 'package:payouts/src/model/entry_comparator.dart';
 import 'package:payouts/src/model/invoice.dart';
 import 'package:payouts/src/model/user.dart';
 import 'package:payouts/src/model/track_invoice_dirty_mixin.dart';
@@ -18,54 +19,6 @@ import 'package:payouts/src/pivot/foundation.dart';
 import 'package:payouts/ui/common/task_monitor.dart';
 
 import 'warn_on_unsaved_changes_mixin.dart';
-
-typedef InvoiceComparator = int Function(Map<String, dynamic> a, Map<String, dynamic> b);
-
-int _compareInvoiceNumber(Map<String, dynamic> a, Map<String, dynamic> b) {
-  final String aVal = a[Keys.invoiceNumber];
-  final String bVal = b[Keys.invoiceNumber];
-  return aVal.compareTo(bVal);
-}
-
-int _compareBillingPeriod(Map<String, dynamic> a, Map<String, dynamic> b) {
-  final String aVal = a[Keys.billingStart];
-  final String bVal = b[Keys.billingStart];
-  // String comparison should work since we're using YYYY-MM-DD format.
-  return aVal.compareTo(bVal);
-}
-
-int _compareSubmitted(Map<String, dynamic> a, Map<String, dynamic> b) {
-  final int? aVal = a[Keys.submitted];
-  final int? bVal = b[Keys.submitted];
-  if (aVal == bVal) {
-    return 0;
-  } else if (aVal == null) {
-    return 1;
-  } else if (bVal == null) {
-    return -1;
-  } else {
-    return aVal.compareTo(bVal);
-  }
-}
-
-int _compareResubmit(Map<String, dynamic> a, Map<String, dynamic> b) {
-  final bool aVal = a[Keys.resubmit];
-  final bool bVal = b[Keys.resubmit];
-  if (aVal == bVal) {
-    return 0;
-  } else if (aVal) {
-    return -1;
-  } else {
-    return 1;
-  }
-}
-
-const Map<String, InvoiceComparator> _invoiceComparators = <String, InvoiceComparator>{
-  Keys.invoiceNumber: _compareInvoiceNumber,
-  Keys.billingStart: _compareBillingPeriod,
-  Keys.submitted: _compareSubmitted,
-  Keys.resubmit: _compareResubmit,
-};
 
 class OpenInvoiceIntent extends Intent {
   const OpenInvoiceIntent({this.context});
@@ -130,17 +83,10 @@ class _OpenInvoiceSheetState extends State<OpenInvoiceSheet>
 
   static const _scrollDuration = Duration(milliseconds: 250);
 
-  static InvoiceComparator _comparator(pivot.TableViewSortController controller) {
+  static EntryComparator _comparator(pivot.TableViewSortController controller) {
     final String sortKey = controller.keys.first;
-    final pivot.SortDirection? direction = controller[sortKey];
-    final InvoiceComparator basicComparator = _invoiceComparators[sortKey]!;
-    return (Map<String, dynamic> a, Map<String, dynamic> b) {
-      int result = basicComparator(a, b);
-      if (direction == pivot.SortDirection.descending) {
-        result *= -1;
-      }
-      return result;
-    };
+    final pivot.SortDirection direction = controller[sortKey] ?? pivot.SortDirection.ascending;
+    return EntryComparator(key: sortKey, direction: direction);
   }
 
   void _handleSelectionChanged() {
@@ -157,11 +103,11 @@ class _OpenInvoiceSheetState extends State<OpenInvoiceSheet>
       selectedItem = _invoices![_selectionController.selectedIndex];
     }
 
-    final InvoiceComparator comparator = _comparator(controller);
-    _invoices!.sort(comparator);
+    final EntryComparator comparator = _comparator(controller);
+    _invoices!.sort(comparator.compare);
 
     if (selectedItem != null) {
-      int selectedIndex = binarySearch(_invoices!, selectedItem, compare: comparator);
+      int selectedIndex = binarySearch(_invoices!, selectedItem, compare: comparator.compare);
       assert(selectedIndex >= 0);
       _selectionController.selectedIndex = selectedIndex;
       final Rect rowBounds = _metricsController.metrics.getRowBounds(selectedIndex);
@@ -187,13 +133,13 @@ class _OpenInvoiceSheetState extends State<OpenInvoiceSheet>
       }
       if (response.statusCode == HttpStatus.ok) {
         assert(_sortController.isNotEmpty);
-        final InvoiceComparator comparator = _comparator(_sortController);
+        final EntryComparator comparator = _comparator(_sortController);
 
         setState(() {
           final List<dynamic> decoded = json.decode(response.body);
           List<Map<String, dynamic>> invoices = _invoices = decoded.cast<Map<String, dynamic>>();
           if (invoices.isNotEmpty) {
-            invoices.sort(comparator);
+            invoices.sort(comparator.compare);
           }
         });
 
@@ -212,10 +158,10 @@ class _OpenInvoiceSheetState extends State<OpenInvoiceSheet>
           final Invoice? currentInvoice = InvoiceBinding.instance!.invoice;
           if (currentInvoice != null) {
             final Map<String, dynamic> invoiceData = currentInvoice.rawData;
-            final int selectedIndex = binarySearch(invoices, invoiceData, compare: comparator);
-            assert(selectedIndex >= 0);
-            _selectionController.selectedIndex = selectedIndex;
-            final Rect rowBounds = _metricsController.metrics.getRowBounds(selectedIndex);
+            final int rowIndex = binarySearch(invoices, invoiceData, compare: comparator.compare);
+            assert(rowIndex >= 0);
+            _selectionController.selectedIndex = rowIndex;
+            final Rect rowBounds = _metricsController.metrics.getRowBounds(rowIndex);
             _scrollController.scrollToVisible(rowBounds);
           } else {
             _selectionController.selectedIndex = 0;
