@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/rendering.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 
 import 'package:payouts/src/model/invoice.dart';
@@ -155,6 +156,9 @@ abstract class TimesheetMetadataSheetState<T extends TimesheetMetadataSheet> ext
       messageType: pivot.MessageType.error,
       message: message,
     );
+    if (flag != null) {
+      SystemSound.play(SystemSoundType.alert);
+    }
     setState(() {
       switch (field) {
         case TimesheetField.program:
