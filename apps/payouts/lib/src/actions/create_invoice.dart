@@ -8,6 +8,7 @@ import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart' as intl;
 
 import 'package:payouts/src/model/constants.dart';
+import 'package:payouts/src/model/entry_comparator.dart';
 import 'package:payouts/src/model/invoice.dart';
 import 'package:payouts/src/model/user.dart';
 import 'package:payouts/src/model/track_invoice_dirty_mixin.dart';
@@ -73,6 +74,11 @@ class _CreateInvoiceSheetState extends State<CreateInvoiceSheet> {
   late pivot.TableViewSelectionController _selectionController;
   late pivot.TableViewRowDisablerController _disablerController;
 
+  static const EntryComparator _comparator = EntryComparator(
+    key: Keys.billingPeriod,
+    direction: pivot.SortDirection.descending,
+  );
+
   bool _canProceed = false;
   bool get canProceed => _canProceed;
   set canProceed(bool value) {
@@ -104,6 +110,23 @@ class _CreateInvoiceSheetState extends State<CreateInvoiceSheet> {
     return row.containsKey(Keys.invoiceNumber);
   }
 
+  void _requestParameters() {
+    final Uri url = Server.uri(Server.newInvoiceParametersUrl);
+    UserBinding.instance!.user!.authenticate().get(url).then((http.Response response) {
+      if (!mounted) {
+        return;
+      }
+      if (response.statusCode == HttpStatus.ok) {
+        setState(() {
+          final Map<String, dynamic> parameters = json.decode(response.body);
+          _billingPeriods = parameters[Keys.billingPeriods].cast<Map<String, dynamic>>();
+          _billingPeriods!.sort(_comparator.compare);
+          _invoiceNumberController.text = parameters[Keys.invoiceNumber];
+        });
+      }
+    });
+  }
+
   @override
   void initState() {
     super.initState();
@@ -112,21 +135,7 @@ class _CreateInvoiceSheetState extends State<CreateInvoiceSheet> {
     _invoiceNumberController = TextEditingController();
     _invoiceNumberController.addListener(_checkCanProceed);
     _disablerController = pivot.TableViewRowDisablerController(filter: _isRowDisabled);
-
-    final Uri url = Server.uri(Server.newInvoiceParametersUrl);
-    UserBinding.instance!.user!.authenticate().get(url).then((http.Response response) {
-      if (!mounted) {
-        return;
-      }
-      if (response.statusCode == HttpStatus.ok) {
-        // TODO: Handle disabled row from existing invoices for any given billing period.
-        setState(() {
-          final Map<String, dynamic> parameters = json.decode(response.body);
-          _billingPeriods = parameters[Keys.billingPeriods].cast<Map<String, dynamic>>();
-          _invoiceNumberController.text = parameters[Keys.invoiceNumber];
-        });
-      }
-    });
+    _requestParameters();
   }
 
   @override

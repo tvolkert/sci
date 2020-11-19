@@ -10,9 +10,16 @@ int _compareInvoiceNumber(Map<String, dynamic> a, Map<String, dynamic> b) {
   return aVal.compareTo(bVal);
 }
 
-int _compareBillingPeriod(Map<String, dynamic> a, Map<String, dynamic> b) {
+int _compareBillingStart(Map<String, dynamic> a, Map<String, dynamic> b) {
   final String aVal = a[Keys.billingStart];
   final String bVal = b[Keys.billingStart];
+  // String comparison should work since we're using YYYY-MM-DD format.
+  return aVal.compareTo(bVal);
+}
+
+int _compareBillingPeriod(Map<String, dynamic> a, Map<String, dynamic> b) {
+  final String aVal = a[Keys.billingPeriod];
+  final String bVal = b[Keys.billingPeriod];
   // String comparison should work since we're using YYYY-MM-DD format.
   return aVal.compareTo(bVal);
 }
@@ -45,7 +52,8 @@ int _compareResubmit(Map<String, dynamic> a, Map<String, dynamic> b) {
 
 const Map<String, _EntryComparator> _entryComparators = <String, _EntryComparator>{
   Keys.invoiceNumber: _compareInvoiceNumber,
-  Keys.billingStart: _compareBillingPeriod,
+  Keys.billingStart: _compareBillingStart,
+  Keys.billingPeriod: _compareBillingPeriod,
   Keys.submitted: _compareSubmitted,
   Keys.resubmit: _compareResubmit,
 };
