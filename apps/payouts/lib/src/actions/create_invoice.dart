@@ -4,6 +4,7 @@ import 'dart:io' show HttpStatus;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
+import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart' as intl;
 
@@ -103,6 +104,15 @@ class _CreateInvoiceSheetState extends State<CreateInvoiceSheet> {
       invoiceNumber: _invoiceNumberController.text,
       billingStart: billingStart,
     ));
+  }
+
+  void _handleDoubleTapRow(int row) {
+    assert(row >= 0);
+    if (canProceed) {
+      _handleOk();
+    } else {
+      SystemSound.play(SystemSoundType.alert);
+    }
   }
 
   bool _isRowDisabled(int rowIndex) {
@@ -289,6 +299,7 @@ class _CreateInvoiceSheetState extends State<CreateInvoiceSheet> {
                               includeHeader: false,
                               selectionController: _selectionController,
                               rowDisabledController: _disablerController,
+                              onDoubleTapRow: _handleDoubleTapRow,
                               columns: [
                                 pivot.TableColumnController(
                                   key: 'billing_period',
