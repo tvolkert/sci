@@ -74,6 +74,8 @@ class _CreateInvoiceSheetState extends State<CreateInvoiceSheet> {
   late TextEditingController _invoiceNumberController;
   late pivot.TableViewSelectionController _selectionController;
   late pivot.TableViewRowDisablerController _disablerController;
+  pivot.Flag? _invoiceNumberFlag;
+  pivot.Flag? _billingPeriodFlag;
 
   static const EntryComparator _comparator = EntryComparator(
     key: Keys.billingPeriod,
@@ -98,21 +100,48 @@ class _CreateInvoiceSheetState extends State<CreateInvoiceSheet> {
   }
 
   void _handleOk() {
-    final Map<String, dynamic> selectedItem = _billingPeriods![_selectionController.selectedIndex];
-    final String billingStart = selectedItem[Keys.billingPeriod];
-    Navigator.of(context)!.pop(NewInvoiceProperties(
-      invoiceNumber: _invoiceNumberController.text,
-      billingStart: billingStart,
-    ));
+    bool isInputValid = true;
+
+    final String invoiceNumber = _invoiceNumberController.text.trim();
+    final int selectedIndex = _selectionController.selectedIndex;
+
+    setState(() {
+      if (invoiceNumber.isEmpty) {
+        isInputValid = false;
+        _invoiceNumberFlag = pivot.Flag(
+          messageType: pivot.MessageType.error,
+          message: 'TODO',
+        );
+      } else {
+        _invoiceNumberFlag = null;
+      }
+
+      if (selectedIndex == -1) {
+        isInputValid = false;
+        _billingPeriodFlag = pivot.Flag(
+          messageType: pivot.MessageType.error,
+          message: 'TODO',
+        );
+      } else {
+        _billingPeriodFlag = null;
+      }
+    });
+
+    if (isInputValid) {
+      final Map<String, dynamic> selectedItem = _billingPeriods![selectedIndex];
+      final String billingStart = selectedItem[Keys.billingPeriod];
+      Navigator.of(context)!.pop(NewInvoiceProperties(
+        invoiceNumber: invoiceNumber,
+        billingStart: billingStart,
+      ));
+    } else {
+      SystemSound.play(SystemSoundType.alert);
+    }
   }
 
   void _handleDoubleTapRow(int row) {
     assert(row >= 0);
-    if (canProceed) {
-      _handleOk();
-    } else {
-      SystemSound.play(SystemSoundType.alert);
-    }
+    _handleOk();
   }
 
   bool _isRowDisabled(int rowIndex) {
@@ -240,78 +269,62 @@ class _CreateInvoiceSheetState extends State<CreateInvoiceSheet> {
             borderColor: const Color(0xff999999),
             child: Padding(
               padding: EdgeInsets.fromLTRB(9, 13, 9, 9),
-              child: Table(
-                columnWidths: <int, TableColumnWidth>{
-                  0: FixedColumnWidth(100),
-                  1: FlexColumnWidth(),
-                  2: FixedColumnWidth(25),
-                },
-                children: <TableRow>[
-                  TableRow(
-                    children: <Widget>[
-                      Text('Invoice number:'),
-                      TextField(
-                        controller: _invoiceNumberController,
-                        cursorWidth: 1,
-                        cursorColor: Colors.black,
-                        style: TextStyle(fontFamily: 'Verdana', fontSize: 11),
-                        decoration: InputDecoration(
-                          fillColor: Colors.white,
-                          hoverColor: Colors.white,
-                          filled: true,
-                          contentPadding: EdgeInsets.fromLTRB(3, 13, 0, 4),
-                          isDense: true,
-                          enabledBorder: OutlineInputBorder(
-                            borderSide: const BorderSide(color: Color(0xff999999)),
-                            borderRadius: BorderRadius.zero,
-                          ),
-                          focusedBorder: OutlineInputBorder(
-                            borderSide: const BorderSide(color: Color(0xff999999)),
-                            borderRadius: BorderRadius.zero,
+              child: pivot.Form(
+                children: [
+                  pivot.FormField(
+                    label: 'Invoice number',
+                    flag: _invoiceNumberFlag,
+                    child: TextField(
+                      controller: _invoiceNumberController,
+                      cursorWidth: 1,
+                      cursorColor: Colors.black,
+                      style: TextStyle(fontFamily: 'Verdana', fontSize: 11),
+                      decoration: InputDecoration(
+                        fillColor: Colors.white,
+                        hoverColor: Colors.white,
+                        filled: true,
+                        contentPadding: EdgeInsets.fromLTRB(3, 13, 0, 4),
+                        isDense: true,
+                        enabledBorder: OutlineInputBorder(
+                          borderSide: const BorderSide(color: Color(0xff999999)),
+                          borderRadius: BorderRadius.zero,
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderSide: const BorderSide(color: Color(0xff999999)),
+                          borderRadius: BorderRadius.zero,
+                        ),
+                      ),
+                    ),
+                  ),
+                  pivot.FormField(
+                    label: 'Billing period',
+                    flag: _billingPeriodFlag,
+                    child: SizedBox(
+                      height: 200,
+                      child: DecoratedBox(
+                        decoration: BoxDecoration(
+                          border: Border.all(color: const Color(0xff999999)),
+                          color: const Color(0xffffffff),
+                        ),
+                        child: Padding(
+                          padding: EdgeInsets.all(1),
+                          child: pivot.ScrollableTableView(
+                            rowHeight: 19,
+                            length: _billingPeriods?.length ?? 0,
+                            includeHeader: false,
+                            selectionController: _selectionController,
+                            rowDisabledController: _disablerController,
+                            onDoubleTapRow: _handleDoubleTapRow,
+                            columns: [
+                              pivot.TableColumnController(
+                                key: 'billing_period',
+                                cellRenderer: _renderBillingPeriod,
+                              )
+                            ],
                           ),
                         ),
                       ),
-                      Container(),
-                    ],
-                  ),
-                  TableRow(
-                    children: [
-                      SizedBox(height: 6),
-                      SizedBox(height: 6),
-                      SizedBox(height: 6),
-                    ],
-                  ),
-                  TableRow(
-                    children: <Widget>[
-                      Text('Billing period:'),
-                      SizedBox(
-                        height: 200,
-                        child: DecoratedBox(
-                          decoration: BoxDecoration(
-                            border: Border.all(color: const Color(0xff999999)),
-                            color: const Color(0xffffffff),
-                          ),
-                          child: Padding(
-                            padding: EdgeInsets.all(1),
-                            child: pivot.ScrollableTableView(
-                              rowHeight: 19,
-                              length: _billingPeriods?.length ?? 0,
-                              includeHeader: false,
-                              selectionController: _selectionController,
-                              rowDisabledController: _disablerController,
-                              onDoubleTapRow: _handleDoubleTapRow,
-                              columns: [
-                                pivot.TableColumnController(
-                                  key: 'billing_period',
-                                  cellRenderer: _renderBillingPeriod,
-                                )
-                              ],
-                            ),
-                          ),
-                        ),
-                      ),
-                      Container(),
-                    ],
+                    ),
                   ),
                 ],
               ),
