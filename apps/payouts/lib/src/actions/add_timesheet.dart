@@ -139,6 +139,10 @@ abstract class TimesheetMetadataSheetState<T extends TimesheetMetadataSheet> ext
         Navigator.of(context)!.pop<InvoiceEntryMetadata>(metadata);
       }
     }
+
+    if (!isInputValid) {
+      SystemSound.play(SystemSoundType.alert);
+    }
   }
 
   @protected
@@ -156,9 +160,6 @@ abstract class TimesheetMetadataSheetState<T extends TimesheetMetadataSheet> ext
       messageType: pivot.MessageType.error,
       message: message,
     );
-    if (flag != null) {
-      SystemSound.play(SystemSoundType.alert);
-    }
     setState(() {
       switch (field) {
         case TimesheetField.program:
