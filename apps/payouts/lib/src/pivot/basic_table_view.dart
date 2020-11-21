@@ -7,6 +7,7 @@ import 'package:flutter/widgets.dart';
 import 'debug.dart';
 import 'listener_list.dart';
 import 'segment.dart';
+import 'widget_surveyor.dart';
 
 const double _kDoublePrecisionTolerance = 0.001;
 
@@ -30,6 +31,8 @@ typedef TableViewLayoutCallback = void Function({
   required TableCellHost visitChildrenToRemove,
   required TableCellHost visitChildrenToBuild,
 });
+
+typedef TableViewPrototypeCellBuilder = Widget Function(int columnIndex);
 
 abstract class TableColumn with Diagnosticable {
   const TableColumn();
@@ -380,6 +383,9 @@ mixin TableViewElementMixin on RenderObjectElement {
   @protected
   Widget renderCell(int rowIndex, int columnIndex);
 
+  @protected
+  Widget buildPrototypeCell(int columnIndex);
+
   late Map<int, Map<int, Element>> _children;
 
   @override
@@ -388,6 +394,7 @@ mixin TableViewElementMixin on RenderObjectElement {
     super.update(newWidget);
     assert(widget == newWidget);
     renderObject.updateLayoutCallback(_layout);
+    renderObject.updatePrototypeCellBuilder(buildPrototypeCell);
   }
 
   void _layout({
@@ -493,11 +500,13 @@ mixin TableViewElementMixin on RenderObjectElement {
     super.mount(parent, newSlot);
     _children = <int, Map<int, Element>>{};
     renderObject.updateLayoutCallback(_layout);
+    renderObject.updatePrototypeCellBuilder(buildPrototypeCell);
   }
 
   @override
   void unmount() {
     renderObject.updateLayoutCallback(null);
+    renderObject.updatePrototypeCellBuilder(null);
     super.unmount();
   }
 
@@ -563,6 +572,17 @@ class BasicTableViewElement extends RenderObjectElement with TableViewElementMix
     return column.cellRenderer(
       context: this,
       rowIndex: rowIndex,
+      columnIndex: columnIndex,
+    );
+  }
+
+  @override
+  @protected
+  Widget buildPrototypeCell(int columnIndex) {
+    final BasicTableColumn column = widget.columns[columnIndex];
+    return column.cellRenderer(
+      context: this,
+      rowIndex: -1,
       columnIndex: columnIndex,
     );
   }
@@ -667,6 +687,15 @@ mixin RenderTableViewMixin on RenderSegment {
     if (value == _layoutCallback) return;
     _layoutCallback = value;
     markNeedsBuild();
+  }
+
+  TableViewPrototypeCellBuilder? _prototypeCellBuilder;
+
+  @protected
+  void updatePrototypeCellBuilder(TableViewPrototypeCellBuilder? value) {
+    if (value == _prototypeCellBuilder) return;
+    _prototypeCellBuilder = value;
+    markNeedsLayout();
   }
 
   /// Whether the whole table view is in need of being built.
@@ -787,6 +816,26 @@ mixin RenderTableViewMixin on RenderSegment {
 
   @override
   double computeMaxIntrinsicHeight(double width) => computeMinIntrinsicHeight(width);
+
+  @override
+  double? computeDistanceToActualBaseline(TextBaseline baseline) {
+    double? result;
+
+    const WidgetSurveyor surveyor = WidgetSurveyor();
+    if (_prototypeCellBuilder != null) {
+      for (int j = 0; j < columns.length; j++) {
+        final Widget prototype = _prototypeCellBuilder!(j);
+        final double? value = surveyor.measureDistanceToActualBaseline(prototype, baseline: baseline);
+        if (result != null) {
+          result = math.max(result, value ?? 0);
+        } else {
+          result = value;
+        }
+      }
+    }
+
+    return result;
+  }
 
   bool _needsMetrics = true;
   TableViewMetricsResolver? _metrics;

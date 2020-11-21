@@ -950,6 +950,21 @@ class TableViewElement extends RenderObjectElement with TableViewElementMixin {
   }
 
   @override
+  @protected
+  Widget buildPrototypeCell(int columnIndex) {
+    final TableColumnController column = widget.columns[columnIndex];
+    return column.cellRenderer(
+      context: this,
+      rowIndex: -1,
+      columnIndex: columnIndex,
+      rowHighlighted: false,
+      rowSelected: false,
+      isEditing: false,
+      isRowDisabled: false,
+    );
+  }
+
+  @override
   void mount(Element? parent, dynamic newSlot) {
     super.mount(parent, newSlot);
     renderObject.updateObserveNavigatorCallback(_observeNavigator);
@@ -1622,6 +1637,12 @@ class TableViewHeaderElement extends RenderObjectElement with TableViewElementMi
   @protected
   Widget renderCell(int rowIndex, int columnIndex) {
     return widget.renderHeaderEnvelope(context: this, columnIndex: columnIndex);
+  }
+
+  @override
+  @protected
+  Widget buildPrototypeCell(int columnIndex) {
+    return renderCell(-1, columnIndex);
   }
 }
 
