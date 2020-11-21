@@ -66,12 +66,12 @@ class _ExportInvoiceSheetState extends State<ExportInvoiceSheet> {
             children: [
               pivot.CommandPushButton(
                 label: 'OK',
-                onPressed: () => Navigator.of(context)!.pop(),
+                onPressed: () => Navigator.of(context).pop(),
               ),
               SizedBox(width: 4),
               pivot.CommandPushButton(
                 label: 'Cancel',
-                onPressed: () => Navigator.of(context)!.pop(),
+                onPressed: () => Navigator.of(context).pop(),
               ),
             ],
           ),

@@ -103,7 +103,7 @@ class AboutSheet extends StatelessWidget {
                     children: [
                       pivot.CommandPushButton(
                         label: 'OK',
-                        onPressed: () => Navigator.of(context)!.pop(),
+                        onPressed: () => Navigator.of(context).pop(),
                       ),
                     ],
                   ),

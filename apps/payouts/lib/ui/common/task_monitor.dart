@@ -276,7 +276,7 @@ class _TaskStatusState<T> extends State<TaskStatus<T>> with TickerProviderStateM
     await _controller.forward();
 
     // This triggers the completion of the future that was returned in the API.
-    Navigator.of(context)!.pop<void>();
+    Navigator.of(context).pop<void>();
   }
 
   Widget _graphicForStatus() {

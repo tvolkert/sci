@@ -136,7 +136,7 @@ abstract class TimesheetMetadataSheetState<T extends TimesheetMetadataSheet> ext
 
       isInputValid = validateMetadata(metadata);
       if (isInputValid) {
-        Navigator.of(context)!.pop<InvoiceEntryMetadata>(metadata);
+        Navigator.of(context).pop<InvoiceEntryMetadata>(metadata);
       }
     }
 
@@ -302,7 +302,7 @@ abstract class TimesheetMetadataSheetState<T extends TimesheetMetadataSheet> ext
               SizedBox(width: 6),
               pivot.CommandPushButton(
                 label: 'Cancel',
-                onPressed: () => Navigator.of(context)!.pop(),
+                onPressed: () => Navigator.of(context).pop(),
               ),
             ],
           ),

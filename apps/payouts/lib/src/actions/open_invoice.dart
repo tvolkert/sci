@@ -122,7 +122,7 @@ class _OpenInvoiceSheetState extends State<OpenInvoiceSheet>
   }
 
   void _handleInvoiceChosen() {
-    Navigator.of(context)!.pop(_selectedInvoiceId);
+    Navigator.of(context).pop(_selectedInvoiceId);
   }
 
   void _requestInvoices() {
@@ -260,7 +260,7 @@ class _OpenInvoiceSheetState extends State<OpenInvoiceSheet>
               SizedBox(width: 4),
               pivot.CommandPushButton(
                 label: 'Cancel',
-                onPressed: () => Navigator.of(context)!.pop(),
+                onPressed: () => Navigator.of(context).pop(),
               ),
             ],
           ),

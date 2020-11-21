@@ -128,7 +128,7 @@ class _LoginSheetState extends State<LoginSheet> {
   }
 
   void _close() {
-    Navigator.of(context)!.pop<void>();
+    Navigator.of(context).pop<void>();
   }
 
   Future<void> _handleAttemptLogin(String username, String password, bool setCookie) async {
