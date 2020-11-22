@@ -15,6 +15,7 @@ export 'pivot/navigator_listener.dart';
 export 'pivot/push_button.dart';
 export 'pivot/scroll_bar.dart';
 export 'pivot/scroll_pane.dart';
+export 'pivot/set_baseline.dart';
 export 'pivot/sheet.dart';
 export 'pivot/sorting.dart';
 export 'pivot/tab_pane.dart';
