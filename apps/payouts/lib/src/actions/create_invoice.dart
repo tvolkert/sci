@@ -71,6 +71,7 @@ class CreateInvoiceSheet extends StatefulWidget {
 
 class _CreateInvoiceSheetState extends State<CreateInvoiceSheet> {
   List<Map<String, dynamic>>? _billingPeriods;
+  late double _billingPeriodsBaseline;
   late TextEditingController _invoiceNumberController;
   late pivot.TableViewSelectionController _selectionController;
   late pivot.TableViewRowDisablerController _disablerController;
@@ -178,6 +179,22 @@ class _CreateInvoiceSheetState extends State<CreateInvoiceSheet> {
   }
 
   @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final TextStyle style = DefaultTextStyle.of(context).style;
+    final TextDirection textDirection = Directionality.of(context);
+    const pivot.WidgetSurveyor surveyor = pivot.WidgetSurveyor();
+    setState(() {
+      _billingPeriodsBaseline = surveyor.measureDistanceToBaseline(
+        Padding(
+          padding: EdgeInsets.fromLTRB(0, 2, 0, 2),
+          child: Text('prototype', style: style, textDirection: textDirection),
+        ),
+      );
+    });
+  }
+
+  @override
   void dispose() {
     _invoiceNumberController.removeListener(_checkCanProceed);
     _invoiceNumberController.dispose();
@@ -255,15 +272,6 @@ class _CreateInvoiceSheetState extends State<CreateInvoiceSheet> {
     return result;
   }
 
-  Widget _buildPrototypeCell(BuildContext context) {
-    final TextStyle style = DefaultTextStyle.of(context).style;
-    final TextDirection textDirection = Directionality.of(context);
-    return Padding(
-      padding: EdgeInsets.fromLTRB(0, 2, 0, 2),
-      child: Text('prototype', style: style, textDirection: textDirection),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     return SizedBox(
@@ -318,20 +326,22 @@ class _CreateInvoiceSheetState extends State<CreateInvoiceSheet> {
                         ),
                         child: Padding(
                           padding: EdgeInsets.all(1),
-                          child: pivot.ScrollableTableView(
-                            rowHeight: 19,
-                            length: _billingPeriods?.length ?? 0,
-                            includeHeader: false,
-                            selectionController: _selectionController,
-                            rowDisabledController: _disablerController,
-                            onDoubleTapRow: _handleDoubleTapRow,
-                            columns: [
-                              pivot.TableColumnController(
-                                key: 'billing_period',
-                                cellRenderer: _renderBillingPeriod,
-                                prototypeCellBuilder: _buildPrototypeCell,
-                              )
-                            ],
+                          child: pivot.SetBaseline(
+                            baseline: _billingPeriodsBaseline,
+                            child: pivot.ScrollableTableView(
+                              rowHeight: 19,
+                              length: _billingPeriods?.length ?? 0,
+                              includeHeader: false,
+                              selectionController: _selectionController,
+                              rowDisabledController: _disablerController,
+                              onDoubleTapRow: _handleDoubleTapRow,
+                              columns: [
+                                pivot.TableColumnController(
+                                  key: 'billing_period',
+                                  cellRenderer: _renderBillingPeriod,
+                                )
+                              ],
+                            ),
                           ),
                         ),
                       ),
