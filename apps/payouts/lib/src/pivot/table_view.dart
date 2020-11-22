@@ -1319,12 +1319,16 @@ class RenderTableView extends RenderSegment
   }
 
   void _onPointerExit(PointerExitEvent event) {
-    highlightedRow = null;
+    deferMarkNeedsLayout(() {
+      highlightedRow = null;
+    });
   }
 
   void _onPointerScroll(PointerScrollEvent event) {
     if (event.scrollDelta != Offset.zero) {
-      highlightedRow = null;
+      deferMarkNeedsLayout(() {
+        highlightedRow = null;
+      });
     }
   }
 
