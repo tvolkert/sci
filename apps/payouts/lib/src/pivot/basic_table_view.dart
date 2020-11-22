@@ -32,7 +32,7 @@ typedef TableViewLayoutCallback = void Function({
   required TableCellHost visitChildrenToBuild,
 });
 
-typedef TableViewPrototypeCellBuilder = Widget Function(int columnIndex);
+typedef TableViewPrototypeCellBuilder = Widget? Function(int columnIndex);
 
 abstract class TableColumn with Diagnosticable {
   const TableColumn();
@@ -61,6 +61,7 @@ class BasicTableColumn extends TableColumn {
   const BasicTableColumn({
     this.width = const FlexTableColumnWidth(),
     required this.cellRenderer,
+    this.prototypeCellBuilder,
   });
 
   /// The width specification for this column.
@@ -69,6 +70,25 @@ class BasicTableColumn extends TableColumn {
 
   /// The renderer responsible for the look & feel of cells in this column.
   final BasicTableCellRenderer cellRenderer;
+
+  /// The builder responsible for building the "prototype cell" for this
+  /// column.
+  ///
+  /// The prototype cell is a cell with sample data that is appropriate for the
+  /// column.  The prototype cells for every column join to form a "prototype
+  /// row".  The prototype row is used for things like calculating the fixed
+  /// row height of a table view or for calculating a table view's baseline.
+  ///
+  /// Prototype cells are rendered in a standalone widget tree, so any widgets
+  /// that require inherited data (such a [DefaultTextStyle] or
+  /// [Directionality]) should be explicitly passed such information, or the
+  /// builder should explicitly include such inherited widgets in the built
+  /// hierarchy.
+  ///
+  /// If this is not specified, this column wll not contribute data towards the
+  /// prototype row. If the prototype row contains no cells, then the table
+  /// view will report no baseline.
+  final WidgetBuilder? prototypeCellBuilder;
 
   @override
   int get hashCode => hashValues(super.hashCode, cellRenderer);
@@ -384,7 +404,7 @@ mixin TableViewElementMixin on RenderObjectElement {
   Widget renderCell(int rowIndex, int columnIndex);
 
   @protected
-  Widget buildPrototypeCell(int columnIndex);
+  Widget? buildPrototypeCell(int columnIndex);
 
   late Map<int, Map<int, Element>> _children;
 
@@ -578,13 +598,9 @@ class BasicTableViewElement extends RenderObjectElement with TableViewElementMix
 
   @override
   @protected
-  Widget buildPrototypeCell(int columnIndex) {
+  Widget? buildPrototypeCell(int columnIndex) {
     final BasicTableColumn column = widget.columns[columnIndex];
-    return column.cellRenderer(
-      context: this,
-      rowIndex: -1,
-      columnIndex: columnIndex,
-    );
+    return column.prototypeCellBuilder != null ? column.prototypeCellBuilder!(this) : null;
   }
 }
 
@@ -824,12 +840,17 @@ mixin RenderTableViewMixin on RenderSegment {
     const WidgetSurveyor surveyor = WidgetSurveyor();
     if (_prototypeCellBuilder != null) {
       for (int j = 0; j < columns.length; j++) {
-        final Widget prototype = _prototypeCellBuilder!(j);
-        final double? value = surveyor.measureDistanceToActualBaseline(prototype, baseline: baseline);
-        if (result != null) {
-          result = math.max(result, value ?? 0);
-        } else {
-          result = value;
+        final Widget? prototype = _prototypeCellBuilder!(j);
+        if (prototype != null) {
+          final double? value = surveyor.measureDistanceToActualBaseline(
+            prototype,
+            baseline: baseline,
+          );
+          if (result != null) {
+            result = math.max(result, value ?? 0);
+          } else {
+            result = value;
+          }
         }
       }
     }
