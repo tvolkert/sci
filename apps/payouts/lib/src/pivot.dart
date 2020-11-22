@@ -22,3 +22,4 @@ export 'pivot/tab_pane.dart';
 export 'pivot/table_pane.dart' hide main;
 export 'pivot/table_view.dart';
 export 'pivot/text_input.dart';
+export 'pivot/widget_surveyor.dart';
