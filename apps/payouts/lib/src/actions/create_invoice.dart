@@ -78,6 +78,7 @@ class _CreateInvoiceSheetState extends State<CreateInvoiceSheet> {
   pivot.Flag? _invoiceNumberFlag;
   pivot.Flag? _billingPeriodFlag;
 
+  static final intl.DateFormat dateFormat = intl.DateFormat('M/d/yyyy');
   static const EntryComparator _comparator = EntryComparator(
     key: Keys.billingPeriod,
     direction: pivot.SortDirection.descending,
@@ -167,45 +168,6 @@ class _CreateInvoiceSheetState extends State<CreateInvoiceSheet> {
     });
   }
 
-  @override
-  void initState() {
-    super.initState();
-    _selectionController = pivot.TableViewSelectionController();
-    _selectionController.addListener(_checkCanProceed);
-    _invoiceNumberController = TextEditingController();
-    _invoiceNumberController.addListener(_checkCanProceed);
-    _disablerController = pivot.TableViewRowDisablerController(filter: _isRowDisabled);
-    _requestParameters();
-  }
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    final TextStyle style = DefaultTextStyle.of(context).style;
-    final TextDirection textDirection = Directionality.of(context);
-    const pivot.WidgetSurveyor surveyor = pivot.WidgetSurveyor();
-    setState(() {
-      _billingPeriodsBaseline = surveyor.measureDistanceToBaseline(
-        Padding(
-          padding: EdgeInsets.fromLTRB(0, 2, 0, 2),
-          child: Text('prototype', style: style, textDirection: textDirection),
-        ),
-      );
-    });
-  }
-
-  @override
-  void dispose() {
-    _invoiceNumberController.removeListener(_checkCanProceed);
-    _invoiceNumberController.dispose();
-    _selectionController.removeListener(_checkCanProceed);
-    _selectionController.dispose();
-    _disablerController.dispose();
-    super.dispose();
-  }
-
-  static final intl.DateFormat dateFormat = intl.DateFormat('M/d/yyyy');
-
   Widget _renderBillingPeriod({
     required BuildContext context,
     required int rowIndex,
@@ -270,6 +232,43 @@ class _CreateInvoiceSheetState extends State<CreateInvoiceSheet> {
     );
 
     return result;
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _selectionController = pivot.TableViewSelectionController();
+    _selectionController.addListener(_checkCanProceed);
+    _invoiceNumberController = TextEditingController();
+    _invoiceNumberController.addListener(_checkCanProceed);
+    _disablerController = pivot.TableViewRowDisablerController(filter: _isRowDisabled);
+    _requestParameters();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final TextStyle style = DefaultTextStyle.of(context).style;
+    final TextDirection textDirection = Directionality.of(context);
+    const pivot.WidgetSurveyor surveyor = pivot.WidgetSurveyor();
+    setState(() {
+      _billingPeriodsBaseline = surveyor.measureDistanceToBaseline(
+        Padding(
+          padding: EdgeInsets.fromLTRB(0, 2, 0, 2),
+          child: Text('prototype', style: style, textDirection: textDirection),
+        ),
+      );
+    });
+  }
+
+  @override
+  void dispose() {
+    _invoiceNumberController.removeListener(_checkCanProceed);
+    _invoiceNumberController.dispose();
+    _selectionController.removeListener(_checkCanProceed);
+    _selectionController.dispose();
+    _disablerController.dispose();
+    super.dispose();
   }
 
   @override
