@@ -130,7 +130,7 @@ class _CreateInvoiceSheetState extends State<CreateInvoiceSheet> {
     if (isInputValid) {
       final Map<String, dynamic> selectedItem = _billingPeriods![selectedIndex];
       final String billingStart = selectedItem[Keys.billingPeriod];
-      Navigator.of(context)!.pop(NewInvoiceProperties(
+      Navigator.of(context).pop(NewInvoiceProperties(
         invoiceNumber: invoiceNumber,
         billingStart: billingStart,
       ));
@@ -199,6 +199,7 @@ class _CreateInvoiceSheetState extends State<CreateInvoiceSheet> {
     required bool isRowDisabled,
   }) {
     assert(!isEditing);
+    assert(rowIndex >= 0);
     final Map<String, dynamic> row = _billingPeriods![rowIndex];
     final String startDateValue = row[Keys.billingPeriod];
     final DateTime startDate = DateTime.parse(startDateValue);
@@ -252,6 +253,15 @@ class _CreateInvoiceSheetState extends State<CreateInvoiceSheet> {
     );
 
     return result;
+  }
+
+  Widget _buildPrototypeCell(BuildContext context) {
+    final TextStyle style = DefaultTextStyle.of(context).style;
+    final TextDirection textDirection = Directionality.of(context);
+    return Padding(
+      padding: EdgeInsets.fromLTRB(0, 2, 0, 2),
+      child: Text('prototype', style: style, textDirection: textDirection),
+    );
   }
 
   @override
@@ -319,6 +329,7 @@ class _CreateInvoiceSheetState extends State<CreateInvoiceSheet> {
                               pivot.TableColumnController(
                                 key: 'billing_period',
                                 cellRenderer: _renderBillingPeriod,
+                                prototypeCellBuilder: _buildPrototypeCell,
                               )
                             ],
                           ),
@@ -355,7 +366,7 @@ class _CreateInvoiceSheetState extends State<CreateInvoiceSheet> {
               SizedBox(width: 4),
               pivot.CommandPushButton(
                 label: 'Cancel',
-                onPressed: () => Navigator.of(context)!.pop(),
+                onPressed: () => Navigator.of(context).pop(),
               ),
             ],
           ),
