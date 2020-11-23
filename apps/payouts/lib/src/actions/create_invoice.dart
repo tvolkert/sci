@@ -293,6 +293,7 @@ class _CreateInvoiceSheetState extends State<CreateInvoiceSheet> {
                     flag: _invoiceNumberFlag,
                     child: pivot.TextInput(
                       controller: _invoiceNumberController,
+                      autofocus: true,
                     ),
                   ),
                   pivot.FormField(
