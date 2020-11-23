@@ -82,7 +82,6 @@ class _InvoiceViewState extends State<InvoiceView> {
 
   @override
   void dispose() {
-    print('disposing invoice view');
     InvoiceBinding.instance!.removeListener(_listener);
     super.dispose();
   }
@@ -102,7 +101,7 @@ class _InvoiceViewState extends State<InvoiceView> {
               Padding(
                 padding: const EdgeInsets.fromLTRB(5, 5, 5.5, 5),
                 child: SizedBox(
-                  height: 32,
+                  height: 22,
                   child: Row(
                     children: [
                       const InvoiceNumberEditor(),
@@ -228,6 +227,8 @@ class _InvoiceNumberEditorState extends State<InvoiceNumberEditor> {
 
   Invoice get invoice => InvoiceBinding.instance!.invoice!;
 
+  bool get isEditing => _invoiceNumberEditor != null;
+
   void _handleInvoiceOpened(Invoice? previousInvoice) {
     setState(() {
       _invoiceNumber = invoice.invoiceNumber;
@@ -244,28 +245,62 @@ class _InvoiceNumberEditorState extends State<InvoiceNumberEditor> {
   }
 
   void _handleToggleEdit() {
-    if (_invoiceNumberEditor == null) {
-      setState(() => _invoiceNumberEditor = TextEditingController(text: _invoiceNumber));
-    } else {
+    if (isEditing) {
       _handleSaveEdit();
+    } else {
+      _handleInitiateEdit();
     }
   }
 
+  void _handleInitiateEdit() {
+    assert(!isEditing);
+    setState(() {
+      final TextEditingValue value = TextEditingValue(
+        text: _invoiceNumber,
+        selection:
+        TextSelection(baseOffset: _invoiceNumber.length, extentOffset: _invoiceNumber.length),
+      );
+      _invoiceNumberEditor = TextEditingController.fromValue(value);
+    });
+  }
+
   void _handleSaveEdit() {
+    assert(isEditing);
     invoice.invoiceNumber = _invoiceNumberEditor!.text;
     setState(() => _invoiceNumberEditor = null);
   }
 
   void _handleCancelEdit() {
+    assert(isEditing);
     setState(() => _invoiceNumberEditor = null);
   }
 
   void _handleEditKeyEvent(RawKeyEvent event) {
-    if (event.logicalKey == LogicalKeyboardKey.enter) {
-      _handleSaveEdit();
-    } else if (event.logicalKey == LogicalKeyboardKey.escape) {
-      _handleCancelEdit();
+    if (event is RawKeyDownEvent) {
+      if (event.logicalKey == LogicalKeyboardKey.enter) {
+        _handleSaveEdit();
+      } else if (event.logicalKey == LogicalKeyboardKey.escape) {
+        _handleCancelEdit();
+      }
     }
+  }
+
+  Widget _buildCrossFadeChildren(Widget top, Key topKey, Widget bottom, Key bottomKey) {
+    return Stack(
+      alignment: Alignment.centerLeft,
+      children: <Widget>[
+        Positioned(
+          left: 0.0,
+          right: 0.0,
+          key: bottomKey,
+          child: bottom,
+        ),
+        Positioned(
+          key: topKey,
+          child: top,
+        ),
+      ],
+    );
   }
 
   @override
@@ -291,29 +326,29 @@ class _InvoiceNumberEditorState extends State<InvoiceNumberEditor> {
 
   @override
   Widget build(BuildContext context) {
-    Widget view;
-    if (_invoiceNumberEditor == null) {
-      view = Transform.translate(
-        offset: Offset(0, -1),
-        child: Text(
-          _invoiceNumber,
-          style: Theme.of(context).textTheme.bodyText2!.copyWith(fontWeight: FontWeight.bold),
-        ),
-      );
-    } else {
-      view = SizedBox(
-        width: 100,
-        child: pivot.TextInput(
-          controller: _invoiceNumberEditor,
-          autofocus: true,
-          onKeyEvent: _handleEditKeyEvent,
-        ),
-      );
-    }
-
     return Row(
       children: [
-        view,
+        AnimatedCrossFade(
+          alignment: Alignment.centerLeft,
+          crossFadeState: isEditing ? CrossFadeState.showSecond : CrossFadeState.showFirst,
+          duration: const Duration(milliseconds: 250),
+          layoutBuilder: _buildCrossFadeChildren,
+          firstChild: Transform.translate(
+            offset: Offset(0, -1),
+            child: Text(
+              _invoiceNumber,
+              style: Theme.of(context).textTheme.bodyText2!.copyWith(fontWeight: FontWeight.bold),
+            ),
+          ),
+          secondChild: SizedBox(
+            width: 100,
+            child: pivot.TextInput(
+              controller: _invoiceNumberEditor,
+              autofocus: true,
+              onKeyEvent: _handleEditKeyEvent,
+            ),
+          ),
+        ),
         SizedBox(
           height: 22,
           width: 23,
