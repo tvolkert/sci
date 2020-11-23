@@ -5,6 +5,7 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart' show Ink, Theme;
 import 'package:flutter/painting.dart';
 import 'package:flutter/rendering.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:payouts/src/model/constants.dart';
@@ -222,6 +223,7 @@ class InvoiceNumberEditor extends StatefulWidget {
 class _InvoiceNumberEditorState extends State<InvoiceNumberEditor> {
   late InvoiceListener _listener;
   TextEditingController? _invoiceNumberEditor;
+  late FocusNode _focusNode;
   late bool _isSubmitted;
   late String _invoiceNumber;
 
@@ -261,6 +263,9 @@ class _InvoiceNumberEditorState extends State<InvoiceNumberEditor> {
         TextSelection(baseOffset: _invoiceNumber.length, extentOffset: _invoiceNumber.length),
       );
       _invoiceNumberEditor = TextEditingController.fromValue(value);
+    });
+    SchedulerBinding.instance!.addPostFrameCallback((Duration timeStamp) {
+      _focusNode.requestFocus();
     });
   }
 
@@ -311,6 +316,7 @@ class _InvoiceNumberEditorState extends State<InvoiceNumberEditor> {
       onInvoiceNumberChanged: _handleInvoiceNumberChanged,
       onSubmitted: _handleSubmittedChanged,
     );
+    _focusNode = FocusNode();
     final Invoice invoice = this.invoice;
     _isSubmitted = invoice.isSubmitted;
     _invoiceNumber = invoice.invoiceNumber;
@@ -320,6 +326,7 @@ class _InvoiceNumberEditorState extends State<InvoiceNumberEditor> {
   @override
   void dispose() {
     InvoiceBinding.instance!.removeListener(_listener);
+    _focusNode.dispose();
     _invoiceNumberEditor?.dispose();
     super.dispose();
   }
@@ -344,6 +351,7 @@ class _InvoiceNumberEditorState extends State<InvoiceNumberEditor> {
             width: 100,
             child: pivot.TextInput(
               controller: _invoiceNumberEditor,
+              focusNode: _focusNode,
               autofocus: true,
               onKeyEvent: _handleEditKeyEvent,
             ),
