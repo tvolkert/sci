@@ -2,9 +2,9 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io' show HttpStatus;
 
-import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter/widgets.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart' as intl;
 
@@ -291,26 +291,8 @@ class _CreateInvoiceSheetState extends State<CreateInvoiceSheet> {
                   pivot.FormField(
                     label: 'Invoice number',
                     flag: _invoiceNumberFlag,
-                    child: TextField(
+                    child: pivot.TextInput(
                       controller: _invoiceNumberController,
-                      cursorWidth: 1,
-                      cursorColor: Colors.black,
-                      style: TextStyle(fontFamily: 'Verdana', fontSize: 11),
-                      decoration: InputDecoration(
-                        fillColor: Colors.white,
-                        hoverColor: Colors.white,
-                        filled: true,
-                        contentPadding: EdgeInsets.fromLTRB(3, 13, 0, 4),
-                        isDense: true,
-                        enabledBorder: OutlineInputBorder(
-                          borderSide: const BorderSide(color: Color(0xff999999)),
-                          borderRadius: BorderRadius.zero,
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderSide: const BorderSide(color: Color(0xff999999)),
-                          borderRadius: BorderRadius.zero,
-                        ),
-                      ),
                     ),
                   ),
                   pivot.FormField(
