@@ -1053,29 +1053,20 @@ class ExpenseReports
   ///
   /// Registered [InvoiceListener.onExpenseReportInserted] listeners will
   /// be notified.
-  ExpenseReport add({
-    required Program program,
-    required String chargeNumber,
-    required String requestor,
-    required String task,
-    required DateRange period,
-    required String travelPurpose,
-    required String travelDestination,
-    required String travelParties,
-  }) {
+  ExpenseReport add(ExpenseReportMetadata entry) {
     _owner._checkDisposed();
     // TODO: this list should probably be sorted.
     final int insertIndex = _data.length;
     final ExpenseReport expenseReport = ExpenseReport._fromParts(
       owner: _owner,
-      program: program,
-      chargeNumber: chargeNumber,
-      requestor: requestor,
-      task: task,
-      period: period,
-      travelPurpose: travelPurpose,
-      travelDestination: travelDestination,
-      travelParties: travelParties,
+      program: entry.program,
+      chargeNumber: entry.chargeNumber,
+      requestor: entry.requestor,
+      task: entry.task,
+      period: entry.period,
+      travelPurpose: entry.travelPurpose,
+      travelDestination: entry.travelDestination,
+      travelParties: entry.travelParties,
     );
     _data.insert(insertIndex, expenseReport);
     _owner._owner.onExpenseReportInserted(insertIndex);
@@ -1109,19 +1100,50 @@ class ExpenseReports
   }
 }
 
+class ExpenseReportMetadata extends InvoiceEntryMetadata {
+  ExpenseReportMetadata({
+    required Program program,
+    required String? chargeNumber,
+    required String? requestor,
+    required String? task,
+    required this.period,
+    required this.travelPurpose,
+    required this.travelDestination,
+    required this.travelParties,
+  }) : super(
+          program: program,
+          chargeNumber: chargeNumber,
+          requestor: requestor,
+          task: task,
+        );
+
+  /// The time period that this expense report covers.
+  final DateRange period;
+
+  /// The purpose of the travel, as indicated by the consultant.
+  final String travelPurpose;
+
+  /// The destination of the travel, as indicated by the consultant.
+  final String travelDestination;
+
+  /// The client(s) visited as part of the travel, as indicated by the
+  /// consultant.
+  final String travelParties;
+}
+
 /// An individual expense report in the invoice.
 ///
 /// Mutations to the expense report or to any expenses in the report will
 /// notify registered [InvoiceListener] listeners.
-class ExpenseReport implements InvoiceEntryMetadata {
+class ExpenseReport implements ExpenseReportMetadata {
   ExpenseReport._(this._owner, this._data, [this._program, this._period]);
 
   factory ExpenseReport._fromParts({
     required Invoice owner,
     required Program program,
-    required String chargeNumber,
-    required String requestor,
-    required String task,
+    required String? chargeNumber,
+    required String? requestor,
+    required String? task,
     required DateRange period,
     required String travelPurpose,
     required String travelDestination,
@@ -1184,21 +1206,20 @@ class ExpenseReport implements InvoiceEntryMetadata {
   @override
   String get task => _owner._checkDisposed(_data[Keys.taskDescription]);
 
-  /// The time period that this expense report covers.
   DateRange? _period;
+  @override
   DateRange get period {
     _owner._checkDisposed();
     return _period ??= DateRange._fromStartEnd(_data[Keys.fromDate], _data[Keys.toDate]);
   }
 
-  /// The purpose of the travel, as indicated by the consultant.
+  @override
   String get travelPurpose => _owner._checkDisposed(_data[Keys.travelPurpose]);
 
-  /// The destination of the travel, as indicated by the consultant.
+  @override
   String get travelDestination => _owner._checkDisposed(_data[Keys.travelDestination]);
 
-  /// The client(s) visited as part of the travel, as indicated by the
-  /// consultant.
+  @override
   String get travelParties => _owner._checkDisposed(_data[Keys.travelParties]);
 
   /// The list of expenses in this expense report.
