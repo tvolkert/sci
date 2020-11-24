@@ -3,10 +3,23 @@ import 'package:flutter/rendering.dart';
 import 'package:intl/intl.dart' as intl;
 
 import 'package:payouts/splitter.dart';
+import 'package:payouts/src/actions.dart';
 import 'package:payouts/src/pivot.dart' as pivot;
 
 class ExpenseReportsView extends StatelessWidget {
-  const ExpenseReportsView({Key? key}) : super(key: key);
+  @override
+  Widget build(BuildContext context) {
+    return Actions(
+      actions: <Type, Action<Intent>>{
+        AddExpenseReportIntent: AddExpenseReportAction.instance,
+      },
+      child: const _RawExpenseReportsView(),
+    );
+  }
+}
+
+class _RawExpenseReportsView extends StatelessWidget {
+  const _RawExpenseReportsView({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -18,10 +31,10 @@ class ExpenseReportsView extends StatelessWidget {
         children: <Widget>[
           Padding(
             padding: EdgeInsets.fromLTRB(0, 0, 7, 5),
-            child: pivot.LinkButton(
+            child: pivot.ActionLinkButton(
               image: AssetImage('assets/money_add.png'),
               text: 'Add expense report',
-              onPressed: () {},
+              intent: AddExpenseReportIntent(context: context),
             ),
           ),
           Expanded(
