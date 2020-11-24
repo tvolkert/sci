@@ -52,7 +52,7 @@ class EditTimesheetAction extends ContextAction<EditTimesheetIntent> with TrackI
   }
 }
 
-class EditTimesheetSheet extends TimesheetMetadataSheet {
+class EditTimesheetSheet extends TimesheetEditor {
   const EditTimesheetSheet({
     Key? key,
     required this.timesheet,
@@ -75,13 +75,13 @@ class EditTimesheetSheet extends TimesheetMetadataSheet {
   }
 }
 
-class _EditTimesheetSheetState extends TimesheetMetadataSheetState<EditTimesheetSheet> {
+class _EditTimesheetSheetState extends TimesheetEditorState<EditTimesheetSheet> {
   @override
   @protected
-  void onLoad() {
-    super.onLoad();
+  void initState() {
+    super.initState();
     final Program program = widget.timesheet.program;
-    final int selectedIndex = AssignmentsBinding.instance!.assignments!.indexOf(program);
+    final int selectedIndex = assignments.indexOf(program);
     programSelectionController.selectedIndex = selectedIndex;
     chargeNumberController.text = widget.timesheet.chargeNumber;
     requestorController.text = widget.timesheet.requestor;
@@ -95,17 +95,17 @@ class _EditTimesheetSheetState extends TimesheetMetadataSheetState<EditTimesheet
     bool isInputValid = true;
 
     if (metadata.program.requiresChargeNumber && metadata.chargeNumber!.isEmpty) {
+      chargeNumberFlag = flagFromMessage('TODO');
       isInputValid = false;
-      setErrorFlag(TimesheetField.chargeNumber, 'TODO');
     } else {
-      setErrorFlag(TimesheetField.chargeNumber, null);
+      chargeNumberFlag = null;
     }
 
     if (metadata.program.requiresRequestor && metadata.requestor!.isEmpty) {
+      requestorFlag = flagFromMessage('TODO');
       isInputValid = false;
-      setErrorFlag(TimesheetField.requestor, 'TODO');
     } else {
-      setErrorFlag(TimesheetField.requestor, null);
+      requestorFlag = null;
     }
 
     return isInputValid;
