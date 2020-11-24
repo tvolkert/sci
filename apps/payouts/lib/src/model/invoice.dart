@@ -1198,13 +1198,13 @@ class ExpenseReport implements ExpenseReportMetadata {
   }
 
   @override
-  String get chargeNumber => _owner._checkDisposed(_data[Keys.chargeNumber]);
+  String get chargeNumber => _owner._checkDisposed(() => _data[Keys.chargeNumber]);
 
   @override
-  String get requestor => _owner._checkDisposed(_data[Keys.requestor]);
+  String get requestor => _owner._checkDisposed(() => _data[Keys.requestor]);
 
   @override
-  String get task => _owner._checkDisposed(_data[Keys.taskDescription]);
+  String get task => _owner._checkDisposed(() => _data[Keys.taskDescription]);
 
   DateRange? _period;
   @override
@@ -1214,13 +1214,13 @@ class ExpenseReport implements ExpenseReportMetadata {
   }
 
   @override
-  String get travelPurpose => _owner._checkDisposed(_data[Keys.travelPurpose]);
+  String get travelPurpose => _owner._checkDisposed(() => _data[Keys.travelPurpose]);
 
   @override
-  String get travelDestination => _owner._checkDisposed(_data[Keys.travelDestination]);
+  String get travelDestination => _owner._checkDisposed(() => _data[Keys.travelDestination]);
 
   @override
-  String get travelParties => _owner._checkDisposed(_data[Keys.travelParties]);
+  String get travelParties => _owner._checkDisposed(() => _data[Keys.travelParties]);
 
   /// The list of expenses in this expense report.
   ///
