@@ -80,10 +80,14 @@ class PayoutsApp extends StatelessWidget {
       home: const AssetImagePrecache(
         child: PayoutsScaffold(),
         paths: <String>[
+          'assets/cross.png',
+          'assets/dialog-cancel.png',
           'assets/document-new.png',
           'assets/document-open.png',
           'assets/media-floppy.png',
-          'assets/dialog-cancel.png',
+          'assets/money_add.png',
+          'assets/pencil.png',
+          'assets/table_add.png',
           'assets/x-office-presentation.png',
         ],
       ),
