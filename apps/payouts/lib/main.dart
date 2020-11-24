@@ -84,6 +84,7 @@ class PayoutsApp extends StatelessWidget {
           'assets/dialog-cancel.png',
           'assets/document-new.png',
           'assets/document-open.png',
+          'assets/help-browser.png',
           'assets/media-floppy.png',
           'assets/message_type-error-16x16.png',
           'assets/message_type-question-32x32.png',
