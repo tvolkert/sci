@@ -12,6 +12,8 @@ import 'package:payouts/src/pivot.dart' as pivot;
 import 'rotated_text.dart';
 
 class TimesheetsView extends StatelessWidget {
+  const TimesheetsView({Key? key}) : super(key: key);
+
   @override
   Widget build(BuildContext context) {
     return Actions(

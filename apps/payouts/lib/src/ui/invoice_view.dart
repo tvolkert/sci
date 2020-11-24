@@ -61,7 +61,7 @@ class _InvoiceViewState extends State<InvoiceView> {
     }
   }
 
-  static Widget _buildTimesheetsView(BuildContext context) => TimesheetsView();
+  static Widget _buildTimesheetsView(BuildContext context) => const TimesheetsView();
   static Widget _buildExpenseReportsView(BuildContext context) => ExpenseReportsView();
   static Widget _buildAccomplishmentsView(BuildContext context) => AccomplishmentsView();
   static Widget _buildReviewAndSubmit(BuildContext context) => ReviewAndSubmit();
