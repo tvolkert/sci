@@ -4,6 +4,8 @@ import 'package:intl/intl.dart' as intl;
 
 import 'package:payouts/splitter.dart';
 import 'package:payouts/src/actions.dart';
+import 'package:payouts/src/model/constants.dart';
+import 'package:payouts/src/model/invoice.dart';
 import 'package:payouts/src/pivot.dart' as pivot;
 
 class ExpenseReportsView extends StatelessWidget {
@@ -53,8 +55,10 @@ class _RawExpenseReportsView extends StatelessWidget {
                         Padding(
                           padding: EdgeInsets.fromLTRB(11, 11, 11, 9),
                           child: DefaultTextStyle(
-                            style:
-                            Theme.of(context).textTheme.bodyText2!.copyWith(color: Colors.black),
+                            style: Theme.of(context)
+                                .textTheme
+                                .bodyText2!
+                                .copyWith(color: Colors.black),
                             child: Table(
                               columnWidths: {
                                 0: IntrinsicColumnWidth(),
@@ -403,7 +407,7 @@ class ExpenseCellWrapper extends StatelessWidget {
     this.rowHighlighted = false,
     this.rowSelected = false,
     required this.child,
-  })  : super(key: key);
+  }) : super(key: key);
 
   final int rowIndex;
   final bool rowHighlighted;
@@ -445,39 +449,87 @@ class ExpenseReportListView extends StatefulWidget {
 }
 
 class _ExpenseReportListViewState extends State<ExpenseReportListView> {
-  int selectedIndex = 1;
+  late pivot.ListViewSelectionController _selectionController;
+  late ExpenseReports _expenseReports;
 
-  static const List<ExpenseReportData> expenseReports = <ExpenseReportData>[
-    ExpenseReportData(title: 'SCI - Overhead', amount: 0),
-    ExpenseReportData(title: 'Orbital Sciences (123)', amount: 3136.63),
-  ];
+  Widget _buildItem({
+    required BuildContext context,
+    required int index,
+    required bool isSelected,
+    required bool isHighlighted,
+    required bool isDisabled,
+  }) {
+    final ExpenseReport data = _expenseReports[index];
+    final StringBuffer buf = StringBuffer(data.program.name);
+
+    final String chargeNumber = data.chargeNumber.trim();
+    if (chargeNumber.isNotEmpty) {
+      buf.write(' ($chargeNumber)');
+    }
+
+    final String task = data.task.trim();
+    if (task.isNotEmpty) {
+      buf.write(' ($task)');
+    }
+
+    final String title = buf.toString();
+    final String total = '(${NumberFormats.currency.format(data.total)})';
+
+    Widget result = Padding(
+      padding: const EdgeInsets.all(2),
+      child: Row(
+        children: [
+          Expanded(child: Text(
+            title,
+            maxLines: 1,
+            softWrap: false,
+            overflow: TextOverflow.clip,
+          )),
+          const SizedBox(width: 2),
+          Text(total),
+        ],
+      ),
+    );
+
+    if (isSelected) {
+      final TextStyle style = DefaultTextStyle.of(context).style;
+      result = DefaultTextStyle(
+        style: style.copyWith(color: const Color(0xffffffff)),
+        child: result,
+      );
+    }
+
+    return result;
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _selectionController = pivot.ListViewSelectionController();
+    _expenseReports = InvoiceBinding.instance!.invoice!.expenseReports;
+  }
+
+  @override
+  void dispose() {
+    _selectionController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
-    // TODO: use ink?
     return DecoratedBox(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        border: Border.all(color: Color(0xFF999999)),
+      decoration: const BoxDecoration(
+        color: Color(0xffffffff),
+        border: Border.fromBorderSide(BorderSide(color: Color(0xff999999))),
       ),
-      child: ListView.builder(
-        itemExtent: 18,
-        shrinkWrap: true,
-        itemCount: expenseReports.length,
-        itemBuilder: (BuildContext context, int index) {
-          final ExpenseReportData data = expenseReports[index];
-          return ExpenseReportListTile(
-            title: data.title,
-            amount: data.amount,
-            hoverColor: Color(0xffdddcd5),
-            selected: index == selectedIndex,
-            onTap: () {
-              setState(() {
-                selectedIndex = index;
-              });
-            },
-          );
-        },
+      child: Padding(
+        padding: const EdgeInsets.all(1),
+        child: pivot.ScrollableListView(
+          itemHeight: 19,
+          length: _expenseReports.length,
+          itemBuilder: _buildItem,
+          selectionController: _selectionController,
+        ),
       ),
     );
   }
@@ -500,7 +552,7 @@ class ExpenseReportListTile extends StatelessWidget {
     this.focusColor,
     this.hoverColor,
     this.autofocus = false,
-  })  : super(key: key);
+  }) : super(key: key);
 
   final String title;
   final double amount;
@@ -545,14 +597,11 @@ class ExpenseReportListTile extends StatelessWidget {
   final bool autofocus;
 
   Color? _textColor(ThemeData theme, ListTileTheme tileTheme, Color? defaultColor) {
-    if (!enabled)
-      return theme.disabledColor;
+    if (!enabled) return theme.disabledColor;
 
-    if (selected && tileTheme.selectedColor != null)
-      return tileTheme.selectedColor;
+    if (selected && tileTheme.selectedColor != null) return tileTheme.selectedColor;
 
-    if (!selected && tileTheme.textColor != null)
-      return tileTheme.textColor;
+    if (!selected && tileTheme.textColor != null) return tileTheme.textColor;
 
     if (selected) {
       return Colors.white;
@@ -636,7 +685,7 @@ class _ListTile extends RenderObjectWidget {
     required this.textDirection,
     required this.titleBaselineType,
     this.selected = false,
-  })  : super(key: key);
+  }) : super(key: key);
 
   final Widget title;
   final Widget trailing;
@@ -774,7 +823,7 @@ class _RenderListTile extends RenderBox {
     required TextDirection textDirection,
     required TextBaseline titleBaselineType,
     required bool selected,
-  })  : _textDirection = textDirection,
+  })   : _textDirection = textDirection,
         _titleBaselineType = titleBaselineType,
         _selected = selected;
 
@@ -942,11 +991,13 @@ class _RenderListTile extends RenderBox {
 
     final double tileWidth = looseConstraints.maxWidth;
     final Size trailingSize = _layoutBox(trailing, looseConstraints);
-    assert(tileWidth != trailingSize.width, 'Trailing widget consumes entire tile width. Please use a sized widget.');
+    assert(tileWidth != trailingSize.width,
+        'Trailing widget consumes entire tile width. Please use a sized widget.');
 
     title!.getMinIntrinsicWidth(looseConstraints.maxHeight);
 
-    final double adjustedTrailingWidth = trailingSize.width > 0 ? trailingSize.width + _horizontalTitleGap : 0.0;
+    final double adjustedTrailingWidth =
+        trailingSize.width > 0 ? trailingSize.width + _horizontalTitleGap : 0.0;
     final BoxConstraints titleConstraints = looseConstraints.tighten(
       width: tileWidth - adjustedTrailingWidth,
     );
@@ -963,7 +1014,9 @@ class _RenderListTile extends RenderBox {
         break;
       case TextDirection.ltr:
         _positionBox(title!, Offset(_horizontalPadding, titleY));
-        if (hasTrailing) _positionBox(trailing!, Offset(tileWidth - trailingSize.width - _horizontalPadding, trailingY));
+        if (hasTrailing)
+          _positionBox(
+              trailing!, Offset(tileWidth - trailingSize.width - _horizontalPadding, trailingY));
         break;
     }
 
@@ -982,8 +1035,8 @@ class _RenderListTile extends RenderBox {
     }
 
     if (selected) {
-      context.canvas.drawRect(Rect.fromLTWH(0, 0, size.width, size.height), Paint()
-        ..color = Color(0xff14538b));
+      context.canvas.drawRect(
+          Rect.fromLTWH(0, 0, size.width, size.height), Paint()..color = Color(0xff14538b));
     }
     doPaint(title);
     doPaint(trailing);
