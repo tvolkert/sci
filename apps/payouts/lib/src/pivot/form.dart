@@ -6,6 +6,7 @@ import 'package:flutter/widgets.dart';
 
 import 'foundation.dart';
 
+@immutable
 class Flag {
   const Flag({
     required this.messageType,
@@ -16,6 +17,7 @@ class Flag {
   final String message;
 }
 
+@immutable
 class FormField {
   const FormField({
     required this.label,
