@@ -85,7 +85,11 @@ class PayoutsApp extends StatelessWidget {
           'assets/document-new.png',
           'assets/document-open.png',
           'assets/media-floppy.png',
+          'assets/message_type-error-16x16.png',
+          'assets/message_type-question-32x32.png',
+          'assets/message_type-warning-32x32.png',
           'assets/money_add.png',
+          'assets/note_add.png',
           'assets/pencil.png',
           'assets/table_add.png',
           'assets/x-office-presentation.png',
@@ -107,13 +111,16 @@ class PayoutsScaffold extends StatelessWidget {
       ),
     );
 
-    if (debugUseFakeHttpLayer) {
-      result = Banner(
-        location: BannerLocation.topStart,
-        message: 'FAKE DATA',
-        child: result,
-      );
-    }
+    assert(() {
+      if (debugUseFakeHttpLayer) {
+        result = Banner(
+          location: BannerLocation.topStart,
+          message: 'FAKE DATA',
+          child: result,
+        );
+      }
+      return true;
+    }());
 
     return Material(
       type: MaterialType.transparency,
