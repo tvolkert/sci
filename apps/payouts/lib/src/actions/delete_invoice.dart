@@ -3,8 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 
-import 'package:payouts/src/model/invoice.dart';
-import 'package:payouts/src/model/track_invoice_opened_mixin.dart';
+import 'package:payouts/src/model/track_invoice_mixin.dart';
 import 'package:payouts/src/pivot.dart' as pivot;
 import 'package:payouts/ui/common/task_monitor.dart';
 
@@ -14,7 +13,7 @@ class DeleteInvoiceIntent extends Intent {
   final BuildContext? context;
 }
 
-class DeleteInvoiceAction extends ContextAction<DeleteInvoiceIntent> with TrackInvoiceOpenedMixin {
+class DeleteInvoiceAction extends ContextAction<DeleteInvoiceIntent> with TrackInvoiceMixin {
   DeleteInvoiceAction._() {
     initInstance();
   }
@@ -22,15 +21,20 @@ class DeleteInvoiceAction extends ContextAction<DeleteInvoiceIntent> with TrackI
   static final DeleteInvoiceAction instance = DeleteInvoiceAction._();
 
   @override
-  @protected
-  void onInvoiceChanged() {
-    super.onInvoiceChanged();
+  void onInvoiceOpenedChanged() {
+    super.onInvoiceOpenedChanged();
+    notifyActionListeners();
+  }
+
+  @override
+  void onInvoiceSubmittedChanged() {
+    super.onInvoiceSubmittedChanged();
     notifyActionListeners();
   }
 
   @override
   bool isEnabled(DeleteInvoiceIntent intent) {
-    return isInvoiceOpened && !InvoiceBinding.instance!.invoice!.isSubmitted;
+    return isInvoiceOpened && !invoice.isSubmitted;
   }
 
   @override
@@ -53,7 +57,7 @@ class DeleteInvoiceAction extends ContextAction<DeleteInvoiceIntent> with TrackI
 
     if (selectedOption == 0) {
       await TaskMonitor.of(context).monitor<void>(
-        future: InvoiceBinding.instance!.invoice!.delete(),
+        future: invoice.delete(),
         inProgressMessage: 'Deleting invoice...',
         completedMessage: 'Invoice deleted',
       );

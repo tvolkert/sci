@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 
 import 'package:payouts/src/model/invoice.dart';
-import 'package:payouts/src/model/track_invoice_opened_mixin.dart';
+import 'package:payouts/src/model/track_invoice_mixin.dart';
 import 'package:payouts/src/pivot.dart' as pivot;
 
 class DeleteTimesheetIntent extends Intent {
@@ -11,7 +11,7 @@ class DeleteTimesheetIntent extends Intent {
   final Timesheet timesheet;
 }
 
-class DeleteTimesheetAction extends ContextAction<DeleteTimesheetIntent> with TrackInvoiceOpenedMixin {
+class DeleteTimesheetAction extends ContextAction<DeleteTimesheetIntent> with TrackInvoiceMixin {
   DeleteTimesheetAction._() {
     initInstance();
   }
@@ -19,15 +19,20 @@ class DeleteTimesheetAction extends ContextAction<DeleteTimesheetIntent> with Tr
   static final DeleteTimesheetAction instance = DeleteTimesheetAction._();
 
   @override
-  @protected
-  void onInvoiceChanged() {
-    super.onInvoiceChanged();
+  void onInvoiceOpenedChanged() {
+    super.onInvoiceOpenedChanged();
+    notifyActionListeners();
+  }
+
+  @override
+  void onInvoiceSubmittedChanged() {
+    super.onInvoiceSubmittedChanged();
     notifyActionListeners();
   }
 
   @override
   bool isEnabled(DeleteTimesheetIntent intent) {
-    return isInvoiceOpened && !InvoiceBinding.instance!.invoice!.isSubmitted;
+    return isInvoiceOpened && !invoice.isSubmitted;
   }
 
   @override
@@ -49,7 +54,7 @@ class DeleteTimesheetAction extends ContextAction<DeleteTimesheetIntent> with Tr
     );
 
     if (selectedOption == 0) {
-      InvoiceBinding.instance!.invoice!.timesheets.removeAt(intent.timesheet.index);
+      invoice.timesheets.removeAt(intent.timesheet.index);
     }
   }
 }

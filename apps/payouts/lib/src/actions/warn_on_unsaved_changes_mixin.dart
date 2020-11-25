@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart' show Theme;
 import 'package:flutter/widgets.dart';
 
-import 'package:payouts/src/model/track_invoice_dirty_mixin.dart';
+import 'package:payouts/src/model/track_invoice_mixin.dart';
 import 'package:payouts/src/pivot.dart' as pivot;
 
 import 'save_invoice.dart';
 
-mixin WarnOnUnsavedChangesMixin on TrackInvoiceDirtyMixin {
+mixin WarnOnUnsavedChangesMixin on TrackInvoiceMixin {
   /// Ensures that the user is ok proceeding if there are unsaved changes.
   ///
   /// Callers should consult this method when they are about to take action

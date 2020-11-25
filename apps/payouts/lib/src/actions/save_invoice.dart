@@ -1,8 +1,6 @@
 import 'package:flutter/widgets.dart';
 
-import 'package:payouts/src/model/invoice.dart';
-import 'package:payouts/src/model/track_invoice_dirty_mixin.dart';
-import 'package:payouts/src/model/track_invoice_opened_mixin.dart';
+import 'package:payouts/src/model/track_invoice_mixin.dart';
 import 'package:payouts/ui/common/task_monitor.dart';
 
 class SaveInvoiceIntent extends Intent {
@@ -11,8 +9,7 @@ class SaveInvoiceIntent extends Intent {
   final BuildContext? context;
 }
 
-class SaveInvoiceAction extends ContextAction<SaveInvoiceIntent>
-    with TrackInvoiceOpenedMixin, TrackInvoiceDirtyMixin {
+class SaveInvoiceAction extends ContextAction<SaveInvoiceIntent> with TrackInvoiceMixin {
   SaveInvoiceAction._() {
     initInstance();
   }
@@ -46,7 +43,7 @@ class SaveInvoiceAction extends ContextAction<SaveInvoiceIntent>
     }
 
     await TaskMonitor.of(context).monitor<void>(
-      future: InvoiceBinding.instance!.invoice!.save(),
+      future: invoice.save(),
       inProgressMessage: 'Saving invoice...',
       completedMessage: 'Invoice saved',
     );

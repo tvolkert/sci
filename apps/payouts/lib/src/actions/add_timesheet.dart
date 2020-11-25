@@ -5,7 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 
 import 'package:payouts/src/model/invoice.dart';
-import 'package:payouts/src/model/track_invoice_opened_mixin.dart';
+import 'package:payouts/src/model/track_invoice_mixin.dart';
 import 'package:payouts/src/ui/invoice_entry_editor.dart';
 import 'package:payouts/src/pivot.dart' as pivot;
 
@@ -15,7 +15,7 @@ class AddTimesheetIntent extends Intent {
   final BuildContext? context;
 }
 
-class AddTimesheetAction extends ContextAction<AddTimesheetIntent> with TrackInvoiceOpenedMixin {
+class AddTimesheetAction extends ContextAction<AddTimesheetIntent> with TrackInvoiceMixin {
   AddTimesheetAction._() {
     initInstance();
   }
@@ -23,15 +23,20 @@ class AddTimesheetAction extends ContextAction<AddTimesheetIntent> with TrackInv
   static final AddTimesheetAction instance = AddTimesheetAction._();
 
   @override
-  @protected
-  void onInvoiceChanged() {
-    super.onInvoiceChanged();
+  void onInvoiceOpenedChanged() {
+    super.onInvoiceOpenedChanged();
+    notifyActionListeners();
+  }
+
+  @override
+  void onInvoiceSubmittedChanged() {
+    super.onInvoiceSubmittedChanged();
     notifyActionListeners();
   }
 
   @override
   bool isEnabled(AddTimesheetIntent intent) {
-    return isInvoiceOpened && !InvoiceBinding.instance!.invoice!.isSubmitted;
+    return isInvoiceOpened && !invoice.isSubmitted;
   }
 
   @override
@@ -43,7 +48,7 @@ class AddTimesheetAction extends ContextAction<AddTimesheetIntent> with TrackInv
 
     final InvoiceEntryMetadata? metadata = await AddTimesheetSheet.open(context: context);
     if (metadata != null) {
-      InvoiceBinding.instance!.invoice!.timesheets.add(metadata);
+      invoice.timesheets.add(metadata);
     }
   }
 }

@@ -4,7 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 
 import 'package:payouts/src/model/invoice.dart';
-import 'package:payouts/src/model/track_invoice_opened_mixin.dart';
+import 'package:payouts/src/model/track_invoice_mixin.dart';
 import 'package:payouts/src/pivot.dart' as pivot;
 import 'package:payouts/src/ui/invoice_entry_editor.dart';
 
@@ -14,7 +14,7 @@ class AddExpenseReportIntent extends Intent {
   final BuildContext? context;
 }
 
-class AddExpenseReportAction extends ContextAction<AddExpenseReportIntent> with TrackInvoiceOpenedMixin {
+class AddExpenseReportAction extends ContextAction<AddExpenseReportIntent> with TrackInvoiceMixin {
   AddExpenseReportAction._() {
     initInstance();
   }
@@ -22,15 +22,20 @@ class AddExpenseReportAction extends ContextAction<AddExpenseReportIntent> with 
   static final AddExpenseReportAction instance = AddExpenseReportAction._();
 
   @override
-  @protected
-  void onInvoiceChanged() {
-    super.onInvoiceChanged();
+  void onInvoiceOpenedChanged() {
+    super.onInvoiceOpenedChanged();
+    notifyActionListeners();
+  }
+
+  @override
+  void onInvoiceSubmittedChanged() {
+    super.onInvoiceSubmittedChanged();
     notifyActionListeners();
   }
 
   @override
   bool isEnabled(AddExpenseReportIntent intent) {
-    return isInvoiceOpened && !InvoiceBinding.instance!.invoice!.isSubmitted;
+    return isInvoiceOpened && !invoice.isSubmitted;
   }
 
   @override

@@ -12,8 +12,7 @@ import 'package:payouts/src/model/constants.dart';
 import 'package:payouts/src/model/entry_comparator.dart';
 import 'package:payouts/src/model/invoice.dart';
 import 'package:payouts/src/model/user.dart';
-import 'package:payouts/src/model/track_invoice_dirty_mixin.dart';
-import 'package:payouts/src/model/track_invoice_opened_mixin.dart';
+import 'package:payouts/src/model/track_invoice_mixin.dart';
 import 'package:payouts/src/pivot.dart' as pivot;
 import 'package:payouts/ui/common/task_monitor.dart';
 
@@ -26,7 +25,7 @@ class CreateInvoiceIntent extends Intent {
 }
 
 class CreateInvoiceAction extends ContextAction<CreateInvoiceIntent>
-    with TrackInvoiceOpenedMixin, TrackInvoiceDirtyMixin, WarnOnUnsavedChangesMixin {
+    with TrackInvoiceMixin, WarnOnUnsavedChangesMixin {
   CreateInvoiceAction._() {
     initInstance();
   }
