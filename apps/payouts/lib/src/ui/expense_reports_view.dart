@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
-import 'package:intl/intl.dart' as intl;
+import 'package:flutter/widgets.dart';
 
 import 'package:payouts/splitter.dart';
 import 'package:payouts/src/actions.dart';
@@ -20,8 +20,42 @@ class ExpenseReportsView extends StatelessWidget {
   }
 }
 
-class _RawExpenseReportsView extends StatelessWidget {
+class _RawExpenseReportsView extends StatefulWidget {
   const _RawExpenseReportsView({Key? key}) : super(key: key);
+
+  @override
+  _RawExpenseReportsViewState createState() => _RawExpenseReportsViewState();
+}
+
+class _RawExpenseReportsViewState extends State<_RawExpenseReportsView> {
+  late pivot.ListViewSelectionController _selectionController;
+  ExpenseReport? _selectedExpenseReport;
+
+  void _handleSelectedExpenseReportChanged() {
+    final int selectedIndex = _selectionController.selectedIndex;
+    setState(() {
+      _selectedExpenseReport = InvoiceBinding.instance!.invoice!.expenseReports[selectedIndex];
+    });
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _selectionController = pivot.ListViewSelectionController();
+    final ExpenseReports expenseReports = InvoiceBinding.instance!.invoice!.expenseReports;
+    if (expenseReports.isNotEmpty) {
+      _selectionController.selectedIndex = 0;
+      _selectedExpenseReport = expenseReports.first;
+    }
+    _selectionController.addListener(_handleSelectedExpenseReportChanged);
+  }
+
+  @override
+  void dispose() {
+    _selectionController.removeListener(_handleSelectedExpenseReportChanged);
+    _selectionController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -46,110 +80,11 @@ class _RawExpenseReportsView extends StatelessWidget {
                 axis: Axis.horizontal,
                 initialFractions: [0.25, 0.75],
                 children: [
-                  ExpenseReportListView(),
+                  ExpenseReportsListView(selectionController: _selectionController),
                   DecoratedBox(
                     decoration: BoxDecoration(border: Border.all(color: Color(0xFF999999))),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        Padding(
-                          padding: EdgeInsets.fromLTRB(11, 11, 11, 9),
-                          child: DefaultTextStyle(
-                            style: Theme.of(context)
-                                .textTheme
-                                .bodyText2!
-                                .copyWith(color: Colors.black),
-                            child: Table(
-                              columnWidths: {
-                                0: IntrinsicColumnWidth(),
-                                1: FlexColumnWidth(),
-                              },
-                              children: [
-                                TableRow(
-                                  children: [
-                                    Padding(
-                                        padding: EdgeInsets.only(bottom: 4),
-                                        child: Text('Program:')),
-                                    Padding(
-                                        padding: EdgeInsets.only(bottom: 4),
-                                        child: Text('Orbital Sciences')),
-                                  ],
-                                ),
-                                TableRow(
-                                  children: [
-                                    Padding(
-                                        padding: EdgeInsets.only(bottom: 4),
-                                        child: Text('Charge number:')),
-                                    Padding(
-                                        padding: EdgeInsets.only(bottom: 4), child: Text('123')),
-                                  ],
-                                ),
-                                TableRow(
-                                  children: [
-                                    Padding(
-                                        padding: EdgeInsets.only(bottom: 4), child: Text('Dates:')),
-                                    Padding(
-                                        padding: EdgeInsets.only(bottom: 4),
-                                        child: Text('2015-10-12 to 2015-10-25')),
-                                  ],
-                                ),
-                                TableRow(
-                                  children: [
-                                    Padding(
-                                        padding: EdgeInsets.only(bottom: 4),
-                                        child: Text('Purpose of travel:')),
-                                    Padding(
-                                        padding: EdgeInsets.only(bottom: 4),
-                                        child: Text('None of your business')),
-                                  ],
-                                ),
-                                TableRow(
-                                  children: [
-                                    Padding(
-                                        padding: EdgeInsets.only(bottom: 4),
-                                        child: Text('Destination (city):')),
-                                    Padding(
-                                        padding: EdgeInsets.only(bottom: 4),
-                                        child: Text('Vancouver')),
-                                  ],
-                                ),
-                                TableRow(
-                                  children: [
-                                    Padding(
-                                        padding: EdgeInsets.only(bottom: 4, right: 6),
-                                        child: Text('Party or parties visited:')),
-                                    Padding(
-                                        padding: EdgeInsets.only(bottom: 4), child: Text('Jimbo')),
-                                  ],
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                        Padding(
-                          padding: EdgeInsets.only(bottom: 9, left: 11),
-                          child: Row(
-                            children: [
-                              pivot.LinkButton(
-                                image: AssetImage('assets/money_add.png'),
-                                text: 'Add expense line item',
-                                onPressed: () {},
-                              ),
-                            ],
-                          ),
-                        ),
-                        Divider(
-                          height: 1,
-                          thickness: 1,
-                          color: const Color(0xff999999),
-                        ),
-                        Expanded(
-                          child: Padding(
-                            padding: EdgeInsets.all(1),
-                            child: ExpensesTableView(),
-                          ),
-                        ),
-                      ],
+                    child: _ExpenseReportView(
+                      expenseReport: _selectedExpenseReport!,
                     ),
                   ),
                 ],
@@ -162,7 +97,141 @@ class _RawExpenseReportsView extends StatelessWidget {
   }
 }
 
+class _ExpenseReportView extends StatelessWidget {
+  const _ExpenseReportView({
+    Key? key,
+    required this.expenseReport,
+  }) : super(key: key);
+
+  final ExpenseReport expenseReport;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Padding(
+          padding: EdgeInsets.fromLTRB(11, 11, 11, 9),
+          child: DefaultTextStyle(
+            style: Theme.of(context).textTheme.bodyText2!.copyWith(color: Colors.black),
+            child: Table(
+              columnWidths: {
+                0: IntrinsicColumnWidth(),
+                1: FlexColumnWidth(),
+              },
+              children: [
+                TableRow(
+                  children: [
+                    Padding(
+                      padding: EdgeInsets.only(bottom: 4),
+                      child: Text('Program:'),
+                    ),
+                    Padding(
+                      padding: EdgeInsets.only(bottom: 4),
+                      child: Text(expenseReport.program.name),
+                    ),
+                  ],
+                ),
+                TableRow(
+                  children: [
+                    Padding(
+                      padding: EdgeInsets.only(bottom: 4),
+                      child: Text('Charge number:'),
+                    ),
+                    Padding(
+                      padding: EdgeInsets.only(bottom: 4),
+                      child: Text(expenseReport.chargeNumber),
+                    ),
+                  ],
+                ),
+                TableRow(
+                  children: [
+                    Padding(
+                      padding: EdgeInsets.only(bottom: 4),
+                      child: Text('Dates:'),
+                    ),
+                    Padding(
+                      padding: EdgeInsets.only(bottom: 4),
+                      child: Text(expenseReport.period.toString()),
+                    ),
+                  ],
+                ),
+                TableRow(
+                  children: [
+                    Padding(padding: EdgeInsets.only(bottom: 4), child: Text('Purpose of travel:')),
+                    Padding(
+                      padding: EdgeInsets.only(bottom: 4),
+                      child: Text(expenseReport.travelPurpose),
+                    ),
+                  ],
+                ),
+                TableRow(
+                  children: [
+                    Padding(
+                      padding: EdgeInsets.only(bottom: 4),
+                      child: Text('Destination (city):'),
+                    ),
+                    Padding(
+                      padding: EdgeInsets.only(bottom: 4),
+                      child: Text(expenseReport.travelDestination),
+                    ),
+                  ],
+                ),
+                TableRow(
+                  children: [
+                    Padding(
+                      padding: EdgeInsets.only(bottom: 4, right: 6),
+                      child: Text('Party or parties visited:'),
+                    ),
+                    Padding(
+                      padding: EdgeInsets.only(bottom: 4),
+                      child: Text(expenseReport.travelParties),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ),
+        Padding(
+          padding: EdgeInsets.only(bottom: 9, left: 11),
+          child: Row(
+            children: [
+              pivot.LinkButton(
+                image: AssetImage('assets/money_add.png'),
+                text: 'Add expense line item',
+                onPressed: () {},
+              ),
+            ],
+          ),
+        ),
+        Divider(
+          height: 1,
+          thickness: 1,
+          color: const Color(0xff999999),
+        ),
+        Expanded(
+          child: Padding(
+            padding: EdgeInsets.all(1),
+            child: ColoredBox(
+              color: const Color(0xffffffff),
+              child: ExpensesTableView(expenseReport: expenseReport),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
 class ExpensesTableView extends StatefulWidget {
+  const ExpensesTableView({
+    Key? key,
+    required this.expenseReport,
+  }) : super(key: key);
+
+  final ExpenseReport expenseReport;
+
   @override
   _ExpensesTableViewState createState() => _ExpensesTableViewState();
 }
@@ -170,29 +239,7 @@ class ExpensesTableView extends StatefulWidget {
 class _ExpensesTableViewState extends State<ExpensesTableView> {
   late pivot.TableViewSelectionController _selectionController;
   late pivot.TableViewSortController _sortController;
-  late pivot.TableViewEditorController _editorcontroller;
-
-  final List<List<String>> data = [
-    ['2015-10-12', 'Lodging', r'$219.05', 'Hotel'],
-    ['2015-10-13', 'Car Rental', r'$34.50', 'Test'],
-    ['2015-10-13', 'Parking', r'$12.00', ''],
-    ['2015-10-13', 'Lodging', r'$219.05', 'Hotel'],
-    ['2015-10-14', 'Car Rental', r'$23.43', 'foo'],
-    ['2015-10-14', 'Lodging', r'$219.05', 'Hotel'],
-    ['2015-10-15', 'Lodging', r'$219.05', 'Hotel'],
-    ['2015-10-16', 'Lodging', r'$219.05', 'Hotel'],
-    ['2015-10-17', 'Lodging', r'$219.05', 'Hotel'],
-    ['2015-10-18', 'Lodging', r'$219.05', 'Hotel'],
-    ['2015-10-19', 'Lodging', r'$219.05', 'Hotel'],
-    ['2015-10-20', 'Lodging', r'$219.05', 'Hotel'],
-    ['2015-10-21', 'Lodging', r'$219.05', 'Hotel'],
-    ['2015-10-22', 'Lodging', r'$219.05', 'Hotel'],
-    ['2015-10-23', 'Lodging', r'$219.05', 'Hotel'],
-    ['2015-10-24', 'Lodging', r'$219.05', 'Hotel'],
-    ['2015-10-25', 'Lodging', r'$219.05', 'Hotel'],
-  ];
-
-  static final intl.DateFormat dateFormat = intl.DateFormat('yyyy-MM-dd');
+  late pivot.TableViewEditorController _editorController;
 
   pivot.TableHeaderRenderer _renderHeader(String name) {
     return ({
@@ -217,24 +264,13 @@ class _ExpensesTableViewState extends State<ExpensesTableView> {
     required bool isEditing,
     required bool isRowDisabled,
   }) {
-    final String date = data[rowIndex][0];
-    final DateTime dateTime = DateTime.parse(date);
-    final String formattedDate = dateFormat.format(dateTime);
-    TextStyle style = DefaultTextStyle.of(context).style;
-    if (rowSelected) {
-      style = style.copyWith(color: Colors.white);
-    }
+    final DateTime date = widget.expenseReport.expenses[rowIndex].date;
+    final String formattedDate = DateFormats.iso8601Short.format(date);
     return ExpenseCellWrapper(
       rowIndex: rowIndex,
       rowHighlighted: rowHighlighted,
       rowSelected: rowSelected,
-      child: Text(
-        formattedDate,
-        maxLines: 1,
-        softWrap: false,
-        overflow: TextOverflow.clip,
-        style: style,
-      ),
+      content: formattedDate,
     );
   }
 
@@ -247,32 +283,22 @@ class _ExpensesTableViewState extends State<ExpensesTableView> {
     required bool isEditing,
     required bool isRowDisabled,
   }) {
-    final String type = data[rowIndex][1];
+    final ExpenseType type = widget.expenseReport.expenses[rowIndex].type;
     if (isEditing) {
       return _renderTypeEditor(type);
-    }
-    TextStyle style = DefaultTextStyle.of(context).style;
-    if (rowSelected) {
-      style = style.copyWith(color: Colors.white);
     }
     return ExpenseCellWrapper(
       rowIndex: rowIndex,
       rowHighlighted: rowHighlighted,
       rowSelected: rowSelected,
-      child: Text(
-        type,
-        maxLines: 1,
-        softWrap: false,
-        overflow: TextOverflow.clip,
-        style: style,
-      ),
+      content: type.name,
     );
   }
 
-  Widget _renderTypeEditor(String type) {
+  Widget _renderTypeEditor(ExpenseType type) {
     return pivot.PushButton<String>(
       onPressed: () {},
-      label: type,
+      label: type.name,
       menuItems: <PopupMenuEntry<String>>[
         PopupMenuItem<String>(
           value: 'type1',
@@ -298,22 +324,12 @@ class _ExpensesTableViewState extends State<ExpensesTableView> {
     required bool isEditing,
     required bool isRowDisabled,
   }) {
-    final String amount = data[rowIndex][2];
-    TextStyle style = DefaultTextStyle.of(context).style;
-    if (rowSelected) {
-      style = style.copyWith(color: Colors.white);
-    }
+    final double amount = widget.expenseReport.expenses[rowIndex].amount;
     return ExpenseCellWrapper(
       rowIndex: rowIndex,
       rowHighlighted: rowHighlighted,
       rowSelected: rowSelected,
-      child: Text(
-        amount,
-        maxLines: 1,
-        softWrap: false,
-        overflow: TextOverflow.clip,
-        style: style,
-      ),
+      content: NumberFormats.currency.format(amount),
     );
   }
 
@@ -326,22 +342,12 @@ class _ExpensesTableViewState extends State<ExpensesTableView> {
     required bool isEditing,
     required bool isRowDisabled,
   }) {
-    final String description = data[rowIndex][3];
-    TextStyle style = DefaultTextStyle.of(context).style;
-    if (rowSelected) {
-      style = style.copyWith(color: Colors.white);
-    }
+    final String description = widget.expenseReport.expenses[rowIndex].description;
     return ExpenseCellWrapper(
       rowIndex: rowIndex,
       rowHighlighted: rowHighlighted,
       rowSelected: rowSelected,
-      child: Text(
-        description,
-        maxLines: 1,
-        softWrap: false,
-        overflow: TextOverflow.clip,
-        style: style,
-      ),
+      content: description,
     );
   }
 
@@ -350,14 +356,22 @@ class _ExpensesTableViewState extends State<ExpensesTableView> {
     super.initState();
     _selectionController = pivot.TableViewSelectionController(selectMode: pivot.SelectMode.multi);
     _sortController = pivot.TableViewSortController(sortMode: pivot.TableViewSortMode.singleColumn);
-    _editorcontroller = pivot.TableViewEditorController();
+    _editorController = pivot.TableViewEditorController();
+  }
+
+  @override
+  void didUpdateWidget(ExpensesTableView oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.expenseReport != oldWidget.expenseReport) {
+      _selectionController.selectedIndex = -1;
+    }
   }
 
   @override
   void dispose() {
     _selectionController.dispose();
     _sortController.dispose();
-    _editorcontroller.dispose();
+    _editorController.dispose();
     super.dispose();
   }
 
@@ -365,10 +379,10 @@ class _ExpensesTableViewState extends State<ExpensesTableView> {
   Widget build(BuildContext context) {
     return pivot.ScrollableTableView(
       rowHeight: 19,
-      length: data.length,
+      length: widget.expenseReport.expenses.length,
       selectionController: _selectionController,
       sortController: _sortController,
-      editorController: _editorcontroller,
+      editorController: _editorController,
       roundColumnWidthsToWholePixel: false,
       columns: <pivot.TableColumnController>[
         pivot.TableColumnController(
@@ -406,21 +420,31 @@ class ExpenseCellWrapper extends StatelessWidget {
     this.rowIndex = 0,
     this.rowHighlighted = false,
     this.rowSelected = false,
-    required this.child,
+    required this.content,
   }) : super(key: key);
 
   final int rowIndex;
   final bool rowHighlighted;
   final bool rowSelected;
-  final Widget child;
+  final String content;
 
-  static const List<Color> colors = <Color>[Colors.white, Color(0xfff7f5ee)];
+  static const List<Color> colors = <Color>[Color(0xffffffff), Color(0xfff7f5ee)];
 
   @override
   Widget build(BuildContext context) {
+    TextStyle style = DefaultTextStyle.of(context).style;
+    if (rowSelected) {
+      style = style.copyWith(color: const Color(0xffffffff));
+    }
     Widget result = Padding(
       padding: EdgeInsets.fromLTRB(2, 3, 2, 3),
-      child: child,
+      child: Text(
+        content,
+        maxLines: 1,
+        softWrap: false,
+        overflow: TextOverflow.clip,
+        style: style,
+      ),
     );
 
     if (!rowHighlighted && !rowSelected) {
@@ -434,22 +458,19 @@ class ExpenseCellWrapper extends StatelessWidget {
   }
 }
 
-class ExpenseReportData {
-  const ExpenseReportData({
-    required this.title,
-    required this.amount,
-  });
-  final String title;
-  final double amount;
-}
+class ExpenseReportsListView extends StatefulWidget {
+  const ExpenseReportsListView({
+    Key? key,
+    required this.selectionController,
+  }) : super(key: key);
 
-class ExpenseReportListView extends StatefulWidget {
+  final pivot.ListViewSelectionController selectionController;
+
   @override
-  _ExpenseReportListViewState createState() => _ExpenseReportListViewState();
+  _ExpenseReportsListViewState createState() => _ExpenseReportsListViewState();
 }
 
-class _ExpenseReportListViewState extends State<ExpenseReportListView> {
-  late pivot.ListViewSelectionController _selectionController;
+class _ExpenseReportsListViewState extends State<ExpenseReportsListView> {
   late ExpenseReports _expenseReports;
 
   Widget _buildItem({
@@ -479,7 +500,8 @@ class _ExpenseReportListViewState extends State<ExpenseReportListView> {
       padding: const EdgeInsets.all(2),
       child: Row(
         children: [
-          Expanded(child: Text(
+          Expanded(
+              child: Text(
             title,
             maxLines: 1,
             softWrap: false,
@@ -505,14 +527,7 @@ class _ExpenseReportListViewState extends State<ExpenseReportListView> {
   @override
   void initState() {
     super.initState();
-    _selectionController = pivot.ListViewSelectionController();
     _expenseReports = InvoiceBinding.instance!.invoice!.expenseReports;
-  }
-
-  @override
-  void dispose() {
-    _selectionController.dispose();
-    super.dispose();
   }
 
   @override
@@ -528,537 +543,9 @@ class _ExpenseReportListViewState extends State<ExpenseReportListView> {
           itemHeight: 19,
           length: _expenseReports.length,
           itemBuilder: _buildItem,
-          selectionController: _selectionController,
+          selectionController: widget.selectionController,
         ),
       ),
     );
-  }
-}
-
-class ExpenseReportListTile extends StatelessWidget {
-  /// Creates a list tile.
-  ///
-  /// If [isThreeLine] is true, then [subtitle] must not be null.
-  ///
-  /// Requires one of its ancestors to be a [Material] widget.
-  const ExpenseReportListTile({
-    Key? key,
-    required this.title,
-    required this.amount,
-    this.enabled = true,
-    this.onTap,
-    this.mouseCursor,
-    this.selected = false,
-    this.focusColor,
-    this.hoverColor,
-    this.autofocus = false,
-  }) : super(key: key);
-
-  final String title;
-  final double amount;
-
-  /// Whether this list tile is interactive.
-  ///
-  /// If false, this list tile is styled with the disabled color from the
-  /// current [Theme] and the [onTap] and [onLongPress] callbacks are
-  /// inoperative.
-  final bool enabled;
-
-  /// Called when the user taps this list tile.
-  ///
-  /// Inoperative if [enabled] is false.
-  final GestureTapCallback? onTap;
-
-  /// The cursor for a mouse pointer when it enters or is hovering over the
-  /// widget.
-  ///
-  /// If [mouseCursor] is a [MaterialStateProperty<MouseCursor>],
-  /// [MaterialStateProperty.resolve] is used for the following [MaterialState]s:
-  ///
-  ///  * [MaterialState.selected].
-  ///  * [MaterialState.disabled].
-  ///
-  /// If this property is null, [MaterialStateMouseCursor.clickable] will be used.
-  final MouseCursor? mouseCursor;
-
-  /// If this tile is also [enabled] then icons and text are rendered with the same color.
-  ///
-  /// By default the selected color is the theme's primary color. The selected color
-  /// can be overridden with a [ListTileTheme].
-  final bool selected;
-
-  /// The color for the tile's [Material] when it has the input focus.
-  final Color? focusColor;
-
-  /// The color for the tile's [Material] when a pointer is hovering over it.
-  final Color? hoverColor;
-
-  /// {@macro flutter.widgets.Focus.autofocus}
-  final bool autofocus;
-
-  Color? _textColor(ThemeData theme, ListTileTheme tileTheme, Color? defaultColor) {
-    if (!enabled) return theme.disabledColor;
-
-    if (selected && tileTheme.selectedColor != null) return tileTheme.selectedColor;
-
-    if (!selected && tileTheme.textColor != null) return tileTheme.textColor;
-
-    if (selected) {
-      return Colors.white;
-    }
-    return defaultColor;
-  }
-
-  TextStyle _textStyle(ThemeData theme, ListTileTheme tileTheme) {
-    late TextStyle style;
-    switch (tileTheme.style) {
-      case ListTileStyle.drawer:
-        style = theme.textTheme.bodyText1!;
-        break;
-      case ListTileStyle.list:
-        style = theme.textTheme.subtitle1!;
-        break;
-    }
-    final Color? color = _textColor(theme, tileTheme, style.color);
-    return style.copyWith(fontFamily: 'Verdana', fontSize: 11.0, color: color);
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    assert(debugCheckHasMaterial(context));
-
-    final MouseCursor effectiveMouseCursor = MaterialStateProperty.resolveAs<MouseCursor>(
-      mouseCursor ?? MaterialStateMouseCursor.clickable,
-      <MaterialState>{
-        if (!enabled) MaterialState.disabled,
-        if (selected) MaterialState.selected,
-      },
-    );
-
-    final intl.NumberFormat _currencyFormat = intl.NumberFormat('\$#,##0.00', 'en_US');
-
-    final ThemeData theme = Theme.of(context);
-    final ListTileTheme tileTheme = ListTileTheme.of(context);
-    TextStyle textStyle = _textStyle(theme, tileTheme);
-
-    return InkWell(
-      customBorder: ListTileTheme.of(context).shape,
-      onTap: enabled ? onTap : null,
-      mouseCursor: effectiveMouseCursor,
-      canRequestFocus: enabled,
-      focusColor: focusColor,
-      hoverColor: hoverColor,
-      autofocus: autofocus,
-      child: Semantics(
-        selected: selected,
-        enabled: enabled,
-        child: SafeArea(
-          top: false,
-          bottom: false,
-          child: DefaultTextStyle(
-            style: textStyle,
-            child: _ListTile(
-              title: Text(title),
-              trailing: Text('(${_currencyFormat.format(amount)})'),
-              textDirection: Directionality.of(context),
-              titleBaselineType: TextBaseline.alphabetic,
-              selected: selected,
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-// Identifies the children of a _ListTileElement.
-enum _ListTileSlot {
-  title,
-  trailing,
-}
-
-class _ListTile extends RenderObjectWidget {
-  const _ListTile({
-    Key? key,
-    required this.title,
-    required this.trailing,
-    required this.textDirection,
-    required this.titleBaselineType,
-    this.selected = false,
-  }) : super(key: key);
-
-  final Widget title;
-  final Widget trailing;
-  final TextDirection textDirection;
-  final TextBaseline titleBaselineType;
-  final bool selected;
-
-  @override
-  _ListTileElement createElement() => _ListTileElement(this);
-
-  @override
-  _RenderListTile createRenderObject(BuildContext context) {
-    return _RenderListTile(
-      textDirection: textDirection,
-      titleBaselineType: titleBaselineType,
-      selected: selected,
-    );
-  }
-
-  @override
-  void updateRenderObject(BuildContext context, _RenderListTile renderObject) {
-    renderObject
-      ..textDirection = textDirection
-      ..titleBaselineType = titleBaselineType
-      ..selected = selected;
-  }
-}
-
-class _ListTileElement extends RenderObjectElement {
-  _ListTileElement(_ListTile widget) : super(widget);
-
-  final Map<_ListTileSlot, Element> slotToChild = <_ListTileSlot, Element>{};
-  final Map<Element, _ListTileSlot> childToSlot = <Element, _ListTileSlot>{};
-
-  @override
-  _ListTile get widget => super.widget as _ListTile;
-
-  @override
-  _RenderListTile get renderObject => super.renderObject as _RenderListTile;
-
-  @override
-  void visitChildren(ElementVisitor visitor) {
-    slotToChild.values.forEach(visitor);
-  }
-
-  @override
-  void forgetChild(Element child) {
-    assert(slotToChild.values.contains(child));
-    assert(childToSlot.keys.contains(child));
-    final _ListTileSlot slot = childToSlot[child]!;
-    childToSlot.remove(child);
-    slotToChild.remove(slot);
-    super.forgetChild(child);
-  }
-
-  void _mountChild(Widget widget, _ListTileSlot slot) {
-    final Element? oldChild = slotToChild[slot];
-    final Element? newChild = updateChild(oldChild, widget, slot);
-    if (oldChild != null) {
-      slotToChild.remove(slot);
-      childToSlot.remove(oldChild);
-    }
-    if (newChild != null) {
-      slotToChild[slot] = newChild;
-      childToSlot[newChild] = slot;
-    }
-  }
-
-  @override
-  void mount(Element? parent, dynamic newSlot) {
-    super.mount(parent, newSlot);
-    _mountChild(widget.title, _ListTileSlot.title);
-    _mountChild(widget.trailing, _ListTileSlot.trailing);
-  }
-
-  void _updateChild(Widget widget, _ListTileSlot slot) {
-    final Element? oldChild = slotToChild[slot];
-    final Element? newChild = updateChild(oldChild, widget, slot);
-    if (oldChild != null) {
-      childToSlot.remove(oldChild);
-      slotToChild.remove(slot);
-    }
-    if (newChild != null) {
-      slotToChild[slot] = newChild;
-      childToSlot[newChild] = slot;
-    }
-  }
-
-  @override
-  void update(_ListTile newWidget) {
-    super.update(newWidget);
-    assert(widget == newWidget);
-    _updateChild(widget.title, _ListTileSlot.title);
-    _updateChild(widget.trailing, _ListTileSlot.trailing);
-  }
-
-  void _updateRenderObject(RenderBox? child, _ListTileSlot slot) {
-    switch (slot) {
-      case _ListTileSlot.title:
-        renderObject.title = child;
-        break;
-      case _ListTileSlot.trailing:
-        renderObject.trailing = child;
-        break;
-    }
-  }
-
-  @override
-  void insertRenderObjectChild(RenderBox child, dynamic slotValue) {
-    assert(child is RenderBox);
-    assert(slotValue is _ListTileSlot);
-    final _ListTileSlot slot = slotValue as _ListTileSlot;
-    _updateRenderObject(child, slot);
-    assert(renderObject.childToSlot.keys.contains(child));
-    assert(renderObject.slotToChild.keys.contains(slot));
-  }
-
-  @override
-  void removeRenderObjectChild(RenderBox child, dynamic slot) {
-    assert(child is RenderBox);
-    assert(renderObject.childToSlot.keys.contains(child));
-    _updateRenderObject(null, renderObject.childToSlot[child]!);
-    assert(!renderObject.childToSlot.keys.contains(child));
-    assert(!renderObject.slotToChild.keys.contains(slot));
-  }
-
-  @override
-  void moveRenderObjectChild(RenderBox child, dynamic oldSlot, dynamic newSlot) {
-    assert(false, 'not reachable');
-  }
-}
-
-class _RenderListTile extends RenderBox {
-  _RenderListTile({
-    required TextDirection textDirection,
-    required TextBaseline titleBaselineType,
-    required bool selected,
-  })   : _textDirection = textDirection,
-        _titleBaselineType = titleBaselineType,
-        _selected = selected;
-
-  // The horizontal gap between the titles and the trailing widget.
-  double get _horizontalTitleGap => 2;
-
-  // The minimum padding on the top and bottom of the title widget.
-  static const double _minVerticalPadding = 3;
-
-  static const double _horizontalPadding = 2;
-
-  final Map<_ListTileSlot, RenderBox> slotToChild = <_ListTileSlot, RenderBox>{};
-  final Map<RenderBox, _ListTileSlot> childToSlot = <RenderBox, _ListTileSlot>{};
-
-  RenderBox? _updateChild(RenderBox? oldChild, RenderBox? newChild, _ListTileSlot slot) {
-    assert(oldChild != newChild);
-    if (oldChild != null) {
-      dropChild(oldChild);
-      childToSlot.remove(oldChild);
-      slotToChild.remove(slot);
-    }
-    if (newChild != null) {
-      childToSlot[newChild] = slot;
-      slotToChild[slot] = newChild;
-      adoptChild(newChild);
-    }
-    return newChild;
-  }
-
-  RenderBox? _title;
-  RenderBox? get title => _title;
-  set title(RenderBox? value) {
-    _title = _updateChild(_title, value, _ListTileSlot.title);
-  }
-
-  RenderBox? _trailing;
-  RenderBox? get trailing => _trailing;
-  set trailing(RenderBox? value) {
-    _trailing = _updateChild(_trailing, value, _ListTileSlot.trailing);
-  }
-
-  // The returned list is ordered for hit testing.
-  Iterable<RenderBox> get _children sync* {
-    if (title != null) yield title!;
-    if (trailing != null) yield trailing!;
-  }
-
-  TextDirection get textDirection => _textDirection;
-  TextDirection _textDirection;
-  set textDirection(TextDirection value) {
-    if (_textDirection == value) return;
-    _textDirection = value;
-    markNeedsLayout();
-  }
-
-  TextBaseline get titleBaselineType => _titleBaselineType;
-  TextBaseline _titleBaselineType;
-  set titleBaselineType(TextBaseline value) {
-    if (_titleBaselineType == value) return;
-    _titleBaselineType = value;
-    markNeedsLayout();
-  }
-
-  bool get selected => _selected;
-  bool _selected;
-  set selected(bool value) {
-    if (_selected == value) return;
-    _selected = value;
-    markNeedsPaint();
-  }
-
-  @override
-  void attach(PipelineOwner owner) {
-    super.attach(owner);
-    for (final RenderBox child in _children) child.attach(owner);
-  }
-
-  @override
-  void detach() {
-    super.detach();
-    for (final RenderBox child in _children) child.detach();
-  }
-
-  @override
-  void redepthChildren() {
-    _children.forEach(redepthChild);
-  }
-
-  @override
-  void visitChildren(RenderObjectVisitor visitor) {
-    _children.forEach(visitor);
-  }
-
-  @override
-  List<DiagnosticsNode> debugDescribeChildren() {
-    final List<DiagnosticsNode> value = <DiagnosticsNode>[];
-    void add(RenderBox? child, String name) {
-      if (child != null) value.add(child.toDiagnosticsNode(name: name));
-    }
-
-    add(title, 'title');
-    add(trailing, 'trailing');
-    return value;
-  }
-
-  @override
-  bool get sizedByParent => false;
-
-  static double _minWidth(RenderBox? box, double height) {
-    return box == null ? 0.0 : box.getMinIntrinsicWidth(height);
-  }
-
-  static double _maxWidth(RenderBox? box, double height) {
-    return box == null ? 0.0 : box.getMaxIntrinsicWidth(height);
-  }
-
-  @override
-  double computeMinIntrinsicWidth(double height) {
-    return _minWidth(title, height) + _maxWidth(trailing, height) + 2 * _horizontalPadding;
-  }
-
-  @override
-  double computeMaxIntrinsicWidth(double height) {
-    return _maxWidth(title, height) + _maxWidth(trailing, height) + 2 * _horizontalPadding;
-  }
-
-  @override
-  double computeMinIntrinsicHeight(double width) {
-    return title == null ? 0 : title!.getMinIntrinsicHeight(width);
-  }
-
-  @override
-  double computeMaxIntrinsicHeight(double width) {
-    return computeMinIntrinsicHeight(width);
-  }
-
-  @override
-  double? computeDistanceToActualBaseline(TextBaseline baseline) {
-    if (title == null) {
-      return null;
-    }
-    final BoxParentData parentData = title!.parentData as BoxParentData;
-    return parentData.offset.dy + title!.getDistanceToActualBaseline(baseline)!;
-  }
-
-  static Size _layoutBox(RenderBox? box, BoxConstraints constraints) {
-    if (box == null) return Size.zero;
-    box.layout(constraints, parentUsesSize: true);
-    return box.size;
-  }
-
-  static void _positionBox(RenderBox box, Offset offset) {
-    final BoxParentData parentData = box.parentData as BoxParentData;
-    parentData.offset = offset;
-  }
-
-  // All of the dimensions below were taken from the Material Design spec:
-  // https://material.io/design/components/lists.html#specs
-  @override
-  void performLayout() {
-    final BoxConstraints constraints = this.constraints;
-    final bool hasTrailing = trailing != null;
-
-    final BoxConstraints looseConstraints = constraints.loosen();
-
-    final double tileWidth = looseConstraints.maxWidth;
-    final Size trailingSize = _layoutBox(trailing, looseConstraints);
-    assert(tileWidth != trailingSize.width,
-        'Trailing widget consumes entire tile width. Please use a sized widget.');
-
-    title!.getMinIntrinsicWidth(looseConstraints.maxHeight);
-
-    final double adjustedTrailingWidth =
-        trailingSize.width > 0 ? trailingSize.width + _horizontalTitleGap : 0.0;
-    final BoxConstraints titleConstraints = looseConstraints.tighten(
-      width: tileWidth - adjustedTrailingWidth,
-    );
-    final Size titleSize = _layoutBox(title, titleConstraints);
-
-    double tileHeight = titleSize.height + 1.0 * _minVerticalPadding;
-    double titleY = (tileHeight - titleSize.height) / 2.0;
-    double trailingY = (tileHeight - trailingSize.height) / 2.0;
-
-    switch (textDirection) {
-      case TextDirection.rtl:
-        _positionBox(title!, Offset(adjustedTrailingWidth, titleY));
-        if (hasTrailing) _positionBox(trailing!, Offset(0.0, trailingY));
-        break;
-      case TextDirection.ltr:
-        _positionBox(title!, Offset(_horizontalPadding, titleY));
-        if (hasTrailing)
-          _positionBox(
-              trailing!, Offset(tileWidth - trailingSize.width - _horizontalPadding, trailingY));
-        break;
-    }
-
-    size = constraints.constrain(Size(tileWidth, tileHeight));
-    assert(size.width == constraints.constrainWidth(tileWidth));
-    assert(size.height == constraints.constrainHeight(tileHeight));
-  }
-
-  @override
-  void paint(PaintingContext context, Offset offset) {
-    void doPaint(RenderBox? child) {
-      if (child != null) {
-        final BoxParentData parentData = child.parentData as BoxParentData;
-        context.paintChild(child, parentData.offset + offset);
-      }
-    }
-
-    if (selected) {
-      context.canvas.drawRect(
-          Rect.fromLTWH(0, 0, size.width, size.height), Paint()..color = Color(0xff14538b));
-    }
-    doPaint(title);
-    doPaint(trailing);
-  }
-
-  @override
-  bool hitTestSelf(Offset position) => true;
-
-  @override
-  bool hitTestChildren(BoxHitTestResult result, {required Offset position}) {
-    for (final RenderBox child in _children) {
-      final BoxParentData parentData = child.parentData as BoxParentData;
-      final bool isHit = result.addWithPaintOffset(
-        offset: parentData.offset,
-        position: position,
-        hitTest: (BoxHitTestResult result, Offset transformed) {
-          assert(transformed == position - parentData.offset);
-          return child.hitTest(result, position: transformed);
-        },
-      );
-      if (isHit) return true;
-    }
-    return false;
   }
 }
