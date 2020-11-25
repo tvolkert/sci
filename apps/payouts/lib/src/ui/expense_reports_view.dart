@@ -13,6 +13,7 @@ class ExpenseReportsView extends StatelessWidget {
   Widget build(BuildContext context) {
     return Actions(
       actions: <Type, Action<Intent>>{
+        AddExpenseIntent: AddExpenseAction.instance,
         AddExpenseReportIntent: AddExpenseReportAction.instance,
       },
       child: const _RawExpenseReportsView(),
@@ -197,10 +198,13 @@ class _ExpenseReportView extends StatelessWidget {
           padding: EdgeInsets.only(bottom: 9, left: 11),
           child: Row(
             children: [
-              pivot.LinkButton(
+              pivot.ActionLinkButton(
                 image: AssetImage('assets/money_add.png'),
                 text: 'Add expense line item',
-                onPressed: () {},
+                intent: AddExpenseIntent(
+                  context: context,
+                  expenseReport: expenseReport,
+                ),
               ),
             ],
           ),

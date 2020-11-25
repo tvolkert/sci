@@ -1167,6 +1167,9 @@ class ExpenseReport implements ExpenseReportMetadata {
   final Invoice _owner;
   final Map<String, dynamic> _data;
 
+  /// The invoice to which this expense report belongs.
+  Invoice get invoice => _owner;
+
   /// The index of this expense report in the list of expense reports.
   int get _index => _owner.expenseReports._data.indexOf(this);
 
@@ -1233,6 +1236,20 @@ class ExpenseReport implements ExpenseReportMetadata {
   }
 }
 
+class ExpenseMetadata {
+  const ExpenseMetadata({
+    required this.date,
+    required this.type,
+    required this.amount,
+    required this.description,
+  });
+
+  final DateTime date;
+  final ExpenseType type;
+  final double amount;
+  final String description;
+}
+
 /// The list of expenses in an expense report within an invoice.
 ///
 /// Mutations to the list of expenses or to any expense in the list will
@@ -1263,12 +1280,7 @@ class Expenses with ForwardingIterable<Expense>, DisallowCollectionConversion<Ex
 
   Expense operator[](int index) => _data[index];
 
-  Expense add({
-    required DateTime date,
-    required ExpenseType type,
-    required double amount,
-    required String description,
-  }) {
+  Expense add(ExpenseMetadata entry) {
     _owner._checkDisposed();
     // Order is important here; set this first to force the parent to run its
     // lazy total calculation before adding the expense to _data.
@@ -1278,15 +1290,15 @@ class Expenses with ForwardingIterable<Expense>, DisallowCollectionConversion<Ex
     final Expense expense = Expense._fromParts(
       owner: _owner,
       parent: _parent,
-      date: date,
-      type: type,
-      amount: amount,
-      description: description,
+      date: entry.date,
+      type: entry.type,
+      amount: entry.amount,
+      description: entry.description,
     );
     _data.insert(insertIndex, expense);
     _owner._owner.onExpenseInserted(_parent._index, insertIndex);
     _owner._setIsDirty(true);
-    _parent.total = previousTotal + amount;
+    _parent.total = previousTotal + entry.amount;
     return expense;
   }
 
@@ -1316,7 +1328,7 @@ class Expenses with ForwardingIterable<Expense>, DisallowCollectionConversion<Ex
 ///
 /// Mutations on this class will notify registered [InvoiceListener]
 /// listeners.
-class Expense {
+class Expense implements ExpenseMetadata {
   Expense._(this._owner, this._parent, this._data);
 
   factory Expense._fromParts({
@@ -1342,11 +1354,13 @@ class Expense {
 
   int get _index => _parent.expenses._data.indexOf(this);
 
+  DateTime? _date;
+
   /// The date of the expense.
   ///
   /// When this is changed, [InvoiceListener.onExpenseUpdated] listeners
   /// will be notified.
-  DateTime? _date;
+  @override
   DateTime get date {
     _owner._checkDisposed();
     return _date ??= DateTime.parse(_data[Keys.date]);
@@ -1362,11 +1376,13 @@ class Expense {
     }
   }
 
+  ExpenseType? _type;
+
   /// The type of the expense.
   ///
   /// When this is changed, [InvoiceListener.onExpenseUpdated] listeners
   /// will be notified.
-  ExpenseType? _type;
+  @override
   ExpenseType get type {
     _owner._checkDisposed();
     return _type ??= ExpenseType._(_data[Keys.expenseType]);
@@ -1386,7 +1402,9 @@ class Expense {
   ///
   /// When this is changed, [InvoiceListener.onExpenseUpdated] listeners
   /// will be notified.
+  @override
   double get amount => _owner._checkDisposed(() => _data[Keys.amount].toDouble())!;
+
   set amount(double value) {
     _owner._checkDisposed();
     double previousAmount = amount;
@@ -1405,7 +1423,9 @@ class Expense {
   ///
   /// When this is changed, [InvoiceListener.onExpenseUpdated] listeners
   /// will be notified.
+  @override
   String get description => _owner._checkDisposed(() => _data[Keys.description])!;
+
   set description(String value) {
     _owner._checkDisposed();
     String previousValue = description;
