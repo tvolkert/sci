@@ -1261,6 +1261,8 @@ class Expenses with ForwardingIterable<Expense>, DisallowCollectionConversion<Ex
   @protected
   Iterable<Expense> get delegate => _data;
 
+  Expense operator[](int index) => _data[index];
+
   Expense add({
     required DateTime date,
     required ExpenseType type,
