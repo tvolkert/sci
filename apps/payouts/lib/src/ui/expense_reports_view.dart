@@ -133,18 +133,45 @@ class _ExpenseReportView extends StatelessWidget {
                     ),
                   ],
                 ),
-                TableRow(
-                  children: [
-                    Padding(
-                      padding: EdgeInsets.only(bottom: 4),
-                      child: Text('Charge number:'),
-                    ),
-                    Padding(
-                      padding: EdgeInsets.only(bottom: 4),
-                      child: Text(expenseReport.chargeNumber),
-                    ),
-                  ],
-                ),
+                if (expenseReport.chargeNumber.isNotEmpty)
+                  TableRow(
+                    children: [
+                      Padding(
+                        padding: EdgeInsets.only(bottom: 4),
+                        child: Text('Charge number:'),
+                      ),
+                      Padding(
+                        padding: EdgeInsets.only(bottom: 4),
+                        child: Text(expenseReport.chargeNumber),
+                      ),
+                    ],
+                  ),
+                if (expenseReport.requestor.isNotEmpty)
+                  TableRow(
+                    children: [
+                      Padding(
+                        padding: EdgeInsets.only(bottom: 4),
+                        child: Text('Requestor:'),
+                      ),
+                      Padding(
+                        padding: EdgeInsets.only(bottom: 4),
+                        child: Text(expenseReport.requestor),
+                      ),
+                    ],
+                  ),
+                if (expenseReport.task.isNotEmpty)
+                  TableRow(
+                    children: [
+                      Padding(
+                        padding: EdgeInsets.only(bottom: 4),
+                        child: Text('Task:'),
+                      ),
+                      Padding(
+                        padding: EdgeInsets.only(bottom: 4),
+                        child: Text(expenseReport.task),
+                      ),
+                    ],
+                  ),
                 TableRow(
                   children: [
                     Padding(
@@ -157,39 +184,43 @@ class _ExpenseReportView extends StatelessWidget {
                     ),
                   ],
                 ),
-                TableRow(
-                  children: [
-                    Padding(padding: EdgeInsets.only(bottom: 4), child: Text('Purpose of travel:')),
-                    Padding(
-                      padding: EdgeInsets.only(bottom: 4),
-                      child: Text(expenseReport.travelPurpose),
-                    ),
-                  ],
-                ),
-                TableRow(
-                  children: [
-                    Padding(
-                      padding: EdgeInsets.only(bottom: 4),
-                      child: Text('Destination (city):'),
-                    ),
-                    Padding(
-                      padding: EdgeInsets.only(bottom: 4),
-                      child: Text(expenseReport.travelDestination),
-                    ),
-                  ],
-                ),
-                TableRow(
-                  children: [
-                    Padding(
-                      padding: EdgeInsets.only(bottom: 4, right: 6),
-                      child: Text('Party or parties visited:'),
-                    ),
-                    Padding(
-                      padding: EdgeInsets.only(bottom: 4),
-                      child: Text(expenseReport.travelParties),
-                    ),
-                  ],
-                ),
+                if (expenseReport.travelPurpose.isNotEmpty)
+                  TableRow(
+                    children: [
+                      Padding(
+                          padding: EdgeInsets.only(bottom: 4), child: Text('Purpose of travel:')),
+                      Padding(
+                        padding: EdgeInsets.only(bottom: 4),
+                        child: Text(expenseReport.travelPurpose),
+                      ),
+                    ],
+                  ),
+                if (expenseReport.travelDestination.isNotEmpty)
+                  TableRow(
+                    children: [
+                      Padding(
+                        padding: EdgeInsets.only(bottom: 4),
+                        child: Text('Destination (city):'),
+                      ),
+                      Padding(
+                        padding: EdgeInsets.only(bottom: 4),
+                        child: Text(expenseReport.travelDestination),
+                      ),
+                    ],
+                  ),
+                if (expenseReport.travelParties.isNotEmpty)
+                  TableRow(
+                    children: [
+                      Padding(
+                        padding: EdgeInsets.only(bottom: 4, right: 6),
+                        child: Text('Party or parties visited:'),
+                      ),
+                      Padding(
+                        padding: EdgeInsets.only(bottom: 4),
+                        child: Text(expenseReport.travelParties),
+                      ),
+                    ],
+                  ),
               ],
             ),
           ),
