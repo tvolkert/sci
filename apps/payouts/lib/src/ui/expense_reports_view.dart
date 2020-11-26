@@ -422,19 +422,19 @@ class _ExpensesTableViewState extends State<ExpensesTableView> {
       columns: <pivot.TableColumnController>[
         pivot.TableColumnController(
           key: 'date',
-          width: pivot.ConstrainedTableColumnWidth(width: 120),
+          width: pivot.ConstrainedTableColumnWidth(width: 120, minWidth: 20),
           cellRenderer: _renderDate,
           headerRenderer: _renderHeader('Date'),
         ),
         pivot.TableColumnController(
           key: 'type',
-          width: pivot.FixedTableColumnWidth(120),
+          width: pivot.ConstrainedTableColumnWidth(width: 120, minWidth: 20),
           cellRenderer: _renderType,
           headerRenderer: _renderHeader('Type'),
         ),
         pivot.TableColumnController(
           key: 'amount',
-          width: pivot.FixedTableColumnWidth(100),
+          width: pivot.ConstrainedTableColumnWidth(width: 100, minWidth: 20),
           cellRenderer: _renderAmount,
           headerRenderer: _renderHeader('Amount'),
         ),
