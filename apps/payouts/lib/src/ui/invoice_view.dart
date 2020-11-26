@@ -281,7 +281,7 @@ class _InvoiceNumberEditorState extends State<InvoiceNumberEditor> {
   }
 
   void _handleEditKeyEvent(RawKeyEvent event) {
-    if (event is RawKeyDownEvent) {
+    if (isEditing && event is RawKeyDownEvent) {
       if (event.logicalKey == LogicalKeyboardKey.enter) {
         _handleSaveEdit();
       } else if (event.logicalKey == LogicalKeyboardKey.escape) {
