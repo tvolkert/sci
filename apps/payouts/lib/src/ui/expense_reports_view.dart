@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/widgets.dart';
 
-import 'package:payouts/splitter.dart';
 import 'package:payouts/src/actions.dart';
 import 'package:payouts/src/model/constants.dart';
 import 'package:payouts/src/model/invoice.dart';
@@ -63,32 +62,26 @@ class _RawExpenseReportsViewState extends State<_RawExpenseReportsView> {
     return Padding(
       padding: EdgeInsets.all(6),
       child: Column(
-        mainAxisAlignment: MainAxisAlignment.start,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: <Widget>[
-          Padding(
-            padding: EdgeInsets.fromLTRB(0, 0, 7, 5),
-            child: pivot.ActionLinkButton(
-              image: AssetImage('assets/money_add.png'),
-              text: 'Add expense report',
-              intent: AddExpenseReportIntent(context: context),
-            ),
+          pivot.ActionLinkButton(
+            image: AssetImage('assets/money_add.png'),
+            text: 'Add expense report',
+            intent: AddExpenseReportIntent(context: context),
           ),
+          const SizedBox(height: 10),
           Expanded(
-            child: Padding(
-              padding: EdgeInsets.only(top: 5),
-              child: Split(
-                axis: Axis.horizontal,
-                initialFractions: [0.25, 0.75],
-                children: [
-                  ExpenseReportsListView(selectionController: _selectionController),
-                  DecoratedBox(
-                    decoration: BoxDecoration(border: Border.all(color: Color(0xFF999999))),
-                    child: _ExpenseReportView(
-                      expenseReport: _selectedExpenseReport!,
-                    ),
-                  ),
-                ],
+            child: pivot.SplitPane(
+              orientation: Axis.horizontal,
+              initialSplitRatio: 0.25,
+              roundToWholePixel: true,
+              resizePolicy: pivot.SplitPaneResizePolicy.maintainBeforeSplitSize,
+              before: ExpenseReportsListView(selectionController: _selectionController),
+              after: DecoratedBox(
+                decoration: BoxDecoration(border: Border.all(color: Color(0xFF999999))),
+                child: _ExpenseReportView(
+                  expenseReport: _selectedExpenseReport!,
+                ),
               ),
             ),
           ),
