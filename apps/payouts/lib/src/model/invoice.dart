@@ -610,17 +610,21 @@ mixin DisallowCollectionConversion<T> on Iterable<T> {
 class DateRange with ForwardingIterable<DateTime> {
   const DateRange._(this._range);
 
+  factory DateRange.fromStartEnd(DateTime start, DateTime end) {
+    final int durationInDays = end.difference(start).inDays + 1;
+    return DateRange._(_generateRange(start, durationInDays));
+  }
+
   factory DateRange._fromRawData(Map<String, dynamic> invoiceData) {
     final DateTime start = DateTime.parse(invoiceData[Keys.billingStart]);
     final int durationInDays = invoiceData[Keys.billingDuration];
     return DateRange._(_generateRange(start, durationInDays));
   }
 
-  factory DateRange._fromStartEnd(String startDate, String endDate) {
+  factory DateRange._fromValues(String startDate, String endDate) {
     final DateTime start = DateTime.parse(startDate);
     final DateTime end = DateTime.parse(endDate);
-    final int durationInDays = end.difference(start).inDays + 1;
-    return DateRange._(_generateRange(start, durationInDays));
+    return DateRange.fromStartEnd(start, end);
   }
 
   final List<DateTime> _range;
@@ -1048,6 +1052,18 @@ class ExpenseReports
   /// Gets the expense report at the specified index.
   ExpenseReport operator [](int index) => _owner._checkDisposed(() => _data[index])!;
 
+  int indexOf(ExpenseReportMetadata entry) {
+    for (int i = 0; i < _data.length; i++) {
+      final ExpenseReport expenseReport = _data[i];
+      if (expenseReport.program == entry.program &&
+          expenseReport.chargeNumber == entry.chargeNumber &&
+          expenseReport.task == entry.task) {
+        return i;
+      }
+    }
+    return -1;
+  }
+
   /// Adds an expense report with the specified metadata to this invoice's list
   /// of expense reports.
   ///
@@ -1213,7 +1229,7 @@ class ExpenseReport implements ExpenseReportMetadata {
   @override
   DateRange get period {
     _owner._checkDisposed();
-    return _period ??= DateRange._fromStartEnd(_data[Keys.fromDate], _data[Keys.toDate]);
+    return _period ??= DateRange._fromValues(_data[Keys.fromDate], _data[Keys.toDate]);
   }
 
   @override
