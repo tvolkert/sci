@@ -263,10 +263,10 @@ class _LoginPaneState extends State<_LoginPane> {
   void didUpdateWidget(_LoginPane oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (widget.username != oldWidget.username) {
-      _usernameController.text = widget.username;
+      _usernameController.text = widget.username ?? '';
     }
     if (widget.password != oldWidget.password) {
-      _passwordController.text = widget.password;
+      _passwordController.text = widget.password ?? '';
     }
     if (widget.setCookie != oldWidget.setCookie) {
       _setCookie = widget.setCookie;
