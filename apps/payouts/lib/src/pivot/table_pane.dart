@@ -457,6 +457,11 @@ class TableRowConstraints extends BoxConstraints {
 class RenderEmptyTableCell extends RenderBox {
   @override
   bool get sizedByParent => true;
+
+  @override
+  Size computeDryLayout(BoxConstraints constraints) {
+    return constraints.smallest;
+  }
 }
 
 mixin ChildListRenderObjectMixin<ChildType extends RenderBox,
