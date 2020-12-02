@@ -18,6 +18,7 @@ export 'pivot/scroll_pane.dart';
 export 'pivot/set_baseline.dart';
 export 'pivot/sheet.dart';
 export 'pivot/sorting.dart';
+export 'pivot/spinner.dart';
 export 'pivot/split_pane.dart';
 export 'pivot/tab_pane.dart';
 export 'pivot/table_pane.dart' hide main;
