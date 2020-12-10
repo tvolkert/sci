@@ -1,5 +1,5 @@
 export 'pivot/activity_indicator.dart';
-export 'pivot/basic_list_view.dart';
+export 'pivot/basic_list_view.dart' hide main;
 export 'pivot/basic_table_view.dart';
 export 'pivot/border.dart';
 export 'pivot/calendar.dart';
