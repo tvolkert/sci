@@ -85,7 +85,10 @@ class Border extends StatelessWidget {
           borderRadius: borderRadius,
           color: backgroundColor,
         ),
-        child: child,
+        child: Padding(
+          padding: EdgeInsets.all(borderThickness),
+          child: child,
+        ),
       ),
     );
   }
