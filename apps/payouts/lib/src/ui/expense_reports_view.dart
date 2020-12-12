@@ -38,6 +38,16 @@ class _RawExpenseReportsViewState extends State<_RawExpenseReportsView> {
     });
   }
 
+  Widget _buildExpenseReportView() {
+    if (_selectedExpenseReport == null) {
+      return Container();
+    } else {
+      return _ExpenseReportView(
+        expenseReport: _selectedExpenseReport!,
+      );
+    }
+  }
+
   @override
   void initState() {
     super.initState();
@@ -79,9 +89,7 @@ class _RawExpenseReportsViewState extends State<_RawExpenseReportsView> {
               before: ExpenseReportsListView(selectionController: _selectionController),
               after: DecoratedBox(
                 decoration: BoxDecoration(border: Border.all(color: Color(0xFF999999))),
-                child: _ExpenseReportView(
-                  expenseReport: _selectedExpenseReport!,
-                ),
+                child: _buildExpenseReportView(),
               ),
             ),
           ),
