@@ -325,6 +325,7 @@ class TablePane extends MultiChildRenderObjectWidget {
     this.horizontalRelativeSize = MainAxisSize.max,
     this.verticalIntrinsicSize = MainAxisSize.max,
     this.verticalRelativeSize = MainAxisSize.max,
+    this.metricsController,
     required List<Widget> children,
   }) : super(key: key, children: children);
 
@@ -335,6 +336,7 @@ class TablePane extends MultiChildRenderObjectWidget {
   final MainAxisSize horizontalRelativeSize;
   final MainAxisSize verticalIntrinsicSize;
   final MainAxisSize verticalRelativeSize;
+  final TablePaneMetricsController? metricsController;
 
   @override
   List<Widget> get children => super.children;
@@ -349,6 +351,7 @@ class TablePane extends MultiChildRenderObjectWidget {
       horizontalRelativeSize: horizontalRelativeSize,
       verticalIntrinsicSize: verticalIntrinsicSize,
       verticalRelativeSize: verticalRelativeSize,
+      metricsController: metricsController,
     );
   }
 
@@ -361,7 +364,8 @@ class TablePane extends MultiChildRenderObjectWidget {
       ..horizontalIntrinsicSize = horizontalIntrinsicSize
       ..horizontalRelativeSize = horizontalRelativeSize
       ..verticalIntrinsicSize = verticalIntrinsicSize
-      ..verticalRelativeSize = verticalRelativeSize;
+      ..verticalRelativeSize = verticalRelativeSize
+      ..metricsController = metricsController;
   }
 }
 
@@ -634,6 +638,7 @@ class RenderTablePane extends RenderBox
     MainAxisSize horizontalRelativeSize = MainAxisSize.max,
     MainAxisSize verticalIntrinsicSize = MainAxisSize.max,
     MainAxisSize verticalRelativeSize = MainAxisSize.max,
+    TablePaneMetricsController? metricsController,
   }) {
     this.columns = columns;
     this.horizontalSpacing = horizontalSpacing;
@@ -642,6 +647,7 @@ class RenderTablePane extends RenderBox
     this.horizontalRelativeSize = horizontalRelativeSize;
     this.verticalIntrinsicSize = verticalIntrinsicSize;
     this.verticalRelativeSize = verticalRelativeSize;
+    this.metricsController = metricsController;
   }
 
   List<TablePaneColumn> _columns = const <TablePaneColumn>[];
@@ -704,6 +710,20 @@ class RenderTablePane extends RenderBox
     if (value != _verticalRelativeSize) {
       _verticalRelativeSize = value;
       markNeedsMetrics();
+    }
+  }
+
+  TablePaneMetricsController? _metricsController;
+  TablePaneMetricsController? get metricsController => _metricsController;
+  set metricsController(TablePaneMetricsController? value) {
+    if (value != _metricsController) {
+      if (_metricsController != null && attached) {
+        _metricsController!._detach();
+      }
+      _metricsController = value;
+      if (value != null && attached) {
+        value._attach(this);
+      }
     }
   }
 
@@ -1275,6 +1295,22 @@ class RenderTablePane extends RenderBox
   }
 
   @override
+  void attach(PipelineOwner owner) {
+    super.attach(owner);
+    if (metricsController != null) {
+      metricsController!._attach(this);
+    }
+  }
+
+  @override
+  void detach() {
+    super.detach();
+    if (metricsController != null) {
+      metricsController!._detach();
+    }
+  }
+
+  @override
   @protected
   void markNeedsChildren() {
     super.markNeedsChildren();
@@ -1318,10 +1354,10 @@ class RenderTablePane extends RenderBox
   }
 
   bool _needsMetrics = true;
-  TablePaneMetrics? _metrics;
+  _TablePaneMetrics? _metrics;
 
   @visibleForTesting // otherwise @protected
-  TablePaneMetrics get metrics => _metrics!;
+  _TablePaneMetrics get metrics => _metrics!;
 
   @protected
   void markNeedsMetrics() {
@@ -1333,8 +1369,11 @@ class RenderTablePane extends RenderBox
   void calculateMetricsIfNecessary() {
     assert(debugDoingThisLayout);
     if (_needsMetrics || metrics.constraints != constraints) {
-      _metrics = TablePaneMetrics(this);
+      _metrics = _TablePaneMetrics(this);
       _needsMetrics = false;
+      if (metricsController != null) {
+        metricsController!._notify();
+      }
     }
   }
 
@@ -1452,21 +1491,95 @@ class RenderTablePane extends RenderBox
     properties.add(EnumProperty<MainAxisSize>('horizontalRelativeSize', horizontalRelativeSize));
     properties.add(EnumProperty<MainAxisSize>('verticalIntrinsicSize', verticalIntrinsicSize));
     properties.add(EnumProperty<MainAxisSize>('verticalRelativeSize', verticalRelativeSize));
-    properties.add(DiagnosticsProperty<TablePaneMetrics?>('metrics', _metrics));
+    properties.add(DiagnosticsProperty<_TablePaneMetrics?>('metrics', _metrics));
   }
 }
 
-@visibleForTesting
-class TablePaneMetrics with Diagnosticable {
-  const TablePaneMetrics._(this.constraints, this.columnWidths, this.rowHeights);
+class TablePaneMetricsController extends ChangeNotifier {
+  RenderTablePane? _renderObject;
+  void _attach(RenderTablePane renderObject) {
+    assert(_renderObject == null);
+    assert(renderObject.attached);
+    _renderObject = renderObject;
+    notifyListeners();
+  }
 
-  factory TablePaneMetrics(RenderTablePane tablePane) {
+  void _detach() {
+    assert(_renderObject != null);
+    _renderObject = null;
+    notifyListeners();
+  }
+
+  void _notify() {
+    assert(hasMetrics);
+    notifyListeners();
+  }
+
+  bool get hasMetrics => _renderObject != null && _renderObject!._metrics != null;
+
+  int? getRowAt(double y) {
+    assert(hasMetrics);
+    final double verticalSpacing = _renderObject!.verticalSpacing;
+    final List<double> rowHeights = _renderObject!._metrics!.rowHeights;
+    double top = 0;
+    for (int i = 0; i < rowHeights.length; i++) {
+      final double bottom = top + rowHeights[i];
+      if (y >= top && y <= bottom) {
+        return i;
+      }
+      top = bottom + verticalSpacing;
+    }
+    return null;
+  }
+
+  Rect? getRowBounds(int row) {
+    assert(hasMetrics);
+    final double verticalSpacing = _renderObject!.verticalSpacing;
+    final List<double> rowHeights = _renderObject!._metrics!.rowHeights;
+    if (row < 0 || row >= rowHeights.length) {
+      return null;
+    }
+    final double top = rowHeights.take(row).fold<double>(0, _sum) + row * verticalSpacing;
+    return Rect.fromLTWH(0, top, _renderObject!.size.width, rowHeights[row]);
+  }
+
+  int? getColumnAt(double x) {
+    assert(hasMetrics);
+    final double horizontalSpacing = _renderObject!.horizontalSpacing;
+    final List<double> columnWidths = _renderObject!._metrics!.columnWidths;
+    double left = 0;
+    for (int j = 0; j < columnWidths.length; j++) {
+      final double right = left + columnWidths[j];
+      if (x >= left && x <= right) {
+        return j;
+      }
+      left = right + horizontalSpacing;
+    }
+    return null;
+  }
+
+  Rect? getColumnBounds(int column) {
+    assert(hasMetrics);
+    final double horizontalSpacing = _renderObject!.horizontalSpacing;
+    final List<double> columnWidths = _renderObject!._metrics!.columnWidths;
+    if (column < 0 || column >= columnWidths.length) {
+      return null;
+    }
+    final double left = columnWidths.take(column).fold<double>(0, _sum) + column * horizontalSpacing;
+    return Rect.fromLTWH(left, 0, columnWidths[column], _renderObject!.size.height);
+  }
+}
+
+class _TablePaneMetrics with Diagnosticable {
+  const _TablePaneMetrics._(this.constraints, this.columnWidths, this.rowHeights);
+
+  factory _TablePaneMetrics(RenderTablePane tablePane) {
     final BoxConstraints constraints = tablePane.constraints;
     final LinearConstraints widthConstraints = LinearConstraints.width(constraints);
     final LinearConstraints heightConstraints = LinearConstraints.height(constraints);
     List<double> columnWidths = tablePane._computeActualColumnWidths(widthConstraints);
     List<double> rowHeights = tablePane._computeActualRowHeights(heightConstraints, columnWidths);
-    return TablePaneMetrics._(constraints, columnWidths, rowHeights);
+    return _TablePaneMetrics._(constraints, columnWidths, rowHeights);
   }
 
   final BoxConstraints constraints;
