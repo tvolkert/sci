@@ -5,6 +5,7 @@ import 'package:flutter/widgets.dart';
 import 'package:payouts/src/actions.dart';
 import 'package:payouts/src/model/constants.dart';
 import 'package:payouts/src/model/invoice.dart';
+import 'package:payouts/src/model/track_expense_reports_mixin.dart';
 import 'package:payouts/src/pivot.dart' as pivot;
 
 class ExpenseReportsView extends StatelessWidget {
@@ -27,35 +28,64 @@ class _RawExpenseReportsView extends StatefulWidget {
   _RawExpenseReportsViewState createState() => _RawExpenseReportsViewState();
 }
 
-class _RawExpenseReportsViewState extends State<_RawExpenseReportsView> {
+class _RawExpenseReportsViewState extends State<_RawExpenseReportsView>
+    with TrackExpenseReportsMixin {
   late pivot.ListViewSelectionController _selectionController;
+  ExpenseReports? _expenseReports;
   ExpenseReport? _selectedExpenseReport;
 
   void _handleSelectedExpenseReportChanged() {
     final int selectedIndex = _selectionController.selectedIndex;
     setState(() {
-      _selectedExpenseReport = InvoiceBinding.instance!.invoice!.expenseReports[selectedIndex];
+      _selectedExpenseReport = selectedIndex == -1 ? null : _expenseReports![selectedIndex];
     });
   }
 
-  Widget _buildExpenseReportView() {
-    if (_selectedExpenseReport == null) {
-      return Container();
-    } else {
-      return _ExpenseReportView(
-        expenseReport: _selectedExpenseReport!,
-      );
-    }
+  @override
+  void onExpenseReportInserted() {
+    super.onExpenseReportInserted();
+    setState(() {
+      _expenseReports = this.expenseReports;
+    });
+  }
+
+  @override
+  void onExpenseReportsRemoved() {
+    super.onExpenseReportsRemoved();
+    setState(() {
+      _expenseReports = this.expenseReports;
+      if (_expenseReports == null) {
+        _selectionController.selectedIndex = -1;
+      } else if (_selectionController.selectedIndex >= _expenseReports!.length) {
+        _selectionController.selectedIndex = 0;
+      }
+    });
+  }
+
+  @override
+  void onExpenseReportsChanged() {
+    super.onExpenseReportsChanged();
+    setState(() {
+      _expenseReports = this.expenseReports;
+      if (_expenseReports == null) {
+        _selectionController.selectedIndex = -1;
+        _selectedExpenseReport = null;
+      } else {
+        _selectionController.selectedIndex = 0;
+        _selectedExpenseReport = _expenseReports![_selectionController.selectedIndex];
+      }
+    });
   }
 
   @override
   void initState() {
     super.initState();
+    initInstance();
     _selectionController = pivot.ListViewSelectionController();
-    final ExpenseReports expenseReports = InvoiceBinding.instance!.invoice!.expenseReports;
-    if (expenseReports.isNotEmpty) {
-      _selectionController.selectedIndex = 0;
-      _selectedExpenseReport = expenseReports.first;
+    _expenseReports = this.expenseReports;
+    _selectionController.selectedIndex = _expenseReports == null ? -1 : 0;
+    if (_expenseReports != null) {
+      _selectedExpenseReport = _expenseReports![_selectionController.selectedIndex];
     }
     _selectionController.addListener(_handleSelectedExpenseReportChanged);
   }
@@ -64,6 +94,7 @@ class _RawExpenseReportsViewState extends State<_RawExpenseReportsView> {
   void dispose() {
     _selectionController.removeListener(_handleSelectedExpenseReportChanged);
     _selectionController.dispose();
+    destroy();
     super.dispose();
   }
 
@@ -81,21 +112,51 @@ class _RawExpenseReportsViewState extends State<_RawExpenseReportsView> {
           ),
           const SizedBox(height: 10),
           Expanded(
-            child: pivot.SplitPane(
-              orientation: Axis.horizontal,
-              initialSplitRatio: 0.25,
-              roundToWholePixel: true,
-              resizePolicy: pivot.SplitPaneResizePolicy.maintainBeforeSplitSize,
-              before: ExpenseReportsListView(selectionController: _selectionController),
-              after: DecoratedBox(
-                decoration: BoxDecoration(border: Border.all(color: Color(0xFF999999))),
-                child: _buildExpenseReportView(),
-              ),
+            child: _ExpenseReportContainer(
+              expenseReports: _expenseReports,
+              selectedExpenseReport: _selectedExpenseReport,
+              selectionController: _selectionController,
             ),
           ),
         ],
       ),
     );
+  }
+}
+
+class _ExpenseReportContainer extends StatelessWidget {
+  const _ExpenseReportContainer({
+    required this.expenseReports,
+    required this.selectedExpenseReport,
+    required this.selectionController,
+  });
+
+  final ExpenseReports? expenseReports;
+  final ExpenseReport? selectedExpenseReport;
+  final pivot.ListViewSelectionController selectionController;
+
+  @override
+  Widget build(BuildContext context) {
+    if (expenseReports == null) {
+      return Container();
+    } else {
+      return pivot.SplitPane(
+        orientation: Axis.horizontal,
+        initialSplitRatio: 0.25,
+        roundToWholePixel: true,
+        resizePolicy: pivot.SplitPaneResizePolicy.maintainBeforeSplitSize,
+        before: ExpenseReportsListView(
+          expenseReports: expenseReports!,
+          selectionController: selectionController,
+        ),
+        after: DecoratedBox(
+          decoration: BoxDecoration(border: Border.all(color: Color(0xFF999999))),
+          child: selectedExpenseReport == null
+              ? Container()
+              : _ExpenseReportView(expenseReport: selectedExpenseReport!),
+        ),
+      );
+    }
   }
 }
 
@@ -124,8 +185,8 @@ class _ExpenseReportView extends StatelessWidget {
 
   String _buildDateRangeDisplay(DateRange dateRange) {
     StringBuffer buf = StringBuffer()
-        ..write(pivot.CalendarDateFormat.iso8601.formatDateTime(dateRange.start))
-        ..write(' to ')
+      ..write(pivot.CalendarDateFormat.iso8601.formatDateTime(dateRange.start))
+      ..write(' to ')
       ..write(pivot.CalendarDateFormat.iso8601.formatDateTime(dateRange.end));
     return buf.toString();
   }
@@ -150,8 +211,7 @@ class _ExpenseReportView extends StatelessWidget {
                   _buildMetadataRow('Charge number', expenseReport.chargeNumber),
                 if (expenseReport.requestor.isNotEmpty)
                   _buildMetadataRow('Requestor', expenseReport.requestor),
-                if (expenseReport.task.isNotEmpty)
-                  _buildMetadataRow('Task', expenseReport.task),
+                if (expenseReport.task.isNotEmpty) _buildMetadataRow('Task', expenseReport.task),
                 _buildMetadataRow('Dates', _buildDateRangeDisplay(expenseReport.period)),
                 if (expenseReport.travelPurpose.isNotEmpty)
                   _buildMetadataRow('Purpose of travel', expenseReport.travelPurpose),
@@ -434,9 +494,11 @@ class ExpenseCellWrapper extends StatelessWidget {
 class ExpenseReportsListView extends StatefulWidget {
   const ExpenseReportsListView({
     Key? key,
+    required this.expenseReports,
     required this.selectionController,
   }) : super(key: key);
 
+  final ExpenseReports expenseReports;
   final pivot.ListViewSelectionController selectionController;
 
   @override
@@ -445,7 +507,6 @@ class ExpenseReportsListView extends StatefulWidget {
 
 class _ExpenseReportsListViewState extends State<ExpenseReportsListView> {
   late InvoiceListener _invoiceListener;
-  late ExpenseReports _expenseReports;
 
   void _handleExpenseReportInserted(int expenseReportsIndex) {
     setState(() {
@@ -466,7 +527,7 @@ class _ExpenseReportsListViewState extends State<ExpenseReportsListView> {
     required bool isHighlighted,
     required bool isDisabled,
   }) {
-    final ExpenseReport data = _expenseReports[index];
+    final ExpenseReport data = widget.expenseReports[index];
     final StringBuffer buf = StringBuffer(data.program.name);
 
     final String chargeNumber = data.chargeNumber.trim();
@@ -513,7 +574,6 @@ class _ExpenseReportsListViewState extends State<ExpenseReportsListView> {
   @override
   void initState() {
     super.initState();
-    _expenseReports = InvoiceBinding.instance!.invoice!.expenseReports;
     _invoiceListener = InvoiceListener(
       onExpenseReportInserted: _handleExpenseReportInserted,
       onExpenseReportsRemoved: _handleExpenseReportsRemoved,
@@ -538,7 +598,7 @@ class _ExpenseReportsListViewState extends State<ExpenseReportsListView> {
         padding: const EdgeInsets.all(1),
         child: pivot.ScrollableListView(
           itemHeight: 19,
-          length: _expenseReports.length,
+          length: widget.expenseReports.length,
           itemBuilder: _buildItem,
           selectionController: widget.selectionController,
         ),
