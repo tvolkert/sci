@@ -107,6 +107,29 @@ class _ExpenseReportView extends StatelessWidget {
 
   final ExpenseReport expenseReport;
 
+  TableRow _buildMetadataRow(String title, String value) {
+    return TableRow(
+      children: [
+        Padding(
+          padding: EdgeInsets.only(bottom: 4, right: 6),
+          child: Text('$title:'),
+        ),
+        Padding(
+          padding: EdgeInsets.only(bottom: 4),
+          child: Text(value),
+        ),
+      ],
+    );
+  }
+
+  String _buildDateRangeDisplay(DateRange dateRange) {
+    StringBuffer buf = StringBuffer()
+        ..write(pivot.CalendarDateFormat.iso8601.formatDateTime(dateRange.start))
+        ..write(' to ')
+      ..write(pivot.CalendarDateFormat.iso8601.formatDateTime(dateRange.end));
+    return buf.toString();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Column(
@@ -122,106 +145,20 @@ class _ExpenseReportView extends StatelessWidget {
                 1: FlexColumnWidth(),
               },
               children: [
-                TableRow(
-                  children: [
-                    Padding(
-                      padding: EdgeInsets.only(bottom: 4),
-                      child: Text('Program:'),
-                    ),
-                    Padding(
-                      padding: EdgeInsets.only(bottom: 4),
-                      child: Text(expenseReport.program.name),
-                    ),
-                  ],
-                ),
+                _buildMetadataRow('Program', expenseReport.program.name),
                 if (expenseReport.chargeNumber.isNotEmpty)
-                  TableRow(
-                    children: [
-                      Padding(
-                        padding: EdgeInsets.only(bottom: 4),
-                        child: Text('Charge number:'),
-                      ),
-                      Padding(
-                        padding: EdgeInsets.only(bottom: 4),
-                        child: Text(expenseReport.chargeNumber),
-                      ),
-                    ],
-                  ),
+                  _buildMetadataRow('Charge number', expenseReport.chargeNumber),
                 if (expenseReport.requestor.isNotEmpty)
-                  TableRow(
-                    children: [
-                      Padding(
-                        padding: EdgeInsets.only(bottom: 4),
-                        child: Text('Requestor:'),
-                      ),
-                      Padding(
-                        padding: EdgeInsets.only(bottom: 4),
-                        child: Text(expenseReport.requestor),
-                      ),
-                    ],
-                  ),
+                  _buildMetadataRow('Requestor', expenseReport.requestor),
                 if (expenseReport.task.isNotEmpty)
-                  TableRow(
-                    children: [
-                      Padding(
-                        padding: EdgeInsets.only(bottom: 4),
-                        child: Text('Task:'),
-                      ),
-                      Padding(
-                        padding: EdgeInsets.only(bottom: 4),
-                        child: Text(expenseReport.task),
-                      ),
-                    ],
-                  ),
-                TableRow(
-                  children: [
-                    Padding(
-                      padding: EdgeInsets.only(bottom: 4),
-                      child: Text('Dates:'),
-                    ),
-                    Padding(
-                      padding: EdgeInsets.only(bottom: 4),
-                      child: Text(expenseReport.period.toString()),
-                    ),
-                  ],
-                ),
+                  _buildMetadataRow('Task', expenseReport.task),
+                _buildMetadataRow('Dates', _buildDateRangeDisplay(expenseReport.period)),
                 if (expenseReport.travelPurpose.isNotEmpty)
-                  TableRow(
-                    children: [
-                      Padding(
-                          padding: EdgeInsets.only(bottom: 4), child: Text('Purpose of travel:')),
-                      Padding(
-                        padding: EdgeInsets.only(bottom: 4),
-                        child: Text(expenseReport.travelPurpose),
-                      ),
-                    ],
-                  ),
+                  _buildMetadataRow('Purpose of travel', expenseReport.travelPurpose),
                 if (expenseReport.travelDestination.isNotEmpty)
-                  TableRow(
-                    children: [
-                      Padding(
-                        padding: EdgeInsets.only(bottom: 4),
-                        child: Text('Destination (city):'),
-                      ),
-                      Padding(
-                        padding: EdgeInsets.only(bottom: 4),
-                        child: Text(expenseReport.travelDestination),
-                      ),
-                    ],
-                  ),
+                  _buildMetadataRow('Destination (city)', expenseReport.travelDestination),
                 if (expenseReport.travelParties.isNotEmpty)
-                  TableRow(
-                    children: [
-                      Padding(
-                        padding: EdgeInsets.only(bottom: 4, right: 6),
-                        child: Text('Party or parties visited:'),
-                      ),
-                      Padding(
-                        padding: EdgeInsets.only(bottom: 4),
-                        child: Text(expenseReport.travelParties),
-                      ),
-                    ],
-                  ),
+                  _buildMetadataRow('Party or parties visited', expenseReport.travelParties),
               ],
             ),
           ),
