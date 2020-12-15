@@ -75,13 +75,37 @@ class AddExpenseReportSheetState extends InvoiceEntryEditorState<AddExpenseRepor
   late TextEditingController _travelPurposeController;
   late TextEditingController _travelDestinationController;
   late TextEditingController _travelPartiesController;
+  late pivot.CalendarSelectionController _fromDateController;
+  late pivot.CalendarSelectionController _toDateController;
+  late pivot.CalendarDate _lastAvailableDay;
+
+  void _handleFromDateChanged(pivot.CalendarDate date) {
+    if (date > _toDateController.value!) {
+      _toDateController.value = date;
+    }
+  }
+
+  void _handleToDateChanged(pivot.CalendarDate date) {
+    if (date < _fromDateController.value!) {
+      _fromDateController.value = date;
+    }
+  }
+
+  bool _isDisabled(pivot.CalendarDate date) => date > _lastAvailableDay;
 
   @override
   void initState() {
     super.initState();
+    final pivot.CalendarDate today = pivot.CalendarDate.fromDateTime(DateTime.now());
+    final DateRange billingPeriod = InvoiceBinding.instance!.invoice!.billingPeriod;
+    final pivot.CalendarDate billingStart = pivot.CalendarDate.fromDateTime(billingPeriod.start);
+    final pivot.CalendarDate billingEnd = pivot.CalendarDate.fromDateTime(billingPeriod.end);
+    _lastAvailableDay = billingEnd < today ? today : billingEnd;
     _travelPurposeController = TextEditingController();
     _travelDestinationController = TextEditingController();
     _travelPartiesController = TextEditingController();
+    _fromDateController = pivot.CalendarSelectionController(billingStart);
+    _toDateController = pivot.CalendarSelectionController(billingEnd);
   }
 
   @override
@@ -89,6 +113,8 @@ class AddExpenseReportSheetState extends InvoiceEntryEditorState<AddExpenseRepor
     _travelPurposeController.dispose();
     _travelDestinationController.dispose();
     _travelPartiesController.dispose();
+    _fromDateController.dispose();
+    _toDateController.dispose();
     super.dispose();
   }
 
@@ -99,6 +125,24 @@ class AddExpenseReportSheetState extends InvoiceEntryEditorState<AddExpenseRepor
       if (requiresChargeNumber) buildChargeNumberFormField(),
       if (requiresRequestor) buildRequestorFormField(),
       buildTaskFormField(),
+      pivot.FormField(
+        label: 'Dates',
+        child: Row(
+          children: [
+            pivot.CalendarButton(
+              disabledDateFilter: _isDisabled,
+              selectionController: _fromDateController,
+              onDateChanged: _handleFromDateChanged,
+            ),
+            Padding(padding: EdgeInsets.symmetric(horizontal: 4), child: Text('to')),
+            pivot.CalendarButton(
+              disabledDateFilter: _isDisabled,
+              selectionController: _toDateController,
+              onDateChanged: _handleToDateChanged,
+            ),
+          ],
+        ),
+      ),
       pivot.FormField(
         label: 'Purpose of travel',
         flag: _travelPurposeFlag,
@@ -134,7 +178,10 @@ class AddExpenseReportSheetState extends InvoiceEntryEditorState<AddExpenseRepor
     final String chargeNumber = chargeNumberController.text.trim();
     final String requestor = requestorController.text.trim();
     final String task = taskController.text.trim();
-    final DateRange period = DateRange.fromStartEnd(DateTime(2019), DateTime(2020)); // TODO real dates
+    final DateRange period = DateRange.fromStartEnd(
+      _fromDateController.value!.toDateTime(),
+      _toDateController.value!.toDateTime(),
+    );
     final String travelPurpose = _travelPurposeController.text.trim();
     final String travelDestination = _travelDestinationController.text.trim();
     final String travelParties = _travelPartiesController.text.trim();
