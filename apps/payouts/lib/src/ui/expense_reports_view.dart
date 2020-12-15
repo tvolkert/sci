@@ -507,7 +507,20 @@ class ExpenseReportsListView extends StatefulWidget {
 }
 
 class _ExpenseReportsListViewState extends State<ExpenseReportsListView> {
+  late InvoiceListener _invoiceListener;
   late ExpenseReports _expenseReports;
+
+  void _handleExpenseReportInserted(int expenseReportsIndex) {
+    setState(() {
+      // _expenseReports reference stays the same
+    });
+  }
+
+  void _handleExpenseReportsRemoved(int expenseReportsIndex, Iterable<ExpenseReport> removed) {
+    setState(() {
+      // _expenseReports reference stays the same
+    });
+  }
 
   Widget _buildItem({
     required BuildContext context,
@@ -564,6 +577,17 @@ class _ExpenseReportsListViewState extends State<ExpenseReportsListView> {
   void initState() {
     super.initState();
     _expenseReports = InvoiceBinding.instance!.invoice!.expenseReports;
+    _invoiceListener = InvoiceListener(
+      onExpenseReportInserted: _handleExpenseReportInserted,
+      onExpenseReportsRemoved: _handleExpenseReportsRemoved,
+    );
+    InvoiceBinding.instance!.addListener(_invoiceListener);
+  }
+
+  @override
+  void dispose() {
+    InvoiceBinding.instance!.removeListener(_invoiceListener);
+    super.dispose();
   }
 
   @override
