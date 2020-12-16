@@ -400,7 +400,7 @@ mixin InvoiceListenerNotifier on ListenerNotifier<InvoiceListener> {
 ///    the SCI server.
 class Invoice {
   Invoice._(this._owner, this.id, this._data)
-      : assert(debugUseFakeHttpLayer || _data[Keys.invoiceId] == id);
+      : assert(_data[Keys.invoiceId] == id);
 
   final InvoiceBinding _owner;
   bool _disposed = false;
