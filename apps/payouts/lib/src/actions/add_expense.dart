@@ -77,6 +77,20 @@ class AddExpenseSheetState extends State<AddExpenseSheet> {
     // TODO
   }
 
+  Widget _renderExpenseType<T>({required BuildContext context, T? item}) {
+    return Container();
+  }
+
+  Widget _renderExpenseTypeItem<T>({
+    required BuildContext context,
+    required T item,
+    required bool isSelected,
+    required bool isHighlighted,
+    required bool isDisabled,
+  }) {
+    return Container();
+  }
+
   @override
   Widget build(BuildContext context) {
     return SizedBox(
@@ -91,9 +105,67 @@ class AddExpenseSheetState extends State<AddExpenseSheet> {
             child: Padding(
               padding: EdgeInsets.all(8),
               child: pivot.Form(
-                children: [],
+                children: <pivot.FormField>[
+                  pivot.FormField(
+                    label: 'Category',
+                    child: pivot.ListButton(
+                      items: [],
+                      builder: _renderExpenseType,
+                      itemBuilder: _renderExpenseTypeItem,
+                    ),
+                  ),
+                  pivot.FormField(
+                    label: 'Date',
+                    child: pivot.CalendarButton(),
+                  ),
+                  pivot.FormField(
+                    label: 'Amount',
+                    child: pivot.TextInput(
+                      backgroundColor: const Color(0xfff7f5ee),
+                    ),
+                  ),
+                  pivot.FormField(
+                    label: 'Description',
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: pivot.TextInput(
+                            backgroundColor: const Color(0xfff7f5ee),
+                          ),
+                        ),
+                        SizedBox(width: 4),
+                        Text('(optional)'),
+                      ],
+                    ),
+                  ),
+                ],
               ),
             ),
+          ),
+          SizedBox(height: 8),
+          Row(
+            // crossAxisAlignment: CrossAxisAlignment.baseline,
+            // textBaseline: TextBaseline.alphabetic,
+            children: [
+              pivot.Checkbox(
+                spacing: 6,
+                child: Row(
+                  children: [
+                    Text('Copy this expense for a total of'),
+                    SizedBox(width: 4),
+                    pivot.Spinner(
+                      length: 14,
+                      itemBuilder: (BuildContext context, int index) {
+                        return pivot.Spinner.defaultItemBuilder(context, '${index + 1}');
+                      },
+                    ),
+                    SizedBox(width: 4),
+                    Text('day(s)'),
+                  ],
+                ),
+              ),
+              SizedBox(width: 4),
+            ],
           ),
           SizedBox(height: 8),
           Row(
