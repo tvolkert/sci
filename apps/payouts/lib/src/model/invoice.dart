@@ -8,7 +8,6 @@ import 'package:payouts/src/pivot.dart';
 import 'binding.dart';
 import 'collections.dart';
 import 'constants.dart';
-import 'debug.dart';
 import 'foundation.dart';
 import 'http.dart';
 import 'pair.dart';

@@ -77,17 +77,17 @@ class AddExpenseSheetState extends State<AddExpenseSheet> {
     // TODO
   }
 
-  Widget _renderExpenseType<T>({required BuildContext context, T? item}) {
+  Widget _buildExpenseType<T>(BuildContext context, T? item, bool isForMeasurementOnly) {
     return Container();
   }
 
-  Widget _renderExpenseTypeItem<T>({
-    required BuildContext context,
-    required T item,
-    required bool isSelected,
-    required bool isHighlighted,
-    required bool isDisabled,
-  }) {
+  Widget _buildExpenseTypeItem<T>(
+    BuildContext context,
+    T item,
+    bool isSelected,
+    bool isHighlighted,
+    bool isDisabled,
+  ) {
     return Container();
   }
 
@@ -110,8 +110,8 @@ class AddExpenseSheetState extends State<AddExpenseSheet> {
                     label: 'Category',
                     child: pivot.ListButton(
                       items: [],
-                      builder: _renderExpenseType,
-                      itemBuilder: _renderExpenseTypeItem,
+                      builder: _buildExpenseType,
+                      itemBuilder: _buildExpenseTypeItem,
                     ),
                   ),
                   pivot.FormField(

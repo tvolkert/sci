@@ -25,26 +25,27 @@ abstract class InvoiceEntryEditorState<T extends InvoiceEntryEditor> extends Sta
   late TextEditingController _taskController;
   bool _programIsReadOnly = false;
 
-  Widget _buildProgramButtonData({required BuildContext context, required Program? item}) {
+  Widget _buildProgramButtonData(BuildContext context, Program? item, bool isForMeasurementOnly) {
     return pivot.ListButton.defaultBuilder(
-      context: context,
-      item: item == null ? '' : item.name,
+      context,
+      item == null ? '' : item.name,
+      isForMeasurementOnly,
     );
   }
 
-  Widget _buildProgramListItem({
-    required BuildContext context,
-    required Program item,
-    required bool isSelected,
-    required bool isHighlighted,
-    required bool isDisabled,
-  }) {
+  Widget _buildProgramListItem(
+    BuildContext context,
+    Program item,
+    bool isSelected,
+    bool isHighlighted,
+    bool isDisabled,
+  ) {
     return pivot.ListButton.defaultItemBuilder(
-      context: context,
-      item: item.name,
-      isSelected: isSelected,
-      isHighlighted: isHighlighted,
-      isDisabled: isDisabled,
+      context,
+      item.name,
+      isSelected,
+      isHighlighted,
+      isDisabled,
     );
   }
 
@@ -170,7 +171,7 @@ abstract class InvoiceEntryEditorState<T extends InvoiceEntryEditor> extends Sta
       label: 'Program',
       flag: _programFlag,
       child: pivot.ListButton<Program>(
-        width: pivot.ExpandedListButtonWidth(),
+        width: pivot.ListButtonWidth.expand,
         items: _assignments,
         selectionController: _programSelectionController,
         builder: _buildProgramButtonData,
