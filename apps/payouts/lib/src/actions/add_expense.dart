@@ -166,7 +166,7 @@ class AddExpenseSheetState extends State<AddExpenseSheet> {
                     pivot.Spinner(
                       isEnabled: _copyExpenses,
                       length: 14,
-                      itemBuilder: (BuildContext context, int index) {
+                      itemBuilder: (BuildContext context, int index, bool isEnabled) {
                         return pivot.Spinner.defaultItemBuilder(context, '${index + 1}');
                       },
                     ),
