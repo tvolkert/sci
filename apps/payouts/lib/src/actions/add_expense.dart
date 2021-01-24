@@ -73,6 +73,14 @@ class AddExpenseSheet extends StatefulWidget {
 }
 
 class AddExpenseSheetState extends State<AddExpenseSheet> {
+  bool _copyExpenses = false;
+
+  void _handleToggleCopyExpenses() {
+    setState(() {
+      _copyExpenses = !_copyExpenses;
+    });
+  }
+
   void _handleOk() {
     // TODO
   }
@@ -148,12 +156,15 @@ class AddExpenseSheetState extends State<AddExpenseSheet> {
             // textBaseline: TextBaseline.alphabetic,
             children: [
               pivot.Checkbox(
+                checked: _copyExpenses,
+                onChange: _handleToggleCopyExpenses,
                 spacing: 6,
                 child: Row(
                   children: [
                     Text('Copy this expense for a total of'),
                     SizedBox(width: 4),
                     pivot.Spinner(
+                      isEnabled: _copyExpenses,
                       length: 14,
                       itemBuilder: (BuildContext context, int index) {
                         return pivot.Spinner.defaultItemBuilder(context, '${index + 1}');
