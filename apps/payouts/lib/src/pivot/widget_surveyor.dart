@@ -87,6 +87,7 @@ class WidgetSurveyor {
     );
     final _MeasurementView rootView = pipelineOwner.rootNode = _MeasurementView();
     final BuildOwner buildOwner = _SurveyorBuildOwner();
+    assert(buildOwner.globalKeyCount == 0);
     final RenderObjectToWidgetAdapter<RenderBox> adapter = RenderObjectToWidgetAdapter<RenderBox>(
       container: rootView,
       debugShortDescription: '[root]',
@@ -104,11 +105,11 @@ class WidgetSurveyor {
       assert(rootView.child != null);
       return rootView;
     } finally {
-      // Failing to clean up and un-mount the element will lead to leaking
-      // global keys, which are referenced statically.
       pipelineOwner.rootNode = null;
       element.deactivate();
       element.unmount();
+      buildOwner.finalizeTree();
+      assert(buildOwner.globalKeyCount == 0);
     }
   }
 }
