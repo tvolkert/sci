@@ -3,7 +3,7 @@ import 'dart:io' show HttpHeaders, HttpStatus;
 
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
-import 'package:payouts/src/pivot.dart';
+import 'package:chicago/chicago.dart';
 
 import 'binding.dart';
 import 'collections.dart';

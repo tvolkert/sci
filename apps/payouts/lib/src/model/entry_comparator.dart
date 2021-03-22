@@ -1,4 +1,4 @@
-import 'package:payouts/src/pivot.dart' as pivot;
+import 'package:chicago/chicago.dart' as chicago;
 
 import 'constants.dart';
 
@@ -61,16 +61,16 @@ const Map<String, _EntryComparator> _entryComparators = <String, _EntryComparato
 class EntryComparator {
   const EntryComparator({
     required this.key,
-    this.direction = pivot.SortDirection.ascending,
+    this.direction = chicago.SortDirection.ascending,
   });
 
   final String key;
-  final pivot.SortDirection direction;
+  final chicago.SortDirection direction;
 
   int compare(Map<String, dynamic> a, Map<String, dynamic> b) {
     final _EntryComparator basicComparator = _entryComparators[key]!;
     int result = basicComparator(a, b);
-    if (direction == pivot.SortDirection.descending) {
+    if (direction == chicago.SortDirection.descending) {
       result *= -1;
     }
     return result;

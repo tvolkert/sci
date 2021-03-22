@@ -7,7 +7,7 @@ import 'package:flutter/widgets.dart';
 import 'package:payouts/src/actions.dart';
 import 'package:payouts/src/model/debug.dart';
 import 'package:payouts/src/model/payouts.dart';
-import 'package:payouts/src/pivot.dart' as pivot;
+import 'package:chicago/chicago.dart' as chicago;
 import 'package:payouts/src/ui/asset_image_precache.dart';
 import 'package:payouts/src/ui/home.dart';
 
@@ -23,7 +23,7 @@ void main() {
   };
 
   runApp(
-    pivot.NavigatorListener(
+    chicago.NavigatorListener(
       child: PayoutsApp(),
     ),
   );
@@ -75,7 +75,7 @@ class PayoutsApp extends StatelessWidget {
         ...defaultShortcuts,
       },
       navigatorObservers: <NavigatorObserver>[
-        pivot.NavigatorListener.of(context).observer,
+        chicago.NavigatorListener.of(context).observer,
       ],
       home: const AssetImagePrecache(
         child: PayoutsScaffold(),

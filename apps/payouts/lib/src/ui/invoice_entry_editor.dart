@@ -2,7 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 
 import 'package:payouts/src/model/invoice.dart';
-import 'package:payouts/src/pivot.dart' as pivot;
+import 'package:chicago/chicago.dart' as chicago;
 
 abstract class InvoiceEntryEditor extends StatefulWidget {
   const InvoiceEntryEditor({Key? key}) : super(key: key);
@@ -16,17 +16,17 @@ abstract class InvoiceEntryEditorState<T extends InvoiceEntryEditor> extends Sta
   late List<Program> _assignments;
   bool _requiresChargeNumber = false;
   bool _requiresRequestor = false;
-  pivot.Flag? _programFlag;
-  pivot.Flag? _chargeNumberFlag;
-  pivot.Flag? _requestorFlag;
-  late pivot.ListViewSelectionController _programSelectionController;
+  chicago.Flag? _programFlag;
+  chicago.Flag? _chargeNumberFlag;
+  chicago.Flag? _requestorFlag;
+  late chicago.ListViewSelectionController _programSelectionController;
   late TextEditingController _chargeNumberController;
   late TextEditingController _requestorController;
   late TextEditingController _taskController;
   bool _programIsReadOnly = false;
 
   Widget _buildProgramButtonData(BuildContext context, Program? item, bool isForMeasurementOnly) {
-    return pivot.ListButton.defaultBuilder(
+    return chicago.ListButton.defaultBuilder(
       context,
       item == null ? '' : item.name,
       isForMeasurementOnly,
@@ -40,7 +40,7 @@ abstract class InvoiceEntryEditorState<T extends InvoiceEntryEditor> extends Sta
     bool isHighlighted,
     bool isDisabled,
   ) {
-    return pivot.ListButton.defaultItemBuilder(
+    return chicago.ListButton.defaultItemBuilder(
       context,
       item.name,
       isSelected,
@@ -61,13 +61,13 @@ abstract class InvoiceEntryEditorState<T extends InvoiceEntryEditor> extends Sta
   void handleOk();
 
   @protected
-  List<pivot.FormField> buildFormFields();
+  List<chicago.FormField> buildFormFields();
 
   @protected
   @nonVirtual
-  pivot.Flag? flagFromMessage(String? message) {
-    return message == null ? null : pivot.Flag(
-      messageType: pivot.MessageType.error,
+  chicago.Flag? flagFromMessage(String? message) {
+    return message == null ? null : chicago.Flag(
+      messageType: chicago.MessageType.error,
       message: message,
     );
   }
@@ -92,7 +92,7 @@ abstract class InvoiceEntryEditorState<T extends InvoiceEntryEditor> extends Sta
 
   @protected
   @nonVirtual
-  pivot.ListViewSelectionController get programSelectionController => _programSelectionController;
+  chicago.ListViewSelectionController get programSelectionController => _programSelectionController;
 
   @protected
   @nonVirtual
@@ -104,11 +104,11 @@ abstract class InvoiceEntryEditorState<T extends InvoiceEntryEditor> extends Sta
 
   @protected
   @nonVirtual
-  pivot.Flag? get programFlag => _programFlag;
+  chicago.Flag? get programFlag => _programFlag;
 
   @protected
   @nonVirtual
-  set programFlag(pivot.Flag? flag) {
+  set programFlag(chicago.Flag? flag) {
     if (flag != _programFlag) {
       setState(() {
         _programFlag = flag;
@@ -126,11 +126,11 @@ abstract class InvoiceEntryEditorState<T extends InvoiceEntryEditor> extends Sta
 
   @protected
   @nonVirtual
-  pivot.Flag? get chargeNumberFlag => _chargeNumberFlag;
+  chicago.Flag? get chargeNumberFlag => _chargeNumberFlag;
 
   @protected
   @nonVirtual
-  set chargeNumberFlag(pivot.Flag? flag) {
+  set chargeNumberFlag(chicago.Flag? flag) {
     if (flag != _chargeNumberFlag) {
       setState(() {
         _chargeNumberFlag = flag;
@@ -148,11 +148,11 @@ abstract class InvoiceEntryEditorState<T extends InvoiceEntryEditor> extends Sta
 
   @protected
   @nonVirtual
-  pivot.Flag? get requestorFlag => _requestorFlag;
+  chicago.Flag? get requestorFlag => _requestorFlag;
 
   @protected
   @nonVirtual
-  set requestorFlag(pivot.Flag? flag) {
+  set requestorFlag(chicago.Flag? flag) {
     if (flag != _requestorFlag) {
       setState(() {
         _requestorFlag = flag;
@@ -166,12 +166,12 @@ abstract class InvoiceEntryEditorState<T extends InvoiceEntryEditor> extends Sta
 
   @protected
   @nonVirtual
-  pivot.FormField buildProgramFormField() {
-    return pivot.FormField(
+  chicago.FormField buildProgramFormField() {
+    return chicago.FormField(
       label: 'Program',
       flag: _programFlag,
-      child: pivot.ListButton<Program>(
-        width: pivot.ListButtonWidth.expand,
+      child: chicago.ListButton<Program>(
+        width: chicago.ListButtonWidth.expand,
         items: _assignments,
         selectionController: _programSelectionController,
         builder: _buildProgramButtonData,
@@ -183,11 +183,11 @@ abstract class InvoiceEntryEditorState<T extends InvoiceEntryEditor> extends Sta
 
   @protected
   @nonVirtual
-  pivot.FormField buildChargeNumberFormField() {
-    return pivot.FormField(
+  chicago.FormField buildChargeNumberFormField() {
+    return chicago.FormField(
       label: 'Charge Number',
       flag: _chargeNumberFlag,
-      child: pivot.TextInput(
+      child: chicago.TextInput(
         backgroundColor: const Color(0xfff7f5ee),
         controller: _chargeNumberController,
       ),
@@ -196,11 +196,11 @@ abstract class InvoiceEntryEditorState<T extends InvoiceEntryEditor> extends Sta
 
   @protected
   @nonVirtual
-  pivot.FormField buildRequestorFormField() {
-    return pivot.FormField(
+  chicago.FormField buildRequestorFormField() {
+    return chicago.FormField(
       label: 'Requestor (Client)',
       flag: _requestorFlag,
-      child: pivot.TextInput(
+      child: chicago.TextInput(
         backgroundColor: const Color(0xfff7f5ee),
         controller: _requestorController,
       ),
@@ -209,13 +209,13 @@ abstract class InvoiceEntryEditorState<T extends InvoiceEntryEditor> extends Sta
 
   @protected
   @nonVirtual
-  pivot.FormField buildTaskFormField() {
-    return pivot.FormField(
+  chicago.FormField buildTaskFormField() {
+    return chicago.FormField(
       label: 'Task',
       child: Row(
         children: [
           Expanded(
-            child: pivot.TextInput(
+            child: chicago.TextInput(
               backgroundColor: const Color(0xfff7f5ee),
               controller: _taskController,
             ),
@@ -232,7 +232,7 @@ abstract class InvoiceEntryEditorState<T extends InvoiceEntryEditor> extends Sta
   void initState() {
     super.initState();
     _assignments = AssignmentsBinding.instance!.assignments!;
-    _programSelectionController = pivot.ListViewSelectionController();
+    _programSelectionController = chicago.ListViewSelectionController();
     _programSelectionController.addListener(_handleProgramSelected);
     _chargeNumberController = TextEditingController();
     _requestorController = TextEditingController();
@@ -260,24 +260,24 @@ abstract class InvoiceEntryEditorState<T extends InvoiceEntryEditor> extends Sta
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          pivot.Border(
+          chicago.Border(
             backgroundColor: const Color(0xffffffff),
             borderColor: const Color(0xff999999),
             child: Padding(
               padding: EdgeInsets.all(8),
-              child: pivot.Form(children: buildFormFields()),
+              child: chicago.Form(children: buildFormFields()),
             ),
           ),
           SizedBox(height: 8),
           Row(
             mainAxisAlignment: MainAxisAlignment.end,
             children: [
-              pivot.CommandPushButton(
+              chicago.CommandPushButton(
                 label: 'OK',
                 onPressed: handleOk,
               ),
               SizedBox(width: 6),
-              pivot.CommandPushButton(
+              chicago.CommandPushButton(
                 label: 'Cancel',
                 onPressed: () => Navigator.of(context).pop(),
               ),

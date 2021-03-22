@@ -8,7 +8,7 @@ import 'package:payouts/src/model/http.dart';
 import 'package:payouts/src/model/invoice.dart';
 import 'package:payouts/src/model/user.dart';
 
-import 'package:payouts/src/pivot.dart' as pivot;
+import 'package:chicago/chicago.dart' as chicago;
 
 typedef LoginCallback = void Function(String username, String password, bool setCookie);
 
@@ -56,7 +56,7 @@ class LoginSheet extends StatefulWidget {
   _LoginSheetState createState() => _LoginSheetState();
 
   static Future<void> open({required BuildContext context, String? username, String? password}) {
-    return pivot.Sheet.open<void>(
+    return chicago.Sheet.open<void>(
       context: context,
       barrierColor: const Color(0x00000000),
       content: LoginSheet(username: username, password: password),
@@ -304,8 +304,8 @@ class _LoginPaneState extends State<_LoginPane> {
                       padding: EdgeInsets.only(bottom: 12),
                       child: ConstrainedBox(
                         constraints: BoxConstraints(maxHeight: 200),
-                        child: pivot.ScrollPane(
-                          horizontalScrollBarPolicy: pivot.ScrollBarPolicy.stretch,
+                        child: chicago.ScrollPane(
+                          horizontalScrollBarPolicy: chicago.ScrollBarPolicy.stretch,
                           view: Text(
                             widget.errorText!,
                             style: defaultStyle.copyWith(color: const Color(0xffb71624)),
@@ -328,7 +328,7 @@ class _LoginPaneState extends State<_LoginPane> {
                               child: Text('Username:'),
                             ),
                           ),
-                          pivot.TextInput(
+                          chicago.TextInput(
                             controller: _usernameController,
                             backgroundColor: const Color(0xfff7f5ee),
                           ),
@@ -349,7 +349,7 @@ class _LoginPaneState extends State<_LoginPane> {
                               child: Text('Password:'),
                             ),
                           ),
-                          pivot.TextInput(
+                          chicago.TextInput(
                             controller: _passwordController,
                             backgroundColor: const Color(0xfff7f5ee),
                             obscureText: true,
@@ -365,7 +365,7 @@ class _LoginPaneState extends State<_LoginPane> {
                       TableRow(
                         children: <Widget>[
                           Container(),
-                          pivot.BasicCheckbox(
+                          chicago.BasicCheckbox(
                             spacing: 6,
                             trailing: Text('Remember my username and password'),
                           ),
@@ -388,14 +388,14 @@ class _LoginPaneState extends State<_LoginPane> {
                       SizedBox(
                         width: 20,
                         height: 20,
-                        child: pivot.ActivityIndicator(),
+                        child: chicago.ActivityIndicator(),
                       ),
                       SizedBox(width: 4),
                       Text(widget.activityStatusText!),
                     ],
                   ),
                 ),
-              pivot.CommandPushButton(
+              chicago.CommandPushButton(
                 label: 'Log In',
                 onPressed: widget.activityStatusText == null ? _handleAttemptLogin : null,
               ),
@@ -490,8 +490,8 @@ class _ResetPasswordPaneState extends State<_ResetPasswordPane> {
                           padding: EdgeInsets.only(bottom: 12),
                           child: ConstrainedBox(
                             constraints: BoxConstraints(maxHeight: 200),
-                            child: pivot.ScrollPane(
-                              horizontalScrollBarPolicy: pivot.ScrollBarPolicy.stretch,
+                            child: chicago.ScrollPane(
+                              horizontalScrollBarPolicy: chicago.ScrollBarPolicy.stretch,
                               view: Text(
                                 errorText!,
                                 style: defaultStyle.copyWith(color: const Color(0xffb71624)),
@@ -519,7 +519,7 @@ class _ResetPasswordPaneState extends State<_ResetPasswordPane> {
                               child: Text('New password:'),
                             ),
                           ),
-                          pivot.TextInput(
+                          chicago.TextInput(
                             controller: _passwordController,
                             backgroundColor: const Color(0xfff7f5ee),
                             obscureText: true,
@@ -541,7 +541,7 @@ class _ResetPasswordPaneState extends State<_ResetPasswordPane> {
                               child: Text('Confirm new password:'),
                             ),
                           ),
-                          pivot.TextInput(
+                          chicago.TextInput(
                             controller: _confirmPasswordController,
                             backgroundColor: const Color(0xfff7f5ee),
                             obscureText: true,
@@ -565,14 +565,14 @@ class _ResetPasswordPaneState extends State<_ResetPasswordPane> {
                       SizedBox(
                         width: 20,
                         height: 20,
-                        child: pivot.ActivityIndicator(),
+                        child: chicago.ActivityIndicator(),
                       ),
                       SizedBox(width: 4),
                       Text(widget.activityStatusText!),
                     ],
                   ),
                 ),
-              pivot.CommandPushButton(
+              chicago.CommandPushButton(
                 label: 'OK',
                 onPressed: widget.activityStatusText == null ? _handleResetPassword : null,
               ),

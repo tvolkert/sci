@@ -6,7 +6,7 @@ import 'package:flutter/widgets.dart';
 
 import 'package:payouts/src/model/invoice.dart';
 import 'package:payouts/src/model/track_invoice_mixin.dart';
-import 'package:payouts/src/pivot.dart' as pivot;
+import 'package:chicago/chicago.dart' as chicago;
 import 'package:payouts/src/ui/invoice_entry_editor.dart';
 
 class AddExpenseReportIntent extends Intent {
@@ -60,7 +60,7 @@ class AddExpenseReportSheet extends InvoiceEntryEditor {
   InvoiceEntryEditorState<InvoiceEntryEditor> createState() => AddExpenseReportSheetState();
 
   static Future<ExpenseReportMetadata?> open({required BuildContext context}) {
-    return pivot.Sheet.open<ExpenseReportMetadata>(
+    return chicago.Sheet.open<ExpenseReportMetadata>(
       context: context,
       content: AddExpenseReportSheet(),
       barrierDismissible: true,
@@ -69,43 +69,43 @@ class AddExpenseReportSheet extends InvoiceEntryEditor {
 }
 
 class AddExpenseReportSheetState extends InvoiceEntryEditorState<AddExpenseReportSheet> {
-  pivot.Flag? _travelPurposeFlag;
-  pivot.Flag? _travelDestinationFlag;
-  pivot.Flag? _travelPartiesFlag;
+  chicago.Flag? _travelPurposeFlag;
+  chicago.Flag? _travelDestinationFlag;
+  chicago.Flag? _travelPartiesFlag;
   late TextEditingController _travelPurposeController;
   late TextEditingController _travelDestinationController;
   late TextEditingController _travelPartiesController;
-  late pivot.CalendarSelectionController _fromDateController;
-  late pivot.CalendarSelectionController _toDateController;
-  late pivot.CalendarDate _lastAvailableDay;
+  late chicago.CalendarSelectionController _fromDateController;
+  late chicago.CalendarSelectionController _toDateController;
+  late chicago.CalendarDate _lastAvailableDay;
 
-  void _handleFromDateChanged(pivot.CalendarDate date) {
+  void _handleFromDateChanged(chicago.CalendarDate date) {
     if (date > _toDateController.value!) {
       _toDateController.value = date;
     }
   }
 
-  void _handleToDateChanged(pivot.CalendarDate date) {
+  void _handleToDateChanged(chicago.CalendarDate date) {
     if (date < _fromDateController.value!) {
       _fromDateController.value = date;
     }
   }
 
-  bool _isDisabled(pivot.CalendarDate date) => date > _lastAvailableDay;
+  bool _isDisabled(chicago.CalendarDate date) => date > _lastAvailableDay;
 
   @override
   void initState() {
     super.initState();
-    final pivot.CalendarDate today = pivot.CalendarDate.fromDateTime(DateTime.now());
+    final chicago.CalendarDate today = chicago.CalendarDate.fromDateTime(DateTime.now());
     final DateRange billingPeriod = InvoiceBinding.instance!.invoice!.billingPeriod;
-    final pivot.CalendarDate billingStart = pivot.CalendarDate.fromDateTime(billingPeriod.start);
-    final pivot.CalendarDate billingEnd = pivot.CalendarDate.fromDateTime(billingPeriod.end);
+    final chicago.CalendarDate billingStart = chicago.CalendarDate.fromDateTime(billingPeriod.start);
+    final chicago.CalendarDate billingEnd = chicago.CalendarDate.fromDateTime(billingPeriod.end);
     _lastAvailableDay = billingEnd < today ? today : billingEnd;
     _travelPurposeController = TextEditingController();
     _travelDestinationController = TextEditingController();
     _travelPartiesController = TextEditingController();
-    _fromDateController = pivot.CalendarSelectionController(billingStart);
-    _toDateController = pivot.CalendarSelectionController(billingEnd);
+    _fromDateController = chicago.CalendarSelectionController(billingStart);
+    _toDateController = chicago.CalendarSelectionController(billingEnd);
   }
 
   @override
@@ -119,23 +119,23 @@ class AddExpenseReportSheetState extends InvoiceEntryEditorState<AddExpenseRepor
   }
 
   @override
-  List<pivot.FormField> buildFormFields() {
-    return <pivot.FormField>[
+  List<chicago.FormField> buildFormFields() {
+    return <chicago.FormField>[
       buildProgramFormField(),
       if (requiresChargeNumber) buildChargeNumberFormField(),
       if (requiresRequestor) buildRequestorFormField(),
       buildTaskFormField(),
-      pivot.FormField(
+      chicago.FormField(
         label: 'Dates',
         child: Row(
           children: [
-            pivot.CalendarButton(
+            chicago.CalendarButton(
               disabledDateFilter: _isDisabled,
               selectionController: _fromDateController,
               onDateChanged: _handleFromDateChanged,
             ),
             Padding(padding: EdgeInsets.symmetric(horizontal: 4), child: Text('to')),
-            pivot.CalendarButton(
+            chicago.CalendarButton(
               disabledDateFilter: _isDisabled,
               selectionController: _toDateController,
               onDateChanged: _handleToDateChanged,
@@ -143,26 +143,26 @@ class AddExpenseReportSheetState extends InvoiceEntryEditorState<AddExpenseRepor
           ],
         ),
       ),
-      pivot.FormField(
+      chicago.FormField(
         label: 'Purpose of travel',
         flag: _travelPurposeFlag,
-        child: pivot.TextInput(
+        child: chicago.TextInput(
           backgroundColor: const Color(0xfff7f5ee),
           controller: _travelPurposeController,
         ),
       ),
-      pivot.FormField(
+      chicago.FormField(
         label: 'Destination (city)',
         flag: _travelDestinationFlag,
-        child: pivot.TextInput(
+        child: chicago.TextInput(
           backgroundColor: const Color(0xfff7f5ee),
           controller: _travelDestinationController,
         ),
       ),
-      pivot.FormField(
+      chicago.FormField(
         label: 'Party or parties visited',
         flag: _travelPartiesFlag,
-        child: pivot.TextInput(
+        child: chicago.TextInput(
           backgroundColor: const Color(0xfff7f5ee),
           controller: _travelPartiesController,
         ),

@@ -13,8 +13,7 @@ import 'package:payouts/src/model/entry_comparator.dart';
 import 'package:payouts/src/model/invoice.dart';
 import 'package:payouts/src/model/user.dart';
 import 'package:payouts/src/model/track_invoice_mixin.dart';
-import 'package:payouts/src/pivot.dart' as pivot;
-import 'package:payouts/src/pivot/foundation.dart';
+import 'package:chicago/chicago.dart' as chicago;
 import 'package:payouts/ui/common/task_monitor.dart';
 
 import 'warn_on_unsaved_changes_mixin.dart';
@@ -61,7 +60,7 @@ class OpenInvoiceSheet extends StatefulWidget {
   _OpenInvoiceSheetState createState() => _OpenInvoiceSheetState();
 
   static Future<int?> open({required BuildContext context}) {
-    return pivot.Sheet.open<int>(
+    return chicago.Sheet.open<int>(
       context: context,
       content: OpenInvoiceSheet(),
       barrierDismissible: true,
@@ -71,20 +70,20 @@ class OpenInvoiceSheet extends StatefulWidget {
 
 class _OpenInvoiceSheetState extends State<OpenInvoiceSheet>
     with SingleTickerProviderStateMixin<OpenInvoiceSheet> {
-  late pivot.TableViewMetricsController _metricsController;
-  late pivot.TableViewSelectionController _selectionController;
-  late pivot.TableViewSortController _sortController;
-  late pivot.TableViewSortListener _sortListener;
-  late pivot.ScrollController _scrollController;
+  late chicago.TableViewMetricsController _metricsController;
+  late chicago.TableViewSelectionController _selectionController;
+  late chicago.TableViewSortController _sortController;
+  late chicago.TableViewSortListener _sortListener;
+  late chicago.ScrollController _scrollController;
   late AnimationController _scrollAnimationController;
   List<Map<String, dynamic>>? _invoices;
   int? _selectedInvoiceId;
 
   static const _scrollDuration = Duration(milliseconds: 250);
 
-  static EntryComparator _comparator(pivot.TableViewSortController controller) {
+  static EntryComparator _comparator(chicago.TableViewSortController controller) {
     final String sortKey = controller.keys.first;
-    final pivot.SortDirection direction = controller[sortKey] ?? pivot.SortDirection.ascending;
+    final chicago.SortDirection direction = controller[sortKey] ?? chicago.SortDirection.ascending;
     return EntryComparator(key: sortKey, direction: direction);
   }
 
@@ -93,7 +92,7 @@ class _OpenInvoiceSheetState extends State<OpenInvoiceSheet>
     _handleInvoiceSelected(rowIndex >= 0 ? _invoices![rowIndex][Keys.invoiceId] : null);
   }
 
-  void _handleSortChanged(pivot.TableViewSortController controller) {
+  void _handleSortChanged(chicago.TableViewSortController controller) {
     assert(controller == _sortController);
     assert(controller.length == 1);
 
@@ -106,7 +105,7 @@ class _OpenInvoiceSheetState extends State<OpenInvoiceSheet>
     _invoices!.sort(comparator.compare);
 
     if (selectedItem != null) {
-      int selectedIndex = binarySearch(_invoices!, selectedItem, compare: comparator.compare);
+      int selectedIndex = chicago.binarySearch(_invoices!, selectedItem, compare: comparator.compare);
       assert(selectedIndex >= 0);
       _selectionController.selectedIndex = selectedIndex;
       final Rect rowBounds = _metricsController.metrics.getRowBounds(selectedIndex);
@@ -157,7 +156,7 @@ class _OpenInvoiceSheetState extends State<OpenInvoiceSheet>
           final Invoice? currentInvoice = InvoiceBinding.instance!.invoice;
           if (currentInvoice != null) {
             final Map<String, dynamic> invoiceData = currentInvoice.rawData;
-            final int rowIndex = binarySearch(invoices, invoiceData, compare: comparator.compare);
+            final int rowIndex = chicago.binarySearch(invoices, invoiceData, compare: comparator.compare);
             assert(rowIndex >= 0);
             _selectionController.selectedIndex = rowIndex;
             final Rect rowBounds = _metricsController.metrics.getRowBounds(rowIndex);
@@ -174,14 +173,14 @@ class _OpenInvoiceSheetState extends State<OpenInvoiceSheet>
   @override
   void initState() {
     super.initState();
-    _metricsController = pivot.TableViewMetricsController();
-    _selectionController = pivot.TableViewSelectionController(selectMode: pivot.SelectMode.single);
+    _metricsController = chicago.TableViewMetricsController();
+    _selectionController = chicago.TableViewSelectionController(selectMode: chicago.SelectMode.single);
     _selectionController.addListener(_handleSelectionChanged);
-    _sortListener = pivot.TableViewSortListener(onChanged: _handleSortChanged);
-    _sortController = pivot.TableViewSortController(sortMode: pivot.TableViewSortMode.singleColumn);
-    _sortController[Keys.billingStart] = pivot.SortDirection.descending;
+    _sortListener = chicago.TableViewSortListener(onChanged: _handleSortChanged);
+    _sortController = chicago.TableViewSortController(sortMode: chicago.TableViewSortMode.singleColumn);
+    _sortController[Keys.billingStart] = chicago.SortDirection.descending;
     _sortController.addListener(_sortListener);
-    _scrollController = pivot.ScrollController();
+    _scrollController = chicago.ScrollController();
     _scrollAnimationController = AnimationController(duration: _scrollDuration, vsync: this);
     _requestInvoices();
   }
@@ -206,7 +205,7 @@ class _OpenInvoiceSheetState extends State<OpenInvoiceSheet>
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          pivot.Border(
+          chicago.Border(
             title: 'Open Existing Invoice',
             titlePadding: const EdgeInsets.symmetric(horizontal: 4),
             inset: 9,
@@ -245,19 +244,19 @@ class _OpenInvoiceSheetState extends State<OpenInvoiceSheet>
                       SizedBox(
                         width: 20,
                         height: 20,
-                        child: pivot.ActivityIndicator(),
+                        child: chicago.ActivityIndicator(),
                       ),
                       SizedBox(width: 4),
                       Text('Loading invoice...'),
                     ],
                   ),
                 ),
-              pivot.CommandPushButton(
+              chicago.CommandPushButton(
                 label: 'OK',
                 onPressed: _selectedInvoiceId != null ? _handleInvoiceChosen : null,
               ),
               SizedBox(width: 4),
-              pivot.CommandPushButton(
+              chicago.CommandPushButton(
                 label: 'Cancel',
                 onPressed: () => Navigator.of(context).pop(),
               ),
@@ -281,10 +280,10 @@ class InvoicesView extends StatelessWidget {
   }) : super(key: key);
 
   final List<Map<String, dynamic>>? invoices;
-  final pivot.TableViewMetricsController metricsController;
-  final pivot.TableViewSelectionController selectionController;
-  final pivot.TableViewSortController sortController;
-  final pivot.ScrollController scrollController;
+  final chicago.TableViewMetricsController metricsController;
+  final chicago.TableViewSelectionController selectionController;
+  final chicago.TableViewSortController sortController;
+  final chicago.ScrollController scrollController;
   final VoidCallback onInvoiceChosen;
 
   @override
@@ -317,10 +316,10 @@ class InvoicesTable extends StatefulWidget {
   }) : super(key: key);
 
   final List<Map<String, dynamic>> invoices;
-  final pivot.TableViewMetricsController metricsController;
-  final pivot.TableViewSelectionController selectionController;
-  final pivot.TableViewSortController sortController;
-  final pivot.ScrollController scrollController;
+  final chicago.TableViewMetricsController metricsController;
+  final chicago.TableViewSelectionController selectionController;
+  final chicago.TableViewSortController sortController;
+  final chicago.ScrollController scrollController;
   final VoidCallback onInvoiceChosen;
 
   @override
@@ -328,7 +327,7 @@ class InvoicesTable extends StatefulWidget {
 }
 
 class _InvoicesTableState extends State<InvoicesTable> {
-  late List<pivot.TableColumnController> _columns;
+  late List<chicago.TableColumnController> _columns;
 
   Widget _renderBillingPeriodCell({
     required BuildContext context,
@@ -421,28 +420,28 @@ class _InvoicesTableState extends State<InvoicesTable> {
   @override
   initState() {
     super.initState();
-    _columns = <pivot.TableColumnController>[
-      pivot.TableColumnController(
+    _columns = <chicago.TableColumnController>[
+      chicago.TableColumnController(
         key: Keys.billingStart,
-        width: pivot.ConstrainedTableColumnWidth(width: 150, minWidth: 50),
+        width: chicago.ConstrainedTableColumnWidth(width: 150, minWidth: 50),
         cellRenderer: _renderBillingPeriodCell,
         headerRenderer: _renderBillingPeriodHeader,
       ),
-      pivot.TableColumnController(
+      chicago.TableColumnController(
         key: Keys.invoiceNumber,
-        width: pivot.ConstrainedTableColumnWidth(width: 125, minWidth: 50),
+        width: chicago.ConstrainedTableColumnWidth(width: 125, minWidth: 50),
         cellRenderer: _renderInvoiceNumberCell,
         headerRenderer: _renderInvoiceNumberHeader,
       ),
-      pivot.TableColumnController(
+      chicago.TableColumnController(
         key: Keys.submitted,
-        width: pivot.ConstrainedTableColumnWidth(width: 125, minWidth: 50),
+        width: chicago.ConstrainedTableColumnWidth(width: 125, minWidth: 50),
         cellRenderer: _renderSubmittedCell,
         headerRenderer: _renderSubmittedHeader,
       ),
-      pivot.TableColumnController(
+      chicago.TableColumnController(
         key: Keys.resubmit,
-        width: pivot.FlexTableColumnWidth(),
+        width: chicago.FlexTableColumnWidth(),
         cellRenderer: _renderResubmitCell,
         headerRenderer: _renderResubmitHeader,
       ),
@@ -460,7 +459,7 @@ class _InvoicesTableState extends State<InvoicesTable> {
   Widget build(BuildContext context) {
     return ColoredBox(
       color: const Color(0xffffffff),
-      child: pivot.ScrollableTableView(
+      child: chicago.ScrollableTableView(
         length: widget.invoices.length,
         rowHeight: 19,
         roundColumnWidthsToWholePixel: true,

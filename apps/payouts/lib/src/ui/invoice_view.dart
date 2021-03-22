@@ -11,7 +11,7 @@ import 'package:flutter/widgets.dart';
 import 'package:payouts/src/model/constants.dart';
 
 import 'package:payouts/src/model/invoice.dart';
-import 'package:payouts/src/pivot.dart' as pivot;
+import 'package:chicago/chicago.dart' as chicago;
 
 import 'accomplishments_view.dart';
 import 'currency_text.dart';
@@ -116,22 +116,22 @@ class _InvoiceViewState extends State<InvoiceView> {
               const Expanded(
                 child: Padding(
                   padding: EdgeInsets.fromLTRB(5, 0, 6, 4),
-                  child: pivot.TabPane(
+                  child: chicago.TabPane(
                     initialSelectedIndex: 0,
-                    tabs: <pivot.Tab>[
-                      pivot.Tab(
+                    tabs: <chicago.Tab>[
+                      chicago.Tab(
                         label: 'Billable Hours',
                         builder: _buildTimesheetsView,
                       ),
-                      pivot.Tab(
+                      chicago.Tab(
                         label: 'Expense Reports',
                         builder: _buildExpenseReportsView,
                       ),
-                      pivot.Tab(
+                      chicago.Tab(
                         label: 'Accomplishments',
                         builder: _buildAccomplishmentsView,
                       ),
-                      pivot.Tab(
+                      chicago.Tab(
                         label: 'Review & Submit',
                         builder: _buildReviewAndSubmit,
                       ),
@@ -349,7 +349,7 @@ class _InvoiceNumberEditorState extends State<InvoiceNumberEditor> {
           ),
           secondChild: SizedBox(
             width: 100,
-            child: pivot.TextInput(
+            child: chicago.TextInput(
               controller: _invoiceNumberEditor,
               focusNode: _focusNode,
               autofocus: true,
@@ -360,7 +360,7 @@ class _InvoiceNumberEditorState extends State<InvoiceNumberEditor> {
         SizedBox(
           height: 22,
           width: 23,
-          child: pivot.PushButton(
+          child: chicago.PushButton(
             padding: const EdgeInsets.fromLTRB(3, 0, 0, 0),
             icon: 'assets/pencil.png',
             showTooltip: false,

@@ -7,7 +7,7 @@ import 'package:flutter/services.dart';
 import 'package:payouts/src/actions.dart';
 import 'package:payouts/src/model/constants.dart';
 import 'package:payouts/src/model/invoice.dart';
-import 'package:payouts/src/pivot.dart' as pivot;
+import 'package:chicago/chicago.dart' as chicago;
 
 import 'rotated_text.dart';
 
@@ -94,39 +94,39 @@ class _RawTimesheetsViewState extends State<_RawTimesheetsView> {
         children: <Widget>[
           Padding(
             padding: EdgeInsets.only(bottom: 7),
-            child: pivot.ActionLinkButton(
+            child: chicago.ActionLinkButton(
               image: AssetImage('assets/table_add.png'),
               text: 'Add hours line item',
               intent: AddTimesheetIntent(context: context),
             ),
           ),
           if (_timesheetRows.isNotEmpty) Expanded(
-            child: pivot.ScrollPane(
-              horizontalScrollBarPolicy: pivot.ScrollBarPolicy.expand,
+            child: chicago.ScrollPane(
+              horizontalScrollBarPolicy: chicago.ScrollBarPolicy.expand,
               view: Padding(
                 padding: const EdgeInsets.only(left: 20, right: 25),
-                child: pivot.TablePane(
+                child: chicago.TablePane(
                   horizontalIntrinsicSize: MainAxisSize.min,
                   horizontalSpacing: 1,
                   verticalSpacing: 1,
-                  columns: const <pivot.TablePaneColumn>[
-                    pivot.TablePaneColumn(width: pivot.IntrinsicTablePaneColumnWidth()),
-                    pivot.TablePaneColumn(width: pivot.FixedTablePaneColumnWidth(32)),
-                    pivot.TablePaneColumn(width: pivot.FixedTablePaneColumnWidth(32)),
-                    pivot.TablePaneColumn(width: pivot.FixedTablePaneColumnWidth(32)),
-                    pivot.TablePaneColumn(width: pivot.FixedTablePaneColumnWidth(32)),
-                    pivot.TablePaneColumn(width: pivot.FixedTablePaneColumnWidth(32)),
-                    pivot.TablePaneColumn(width: pivot.FixedTablePaneColumnWidth(32)),
-                    pivot.TablePaneColumn(width: pivot.FixedTablePaneColumnWidth(32)),
-                    pivot.TablePaneColumn(width: pivot.FixedTablePaneColumnWidth(32)),
-                    pivot.TablePaneColumn(width: pivot.FixedTablePaneColumnWidth(32)),
-                    pivot.TablePaneColumn(width: pivot.FixedTablePaneColumnWidth(32)),
-                    pivot.TablePaneColumn(width: pivot.FixedTablePaneColumnWidth(32)),
-                    pivot.TablePaneColumn(width: pivot.FixedTablePaneColumnWidth(32)),
-                    pivot.TablePaneColumn(width: pivot.FixedTablePaneColumnWidth(32)),
-                    pivot.TablePaneColumn(width: pivot.FixedTablePaneColumnWidth(32)),
-                    pivot.TablePaneColumn(width: pivot.IntrinsicTablePaneColumnWidth()),
-                    pivot.TablePaneColumn(width: pivot.RelativeTablePaneColumnWidth()),
+                  columns: const <chicago.TablePaneColumn>[
+                    chicago.TablePaneColumn(width: chicago.IntrinsicTablePaneColumnWidth()),
+                    chicago.TablePaneColumn(width: chicago.FixedTablePaneColumnWidth(32)),
+                    chicago.TablePaneColumn(width: chicago.FixedTablePaneColumnWidth(32)),
+                    chicago.TablePaneColumn(width: chicago.FixedTablePaneColumnWidth(32)),
+                    chicago.TablePaneColumn(width: chicago.FixedTablePaneColumnWidth(32)),
+                    chicago.TablePaneColumn(width: chicago.FixedTablePaneColumnWidth(32)),
+                    chicago.TablePaneColumn(width: chicago.FixedTablePaneColumnWidth(32)),
+                    chicago.TablePaneColumn(width: chicago.FixedTablePaneColumnWidth(32)),
+                    chicago.TablePaneColumn(width: chicago.FixedTablePaneColumnWidth(32)),
+                    chicago.TablePaneColumn(width: chicago.FixedTablePaneColumnWidth(32)),
+                    chicago.TablePaneColumn(width: chicago.FixedTablePaneColumnWidth(32)),
+                    chicago.TablePaneColumn(width: chicago.FixedTablePaneColumnWidth(32)),
+                    chicago.TablePaneColumn(width: chicago.FixedTablePaneColumnWidth(32)),
+                    chicago.TablePaneColumn(width: chicago.FixedTablePaneColumnWidth(32)),
+                    chicago.TablePaneColumn(width: chicago.FixedTablePaneColumnWidth(32)),
+                    chicago.TablePaneColumn(width: chicago.IntrinsicTablePaneColumnWidth()),
+                    chicago.TablePaneColumn(width: chicago.RelativeTablePaneColumnWidth()),
                   ],
                   children: <Widget>[
                     const _HeaderRow(),
@@ -155,12 +155,12 @@ class _HeaderRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return pivot.TableRow(
+    return chicago.TableRow(
       children: <Widget>[
-        const pivot.EmptyTableCell(),
+        const chicago.EmptyTableCell(),
         ..._buildDateHeadings(),
-        const pivot.EmptyTableCell(),
-        const pivot.EmptyTableCell(),
+        const chicago.EmptyTableCell(),
+        const chicago.EmptyTableCell(),
       ],
     );
   }
@@ -264,7 +264,7 @@ class _HoursInputState extends State<_HoursInput> {
 
   @override
   Widget build(BuildContext context) {
-    return pivot.TextInput(
+    return chicago.TextInput(
       controller: _controller,
       backgroundColor: widget.isWeekend ? const Color(0xffdddcd5) : const Color(0xffffffff),
       enabled: widget.enabled,
@@ -313,8 +313,8 @@ class _TimesheetRowState extends State<_TimesheetRow> {
   Widget _buildTableRow() {
     return _tableRow ??= () {
       final bool isSubmitted = InvoiceBinding.instance!.invoice!.isSubmitted;
-      return pivot.TableRow(
-        height: pivot.IntrinsicTablePaneRowHeight(),
+      return chicago.TableRow(
+        height: chicago.IntrinsicTablePaneRowHeight(),
         children: <Widget>[
           const _TimesheetHeader(),
           ...List<Widget>.generate(widget.timesheet.hours.length, (int index) {
@@ -326,7 +326,7 @@ class _TimesheetRowState extends State<_TimesheetRow> {
             );
           }),
           const _TimesheetFooter(),
-          const pivot.EmptyTableCell(),
+          const chicago.EmptyTableCell(),
         ],
       );
     }();
@@ -414,7 +414,7 @@ class _TimesheetHeader extends StatelessWidget {
         ),
         Opacity(
           opacity: hover ? 1 : 0,
-          child: pivot.ActionPushButton(
+          child: chicago.ActionPushButton(
             intent: EditTimesheetIntent(timesheet),
             padding: const EdgeInsets.fromLTRB(4, 3, 0, 3),
             icon: 'assets/pencil.png',
@@ -424,7 +424,7 @@ class _TimesheetHeader extends StatelessWidget {
         ),
         Opacity(
           opacity: hover ? 1 : 0,
-          child: pivot.ActionPushButton(
+          child: chicago.ActionPushButton(
             intent: DeleteTimesheetIntent(timesheet),
             padding: const EdgeInsets.fromLTRB(4, 3, 0, 3),
             icon: 'assets/cross.png',
@@ -439,7 +439,7 @@ class _TimesheetHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const pivot.HoverBuilder(
+    return const chicago.HoverBuilder(
       builder: _buildHeader,
     );
   }
@@ -470,32 +470,32 @@ class _DividerRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return pivot.TableRow(
-      height: const pivot.FixedTablePaneRowHeight(9),
+    return chicago.TableRow(
+      height: const chicago.FixedTablePaneRowHeight(9),
       children: const <Widget>[
-        pivot.TableCell(
+        chicago.TableCell(
           columnSpan: 128,
           child: Divider(
             thickness: 1,
             color: Color(0xff999999),
           ),
         ),
-        pivot.EmptyTableCell(),
-        pivot.EmptyTableCell(),
-        pivot.EmptyTableCell(),
-        pivot.EmptyTableCell(),
-        pivot.EmptyTableCell(),
-        pivot.EmptyTableCell(),
-        pivot.EmptyTableCell(),
-        pivot.EmptyTableCell(),
-        pivot.EmptyTableCell(),
-        pivot.EmptyTableCell(),
-        pivot.EmptyTableCell(),
-        pivot.EmptyTableCell(),
-        pivot.EmptyTableCell(),
-        pivot.EmptyTableCell(),
-        pivot.EmptyTableCell(),
-        pivot.EmptyTableCell(),
+        chicago.EmptyTableCell(),
+        chicago.EmptyTableCell(),
+        chicago.EmptyTableCell(),
+        chicago.EmptyTableCell(),
+        chicago.EmptyTableCell(),
+        chicago.EmptyTableCell(),
+        chicago.EmptyTableCell(),
+        chicago.EmptyTableCell(),
+        chicago.EmptyTableCell(),
+        chicago.EmptyTableCell(),
+        chicago.EmptyTableCell(),
+        chicago.EmptyTableCell(),
+        chicago.EmptyTableCell(),
+        chicago.EmptyTableCell(),
+        chicago.EmptyTableCell(),
+        chicago.EmptyTableCell(),
       ],
     );
   }
@@ -561,12 +561,12 @@ class _FooterRowState extends State<_FooterRow> {
 
   @override
   Widget build(BuildContext context) {
-    return _row ??= pivot.TableRow(
+    return _row ??= chicago.TableRow(
       children: [
         const Text('Daily Totals', maxLines: 1, style: TextStyle(fontStyle: FontStyle.italic)),
         ...List<Widget>.generate(InvoiceBinding.instance!.invoice!.billingPeriod.length, _toHours),
-        const pivot.EmptyTableCell(),
-        const pivot.EmptyTableCell(),
+        const chicago.EmptyTableCell(),
+        const chicago.EmptyTableCell(),
       ],
     );
   }

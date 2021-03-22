@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import 'package:payouts/src/pivot.dart' as pivot;
+import 'package:chicago/chicago.dart' as chicago;
 
 class AccomplishmentsView extends StatelessWidget {
   const AccomplishmentsView({Key? key}) : super(key: key);
@@ -15,7 +15,7 @@ class AccomplishmentsView extends StatelessWidget {
         children: <Widget>[
           Row(
             children: [
-              pivot.LinkButton(
+              chicago.LinkButton(
                 image: AssetImage('assets/note_add.png'),
                 text: 'Add accomplishment',
                 onPressed: () {},

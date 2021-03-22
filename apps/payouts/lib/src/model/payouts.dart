@@ -1,4 +1,4 @@
-import 'package:payouts/src/pivot.dart';
+import 'package:chicago/chicago.dart';
 
 import 'binding.dart';
 import 'http.dart';

@@ -2,7 +2,7 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter/material.dart' show PopupMenuEntry, PopupMenuItem;
 
 import 'package:payouts/src/actions.dart';
-import 'package:payouts/src/pivot.dart' as pivot;
+import 'package:chicago/chicago.dart' as chicago;
 
 class Toolbar extends StatelessWidget {
   const Toolbar({Key? key}) : super(key: key);
@@ -31,7 +31,7 @@ class Toolbar extends StatelessWidget {
           height: 57,
           child: Row(
             children: <Widget>[
-              pivot.ActionPushButton<CreateInvoiceIntent>(
+              chicago.ActionPushButton<CreateInvoiceIntent>(
                 icon: 'assets/document-new.png',
                 label: 'New Invoice',
                 axis: Axis.vertical,
@@ -39,7 +39,7 @@ class Toolbar extends StatelessWidget {
                 intent: CreateInvoiceIntent(context: context),
               ),
               const SizedBox(width: 5),
-              pivot.ActionPushButton<OpenInvoiceIntent>(
+              chicago.ActionPushButton<OpenInvoiceIntent>(
                 icon: 'assets/document-open.png',
                 label: 'Open Invoice',
                 axis: Axis.vertical,
@@ -47,7 +47,7 @@ class Toolbar extends StatelessWidget {
                 intent: OpenInvoiceIntent(context: context),
               ),
               const SizedBox(width: 5),
-              pivot.ActionPushButton<SaveInvoiceIntent>(
+              chicago.ActionPushButton<SaveInvoiceIntent>(
                 icon: 'assets/media-floppy.png',
                 label: 'Save to Server',
                 axis: Axis.vertical,
@@ -55,7 +55,7 @@ class Toolbar extends StatelessWidget {
                 intent: SaveInvoiceIntent(context: context),
               ),
               const SizedBox(width: 5),
-              pivot.ActionPushButton<DeleteInvoiceIntent>(
+              chicago.ActionPushButton<DeleteInvoiceIntent>(
                 icon: 'assets/dialog-cancel.png',
                 label: 'Delete Invoice',
                 axis: Axis.vertical,
@@ -63,7 +63,7 @@ class Toolbar extends StatelessWidget {
                 intent: DeleteInvoiceIntent(context: context),
               ),
               const SizedBox(width: 5),
-              pivot.ActionPushButton<ExportInvoiceIntent>(
+              chicago.ActionPushButton<ExportInvoiceIntent>(
                 icon: 'assets/x-office-presentation.png',
                 label: 'Export to PDF',
                 axis: Axis.vertical,
@@ -73,7 +73,7 @@ class Toolbar extends StatelessWidget {
               const Spacer(),
               SizedBox(
                 width: 64,
-                child: pivot.PushButton<String>(
+                child: chicago.PushButton<String>(
                   onPressed: () {},
                   icon: 'assets/help-browser.png',
                   label: 'Help',

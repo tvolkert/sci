@@ -13,7 +13,7 @@ import 'package:payouts/src/model/entry_comparator.dart';
 import 'package:payouts/src/model/invoice.dart';
 import 'package:payouts/src/model/user.dart';
 import 'package:payouts/src/model/track_invoice_mixin.dart';
-import 'package:payouts/src/pivot.dart' as pivot;
+import 'package:chicago/chicago.dart' as chicago;
 import 'package:payouts/ui/common/task_monitor.dart';
 
 import 'warn_on_unsaved_changes_mixin.dart';
@@ -60,7 +60,7 @@ class CreateInvoiceSheet extends StatefulWidget {
   _CreateInvoiceSheetState createState() => _CreateInvoiceSheetState();
 
   static Future<NewInvoiceProperties?> open({required BuildContext context}) {
-    return pivot.Sheet.open<NewInvoiceProperties>(
+    return chicago.Sheet.open<NewInvoiceProperties>(
       context: context,
       content: CreateInvoiceSheet(),
       barrierDismissible: true,
@@ -72,15 +72,15 @@ class _CreateInvoiceSheetState extends State<CreateInvoiceSheet> {
   List<Map<String, dynamic>>? _billingPeriods;
   late double _billingPeriodsBaseline;
   late TextEditingController _invoiceNumberController;
-  late pivot.TableViewSelectionController _selectionController;
-  late pivot.TableViewRowDisablerController _disablerController;
-  pivot.Flag? _invoiceNumberFlag;
-  pivot.Flag? _billingPeriodFlag;
+  late chicago.TableViewSelectionController _selectionController;
+  late chicago.TableViewRowDisablerController _disablerController;
+  chicago.Flag? _invoiceNumberFlag;
+  chicago.Flag? _billingPeriodFlag;
 
   static final intl.DateFormat dateFormat = intl.DateFormat('M/d/yyyy');
   static const EntryComparator _comparator = EntryComparator(
     key: Keys.billingPeriod,
-    direction: pivot.SortDirection.descending,
+    direction: chicago.SortDirection.descending,
   );
 
   bool _canProceed = false;
@@ -109,8 +109,8 @@ class _CreateInvoiceSheetState extends State<CreateInvoiceSheet> {
     setState(() {
       if (invoiceNumber.isEmpty) {
         isInputValid = false;
-        _invoiceNumberFlag = pivot.Flag(
-          messageType: pivot.MessageType.error,
+        _invoiceNumberFlag = chicago.Flag(
+          messageType: chicago.MessageType.error,
           message: 'TODO',
         );
       } else {
@@ -119,8 +119,8 @@ class _CreateInvoiceSheetState extends State<CreateInvoiceSheet> {
 
       if (selectedIndex == -1) {
         isInputValid = false;
-        _billingPeriodFlag = pivot.Flag(
-          messageType: pivot.MessageType.error,
+        _billingPeriodFlag = chicago.Flag(
+          messageType: chicago.MessageType.error,
           message: 'TODO',
         );
       } else {
@@ -236,11 +236,11 @@ class _CreateInvoiceSheetState extends State<CreateInvoiceSheet> {
   @override
   void initState() {
     super.initState();
-    _selectionController = pivot.TableViewSelectionController();
+    _selectionController = chicago.TableViewSelectionController();
     _selectionController.addListener(_checkCanProceed);
     _invoiceNumberController = TextEditingController();
     _invoiceNumberController.addListener(_checkCanProceed);
-    _disablerController = pivot.TableViewRowDisablerController(filter: _isRowDisabled);
+    _disablerController = chicago.TableViewRowDisablerController(filter: _isRowDisabled);
     _requestParameters();
   }
 
@@ -249,7 +249,7 @@ class _CreateInvoiceSheetState extends State<CreateInvoiceSheet> {
     super.didChangeDependencies();
     final TextStyle style = DefaultTextStyle.of(context).style;
     final TextDirection textDirection = Directionality.of(context);
-    const pivot.WidgetSurveyor surveyor = pivot.WidgetSurveyor();
+    const chicago.WidgetSurveyor surveyor = chicago.WidgetSurveyor();
     setState(() {
       _billingPeriodsBaseline = surveyor.measureDistanceToBaseline(
         Padding(
@@ -278,24 +278,24 @@ class _CreateInvoiceSheetState extends State<CreateInvoiceSheet> {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          pivot.Border(
+          chicago.Border(
             title: 'Create New Invoice',
             titlePadding: EdgeInsets.symmetric(horizontal: 4),
             inset: 9,
             borderColor: const Color(0xff999999),
             child: Padding(
               padding: EdgeInsets.fromLTRB(9, 13, 9, 9),
-              child: pivot.Form(
+              child: chicago.Form(
                 children: [
-                  pivot.FormField(
+                  chicago.FormField(
                     label: 'Invoice number',
                     flag: _invoiceNumberFlag,
-                    child: pivot.TextInput(
+                    child: chicago.TextInput(
                       controller: _invoiceNumberController,
                       autofocus: true,
                     ),
                   ),
-                  pivot.FormField(
+                  chicago.FormField(
                     label: 'Billing period',
                     flag: _billingPeriodFlag,
                     child: SizedBox(
@@ -307,9 +307,9 @@ class _CreateInvoiceSheetState extends State<CreateInvoiceSheet> {
                         ),
                         child: Padding(
                           padding: EdgeInsets.all(1),
-                          child: pivot.SetBaseline(
+                          child: chicago.SetBaseline(
                             baseline: _billingPeriodsBaseline,
-                            child: pivot.ScrollableTableView(
+                            child: chicago.ScrollableTableView(
                               rowHeight: 19,
                               length: _billingPeriods?.length ?? 0,
                               includeHeader: false,
@@ -317,7 +317,7 @@ class _CreateInvoiceSheetState extends State<CreateInvoiceSheet> {
                               rowDisabledController: _disablerController,
                               onDoubleTapRow: _handleDoubleTapRow,
                               columns: [
-                                pivot.TableColumnController(
+                                chicago.TableColumnController(
                                   key: 'billing_period',
                                   cellRenderer: _renderBillingPeriod,
                                 )
@@ -343,19 +343,19 @@ class _CreateInvoiceSheetState extends State<CreateInvoiceSheet> {
                       SizedBox(
                         width: 20,
                         height: 20,
-                        child: pivot.ActivityIndicator(),
+                        child: chicago.ActivityIndicator(),
                       ),
                       SizedBox(width: 4),
                       Text('Loading data...'),
                     ],
                   ),
                 ),
-              pivot.CommandPushButton(
+              chicago.CommandPushButton(
                 label: 'OK',
                 onPressed: canProceed ? _handleOk : null,
               ),
               SizedBox(width: 4),
-              pivot.CommandPushButton(
+              chicago.CommandPushButton(
                 label: 'Cancel',
                 onPressed: () => Navigator.of(context).pop(),
               ),

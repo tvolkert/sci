@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/widgets.dart';
-import 'package:payouts/src/pivot.dart' as pivot;
+import 'package:chicago/chicago.dart' as chicago;
 
 void main() {
   runApp(BugReport());
 }
 
 class BugReport extends StatelessWidget {
-  pivot.BasicTableCellRenderer _basicRenderer(String columnName) {
+  chicago.BasicTableCellRenderer _basicRenderer(String columnName) {
     return ({
       required BuildContext context,
       required int rowIndex,
@@ -48,22 +48,22 @@ class BugReport extends StatelessWidget {
     return Material(
       child: Directionality(
         textDirection: TextDirection.ltr,
-        child: pivot.ScrollPane(
-          horizontalScrollBarPolicy: pivot.ScrollBarPolicy.stretch,
-          view: pivot.BasicTableView(
+        child: chicago.ScrollPane(
+          horizontalScrollBarPolicy: chicago.ScrollBarPolicy.stretch,
+          view: chicago.BasicTableView(
             rowHeight: 22,
             length: 1000000,
             columns: [
-              pivot.BasicTableColumn(
-                width: pivot.FixedTableColumnWidth(150),
+              chicago.BasicTableColumn(
+                width: chicago.FixedTableColumnWidth(150),
                 cellRenderer: _basicRenderer('foo'),
               ),
-              pivot.BasicTableColumn(
-                width: pivot.FlexTableColumnWidth(),
+              chicago.BasicTableColumn(
+                width: chicago.FlexTableColumnWidth(),
                 cellRenderer: _renderBar,
               ),
-              pivot.BasicTableColumn(
-                width: pivot.FixedTableColumnWidth(275),
+              chicago.BasicTableColumn(
+                width: chicago.FixedTableColumnWidth(275),
                 cellRenderer: _basicRenderer('baz'),
               ),
             ],

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart' show Theme;
 import 'package:flutter/widgets.dart';
 
 import 'package:payouts/src/model/track_invoice_mixin.dart';
-import 'package:payouts/src/pivot.dart' as pivot;
+import 'package:chicago/chicago.dart' as chicago;
 
 import 'save_invoice.dart';
 
@@ -26,9 +26,9 @@ mixin WarnOnUnsavedChangesMixin on TrackInvoiceMixin {
       return true;
     }
 
-    int selectedOption = await pivot.Prompt.open(
+    int selectedOption = await chicago.Prompt.open(
       context: context,
-      messageType: pivot.MessageType.warning,
+      messageType: chicago.MessageType.warning,
       message: 'Save Changes?',
       body: Text(
         'This invoice has been modified.  Do you want to save your changes?',

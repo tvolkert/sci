@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 
-import 'package:payouts/src/pivot.dart' as pivot;
+import 'package:chicago/chicago.dart' as chicago;
 
 class AboutIntent extends Intent {
   const AboutIntent({this.context});
@@ -96,12 +96,12 @@ class AboutSheet extends StatelessWidget {
                   SizedBox(height: 16),
                   FlutterVersion(data: flutterVersionData),
                   SizedBox(height: 16),
-                  pivot.LinkButton(text: 'View licenses', onPressed: () => showLicensePage(context: context)),
+                  chicago.LinkButton(text: 'View licenses', onPressed: () => showLicensePage(context: context)),
                   SizedBox(height: 16),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.end,
                     children: [
-                      pivot.CommandPushButton(
+                      chicago.CommandPushButton(
                         label: 'OK',
                         onPressed: () => Navigator.of(context).pop(),
                       ),
@@ -124,7 +124,7 @@ class AboutSheet extends StatelessWidget {
         return decoded.cast<String, String>();
       },
     );
-    return pivot.Sheet.open<void>(
+    return chicago.Sheet.open<void>(
       context: context,
       padding: EdgeInsets.zero,
       content: AboutSheet(

@@ -2,7 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 
-import 'package:payouts/src/pivot.dart' as pivot;
+import 'package:chicago/chicago.dart' as chicago;
 
 class TaskMonitor extends StatefulWidget {
   const TaskMonitor({
@@ -282,7 +282,7 @@ class _TaskStatusState<T> extends State<TaskStatus<T>> with TickerProviderStateM
   Widget _graphicForStatus() {
     switch (_status) {
       case _Status.inProgress:
-        return pivot.ActivityIndicator(
+        return chicago.ActivityIndicator(
           color: const Color(0xffffffff),
         );
       case _Status.success:

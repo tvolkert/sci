@@ -6,7 +6,7 @@ import 'package:payouts/src/actions.dart';
 import 'package:payouts/src/model/constants.dart';
 import 'package:payouts/src/model/invoice.dart';
 import 'package:payouts/src/model/track_expense_reports_mixin.dart';
-import 'package:payouts/src/pivot.dart' as pivot;
+import 'package:chicago/chicago.dart' as chicago;
 
 class ExpenseReportsView extends StatelessWidget {
   @override
@@ -30,7 +30,7 @@ class _RawExpenseReportsView extends StatefulWidget {
 
 class _RawExpenseReportsViewState extends State<_RawExpenseReportsView>
     with TrackExpenseReportsMixin {
-  late pivot.ListViewSelectionController _selectionController;
+  late chicago.ListViewSelectionController _selectionController;
   ExpenseReports? _expenseReports;
   ExpenseReport? _selectedExpenseReport;
 
@@ -81,7 +81,7 @@ class _RawExpenseReportsViewState extends State<_RawExpenseReportsView>
   void initState() {
     super.initState();
     initInstance();
-    _selectionController = pivot.ListViewSelectionController();
+    _selectionController = chicago.ListViewSelectionController();
     _expenseReports = this.expenseReports;
     _selectionController.selectedIndex = _expenseReports == null ? -1 : 0;
     if (_expenseReports != null) {
@@ -105,7 +105,7 @@ class _RawExpenseReportsViewState extends State<_RawExpenseReportsView>
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: <Widget>[
-          pivot.ActionLinkButton(
+          chicago.ActionLinkButton(
             image: AssetImage('assets/money_add.png'),
             text: 'Add expense report',
             intent: AddExpenseReportIntent(context: context),
@@ -133,18 +133,18 @@ class _ExpenseReportContainer extends StatelessWidget {
 
   final ExpenseReports? expenseReports;
   final ExpenseReport? selectedExpenseReport;
-  final pivot.ListViewSelectionController selectionController;
+  final chicago.ListViewSelectionController selectionController;
 
   @override
   Widget build(BuildContext context) {
     if (expenseReports == null) {
       return Container();
     } else {
-      return pivot.SplitPane(
+      return chicago.SplitPane(
         orientation: Axis.horizontal,
         initialSplitRatio: 0.25,
         roundToWholePixel: true,
-        resizePolicy: pivot.SplitPaneResizePolicy.maintainBeforeSplitSize,
+        resizePolicy: chicago.SplitPaneResizePolicy.maintainBeforeSplitSize,
         before: ExpenseReportsListView(
           expenseReports: expenseReports!,
           selectionController: selectionController,
@@ -185,9 +185,9 @@ class _ExpenseReportView extends StatelessWidget {
 
   String _buildDateRangeDisplay(DateRange dateRange) {
     StringBuffer buf = StringBuffer()
-      ..write(pivot.CalendarDateFormat.iso8601.formatDateTime(dateRange.start))
+      ..write(chicago.CalendarDateFormat.iso8601.formatDateTime(dateRange.start))
       ..write(' to ')
-      ..write(pivot.CalendarDateFormat.iso8601.formatDateTime(dateRange.end));
+      ..write(chicago.CalendarDateFormat.iso8601.formatDateTime(dateRange.end));
     return buf.toString();
   }
 
@@ -227,7 +227,7 @@ class _ExpenseReportView extends StatelessWidget {
           padding: EdgeInsets.only(bottom: 9, left: 11),
           child: Row(
             children: [
-              pivot.ActionLinkButton(
+              chicago.ActionLinkButton(
                 image: AssetImage('assets/money_add.png'),
                 text: 'Add expense line item',
                 intent: AddExpenseIntent(
@@ -270,11 +270,11 @@ class ExpensesTableView extends StatefulWidget {
 }
 
 class _ExpensesTableViewState extends State<ExpensesTableView> {
-  late pivot.TableViewSelectionController _selectionController;
-  late pivot.TableViewSortController _sortController;
-  late pivot.TableViewEditorController _editorController;
+  late chicago.TableViewSelectionController _selectionController;
+  late chicago.TableViewSortController _sortController;
+  late chicago.TableViewEditorController _editorController;
 
-  pivot.TableHeaderRenderer _renderHeader(String name) {
+  chicago.TableHeaderRenderer _renderHeader(String name) {
     return ({
       required BuildContext context,
       required int columnIndex,
@@ -329,7 +329,7 @@ class _ExpensesTableViewState extends State<ExpensesTableView> {
   }
 
   Widget _renderTypeEditor(ExpenseType type) {
-    return pivot.PushButton<String>(
+    return chicago.PushButton<String>(
       onPressed: () {},
       label: type.name,
       menuItems: <PopupMenuEntry<String>>[
@@ -387,9 +387,9 @@ class _ExpensesTableViewState extends State<ExpensesTableView> {
   @override
   void initState() {
     super.initState();
-    _selectionController = pivot.TableViewSelectionController(selectMode: pivot.SelectMode.multi);
-    _sortController = pivot.TableViewSortController(sortMode: pivot.TableViewSortMode.singleColumn);
-    _editorController = pivot.TableViewEditorController();
+    _selectionController = chicago.TableViewSelectionController(selectMode: chicago.SelectMode.multi);
+    _sortController = chicago.TableViewSortController(sortMode: chicago.TableViewSortMode.singleColumn);
+    _editorController = chicago.TableViewEditorController();
   }
 
   @override
@@ -410,35 +410,35 @@ class _ExpensesTableViewState extends State<ExpensesTableView> {
 
   @override
   Widget build(BuildContext context) {
-    return pivot.ScrollableTableView(
+    return chicago.ScrollableTableView(
       rowHeight: 19,
       length: widget.expenseReport.expenses.length,
       selectionController: _selectionController,
       sortController: _sortController,
       editorController: _editorController,
       roundColumnWidthsToWholePixel: false,
-      columns: <pivot.TableColumnController>[
-        pivot.TableColumnController(
+      columns: <chicago.TableColumnController>[
+        chicago.TableColumnController(
           key: 'date',
-          width: pivot.ConstrainedTableColumnWidth(width: 120, minWidth: 20),
+          width: chicago.ConstrainedTableColumnWidth(width: 120, minWidth: 20),
           cellRenderer: _renderDate,
           headerRenderer: _renderHeader('Date'),
         ),
-        pivot.TableColumnController(
+        chicago.TableColumnController(
           key: 'type',
-          width: pivot.ConstrainedTableColumnWidth(width: 120, minWidth: 20),
+          width: chicago.ConstrainedTableColumnWidth(width: 120, minWidth: 20),
           cellRenderer: _renderType,
           headerRenderer: _renderHeader('Type'),
         ),
-        pivot.TableColumnController(
+        chicago.TableColumnController(
           key: 'amount',
-          width: pivot.ConstrainedTableColumnWidth(width: 100, minWidth: 20),
+          width: chicago.ConstrainedTableColumnWidth(width: 100, minWidth: 20),
           cellRenderer: _renderAmount,
           headerRenderer: _renderHeader('Amount'),
         ),
-        pivot.TableColumnController(
+        chicago.TableColumnController(
           key: 'description',
-          width: pivot.FlexTableColumnWidth(),
+          width: chicago.FlexTableColumnWidth(),
           cellRenderer: _renderDescription,
           headerRenderer: _renderHeader('Description'),
         ),
@@ -499,7 +499,7 @@ class ExpenseReportsListView extends StatefulWidget {
   }) : super(key: key);
 
   final ExpenseReports expenseReports;
-  final pivot.ListViewSelectionController selectionController;
+  final chicago.ListViewSelectionController selectionController;
 
   @override
   _ExpenseReportsListViewState createState() => _ExpenseReportsListViewState();
@@ -596,7 +596,7 @@ class _ExpenseReportsListViewState extends State<ExpenseReportsListView> {
       ),
       child: Padding(
         padding: const EdgeInsets.all(1),
-        child: pivot.ScrollableListView(
+        child: chicago.ScrollableListView(
           itemHeight: 19,
           length: widget.expenseReports.length,
           itemBuilder: _buildItem,

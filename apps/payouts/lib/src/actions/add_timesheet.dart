@@ -7,7 +7,7 @@ import 'package:flutter/widgets.dart';
 import 'package:payouts/src/model/invoice.dart';
 import 'package:payouts/src/model/track_invoice_mixin.dart';
 import 'package:payouts/src/ui/invoice_entry_editor.dart';
-import 'package:payouts/src/pivot.dart' as pivot;
+import 'package:chicago/chicago.dart' as chicago;
 
 class AddTimesheetIntent extends Intent {
   const AddTimesheetIntent({this.context});
@@ -68,8 +68,8 @@ abstract class TimesheetEditorState<T extends TimesheetEditor> extends InvoiceEn
   @override
   @protected
   @nonVirtual
-  List<pivot.FormField> buildFormFields() {
-    return <pivot.FormField>[
+  List<chicago.FormField> buildFormFields() {
+    return <chicago.FormField>[
       buildProgramFormField(),
       if (requiresChargeNumber) buildChargeNumberFormField(),
       if (requiresRequestor) buildRequestorFormField(),
@@ -122,7 +122,7 @@ class AddTimesheetSheet extends TimesheetEditor {
   _AddTimesheetSheetState createState() => _AddTimesheetSheetState();
 
   static Future<InvoiceEntryMetadata?> open({required BuildContext context}) {
-    return pivot.Sheet.open<InvoiceEntryMetadata>(
+    return chicago.Sheet.open<InvoiceEntryMetadata>(
       context: context,
       content: AddTimesheetSheet(),
       barrierDismissible: true,

@@ -4,7 +4,7 @@ import 'package:flutter/widgets.dart';
 
 import 'package:payouts/src/model/invoice.dart';
 import 'package:payouts/src/model/track_invoice_mixin.dart';
-import 'package:payouts/src/pivot.dart' as pivot;
+import 'package:chicago/chicago.dart' as chicago;
 
 class AddExpenseIntent extends Intent {
   const AddExpenseIntent({this.context, required this.expenseReport});
@@ -64,7 +64,7 @@ class AddExpenseSheet extends StatefulWidget {
     required BuildContext context,
     required ExpenseReport expenseReport,
   }) {
-    return pivot.Sheet.open<ExpenseMetadata>(
+    return chicago.Sheet.open<ExpenseMetadata>(
       context: context,
       content: AddExpenseSheet(expenseReport: expenseReport),
       barrierDismissible: true,
@@ -107,37 +107,37 @@ class AddExpenseSheetState extends State<AddExpenseSheet> {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          pivot.Border(
+          chicago.Border(
             backgroundColor: const Color(0xffffffff),
             borderColor: const Color(0xff999999),
             child: Padding(
               padding: EdgeInsets.all(8),
-              child: pivot.Form(
-                children: <pivot.FormField>[
-                  pivot.FormField(
+              child: chicago.Form(
+                children: <chicago.FormField>[
+                  chicago.FormField(
                     label: 'Category',
-                    child: pivot.ListButton(
+                    child: chicago.ListButton(
                       items: [],
                       builder: _buildExpenseType,
                       itemBuilder: _buildExpenseTypeItem,
                     ),
                   ),
-                  pivot.FormField(
+                  chicago.FormField(
                     label: 'Date',
-                    child: pivot.CalendarButton(),
+                    child: chicago.CalendarButton(),
                   ),
-                  pivot.FormField(
+                  chicago.FormField(
                     label: 'Amount',
-                    child: pivot.TextInput(
+                    child: chicago.TextInput(
                       backgroundColor: const Color(0xfff7f5ee),
                     ),
                   ),
-                  pivot.FormField(
+                  chicago.FormField(
                     label: 'Description',
                     child: Row(
                       children: [
                         Expanded(
-                          child: pivot.TextInput(
+                          child: chicago.TextInput(
                             backgroundColor: const Color(0xfff7f5ee),
                           ),
                         ),
@@ -155,7 +155,7 @@ class AddExpenseSheetState extends State<AddExpenseSheet> {
             // crossAxisAlignment: CrossAxisAlignment.baseline,
             // textBaseline: TextBaseline.alphabetic,
             children: [
-              pivot.BasicCheckbox(
+              chicago.BasicCheckbox(
                 checked: _copyExpenses,
                 onTap: _handleToggleCopyExpenses,
                 spacing: 6,
@@ -163,11 +163,11 @@ class AddExpenseSheetState extends State<AddExpenseSheet> {
                   children: [
                     Text('Copy this expense for a total of'),
                     SizedBox(width: 4),
-                    pivot.Spinner(
+                    chicago.Spinner(
                       isEnabled: _copyExpenses,
                       length: 14,
                       itemBuilder: (BuildContext context, int index, bool isEnabled) {
-                        return pivot.Spinner.defaultItemBuilder(context, '${index + 1}');
+                        return chicago.Spinner.defaultItemBuilder(context, '${index + 1}');
                       },
                     ),
                     SizedBox(width: 4),
@@ -182,12 +182,12 @@ class AddExpenseSheetState extends State<AddExpenseSheet> {
           Row(
             mainAxisAlignment: MainAxisAlignment.end,
             children: [
-              pivot.CommandPushButton(
+              chicago.CommandPushButton(
                 label: 'OK',
                 onPressed: _handleOk,
               ),
               SizedBox(width: 6),
-              pivot.CommandPushButton(
+              chicago.CommandPushButton(
                 label: 'Cancel',
                 onPressed: () => Navigator.of(context).pop(),
               ),

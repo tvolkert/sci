@@ -6,7 +6,7 @@ import 'package:flutter/painting.dart';
 import 'package:flutter/rendering.dart';
 import 'package:intl/intl.dart' as intl;
 
-import 'package:payouts/src/pivot.dart' as pivot;
+import 'package:chicago/chicago.dart' as chicago;
 
 import 'accomplishments_view.dart';
 import 'rotated_text.dart';
@@ -18,8 +18,8 @@ class ReviewAndSubmit extends StatelessWidget {
   Widget build(BuildContext context) {
     return Padding(
       padding: EdgeInsets.all(6),
-      child: pivot.ScrollPane(
-        horizontalScrollBarPolicy: pivot.ScrollBarPolicy.stretch,
+      child: chicago.ScrollPane(
+        horizontalScrollBarPolicy: chicago.ScrollBarPolicy.stretch,
         view: Padding(
           padding: EdgeInsets.all(20),
           child: Column(
@@ -62,8 +62,8 @@ class ReviewAndSubmit extends StatelessWidget {
                 ),
                 child: Padding(
                   padding: EdgeInsets.only(bottom: 1),
-                  child: pivot.ScrollPane(
-                    horizontalScrollBarPolicy: pivot.ScrollBarPolicy.expand,
+                  child: chicago.ScrollPane(
+                    horizontalScrollBarPolicy: chicago.ScrollBarPolicy.expand,
                     topLeftCorner: Container(),
                     bottomLeftCorner: const DecoratedBox(
                       decoration: BoxDecoration(
@@ -303,8 +303,8 @@ class ReviewAndSubmit extends StatelessWidget {
                 ),
                 child: Padding(
                   padding: EdgeInsets.only(bottom: 1),
-                  child: pivot.ScrollPane(
-                    horizontalScrollBarPolicy: pivot.ScrollBarPolicy.expand,
+                  child: chicago.ScrollPane(
+                    horizontalScrollBarPolicy: chicago.ScrollBarPolicy.expand,
                     topLeftCorner: Align(
                       alignment: Alignment.bottomLeft,
                       child: Text('Orbital Sciences (123)', maxLines: 1),
@@ -561,7 +561,7 @@ class _CertifyAndSubmitState extends State<CertifyAndSubmit> {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        pivot.PushButton(
+        chicago.PushButton(
           icon: 'assets/lock.png',
           label: 'Submit Invoice',
           onPressed: certified ? _handleSubmit : null,

@@ -3,7 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 
-import 'package:payouts/src/pivot.dart' as pivot;
+import 'package:chicago/chicago.dart' as chicago;
 
 class ExportInvoiceIntent extends Intent {
   const ExportInvoiceIntent({this.context});
@@ -39,7 +39,7 @@ class ExportInvoiceSheet extends StatefulWidget {
   _ExportInvoiceSheetState createState() => _ExportInvoiceSheetState();
 
   static Future<void> open({required BuildContext context}) {
-    return pivot.Sheet.open<void>(
+    return chicago.Sheet.open<void>(
       context: context,
       content: ExportInvoiceSheet(),
     );
@@ -64,12 +64,12 @@ class _ExportInvoiceSheetState extends State<ExportInvoiceSheet> {
           Row(
             mainAxisAlignment: MainAxisAlignment.end,
             children: [
-              pivot.CommandPushButton(
+              chicago.CommandPushButton(
                 label: 'OK',
                 onPressed: () => Navigator.of(context).pop(),
               ),
               SizedBox(width: 4),
-              pivot.CommandPushButton(
+              chicago.CommandPushButton(
                 label: 'Cancel',
                 onPressed: () => Navigator.of(context).pop(),
               ),

@@ -3,7 +3,7 @@ import 'package:flutter/widgets.dart';
 
 import 'package:payouts/src/model/invoice.dart';
 import 'package:payouts/src/model/track_invoice_mixin.dart';
-import 'package:payouts/src/pivot.dart' as pivot;
+import 'package:chicago/chicago.dart' as chicago;
 
 class DeleteTimesheetIntent extends Intent {
   const DeleteTimesheetIntent(this.timesheet);
@@ -42,9 +42,9 @@ class DeleteTimesheetAction extends ContextAction<DeleteTimesheetIntent> with Tr
       throw StateError('No context in which to invoke $runtimeType');
     }
 
-    int selectedOption = await pivot.Prompt.open(
+    int selectedOption = await chicago.Prompt.open(
       context: context,
-      messageType: pivot.MessageType.question,
+      messageType: chicago.MessageType.question,
       message: 'Remove Line Item?',
       body: Text(
         'Are you sure you want to remove the specified hours line item?',
