@@ -20,6 +20,7 @@ dependencies:
   flutter:
     sdk: flutter
 
+  chicago: any
   http: any
   intl: any
   meta: any
@@ -31,6 +32,8 @@ dev_dependencies:
     sdk: flutter
 
 dependency_overrides:
+  chicago:
+    path: ../../../tvolkert/chicago
   http:
     git:
       url: https://github.com/dart-lang/http.git
