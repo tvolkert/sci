@@ -155,11 +155,11 @@ class AddExpenseSheetState extends State<AddExpenseSheet> {
             // crossAxisAlignment: CrossAxisAlignment.baseline,
             // textBaseline: TextBaseline.alphabetic,
             children: [
-              pivot.Checkbox(
+              pivot.BasicCheckbox(
                 checked: _copyExpenses,
-                onChange: _handleToggleCopyExpenses,
+                onTap: _handleToggleCopyExpenses,
                 spacing: 6,
-                child: Row(
+                trailing: Row(
                   children: [
                     Text('Copy this expense for a total of'),
                     SizedBox(width: 4),

@@ -365,9 +365,9 @@ class _LoginPaneState extends State<_LoginPane> {
                       TableRow(
                         children: <Widget>[
                           Container(),
-                          pivot.Checkbox(
+                          pivot.BasicCheckbox(
                             spacing: 6,
-                            child: Text('Remember my username and password'),
+                            trailing: Text('Remember my username and password'),
                           ),
                         ],
                       ),
