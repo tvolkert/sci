@@ -1,10 +1,10 @@
 import 'dart:async';
 
+import 'package:chicago/chicago.dart' as chicago;
 import 'package:flutter/widgets.dart';
 
 import 'package:payouts/src/model/invoice.dart';
 import 'package:payouts/src/model/track_invoice_mixin.dart';
-import 'package:chicago/chicago.dart' as chicago;
 
 class AddExpenseIntent extends Intent {
   const AddExpenseIntent({this.context, required this.expenseReport});

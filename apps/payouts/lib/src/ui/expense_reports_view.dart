@@ -1,3 +1,4 @@
+import 'package:chicago/chicago.dart' as chicago;
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/widgets.dart';
@@ -6,7 +7,6 @@ import 'package:payouts/src/actions.dart';
 import 'package:payouts/src/model/constants.dart';
 import 'package:payouts/src/model/invoice.dart';
 import 'package:payouts/src/model/track_expense_reports_mixin.dart';
-import 'package:chicago/chicago.dart' as chicago;
 
 class ExpenseReportsView extends StatelessWidget {
   @override

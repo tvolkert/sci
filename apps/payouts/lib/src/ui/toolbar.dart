@@ -1,8 +1,8 @@
+import 'package:chicago/chicago.dart' as chicago;
 import 'package:flutter/widgets.dart';
 import 'package:flutter/material.dart' show PopupMenuEntry, PopupMenuItem;
 
 import 'package:payouts/src/actions.dart';
-import 'package:chicago/chicago.dart' as chicago;
 
 class Toolbar extends StatelessWidget {
   const Toolbar({Key? key}) : super(key: key);

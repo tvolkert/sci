@@ -1,11 +1,10 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:chicago/chicago.dart' as chicago;
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
-
-import 'package:chicago/chicago.dart' as chicago;
 
 class AboutIntent extends Intent {
   const AboutIntent({this.context});

@@ -1,6 +1,5 @@
-import 'package:flutter/material.dart';
-
 import 'package:chicago/chicago.dart' as chicago;
+import 'package:flutter/material.dart';
 
 class AccomplishmentsView extends StatelessWidget {
   const AccomplishmentsView({Key? key}) : super(key: key);

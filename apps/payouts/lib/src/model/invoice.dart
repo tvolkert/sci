@@ -1,9 +1,9 @@
 import 'dart:convert';
 import 'dart:io' show HttpHeaders, HttpStatus;
 
+import 'package:chicago/chicago.dart';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
-import 'package:chicago/chicago.dart';
 
 import 'binding.dart';
 import 'collections.dart';

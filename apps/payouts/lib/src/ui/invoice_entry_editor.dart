@@ -1,8 +1,8 @@
+import 'package:chicago/chicago.dart' as chicago;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 
 import 'package:payouts/src/model/invoice.dart';
-import 'package:chicago/chicago.dart' as chicago;
 
 abstract class InvoiceEntryEditor extends StatefulWidget {
   const InvoiceEntryEditor({Key? key}) : super(key: key);

@@ -1,10 +1,10 @@
 import 'dart:async';
 
+import 'package:chicago/chicago.dart' as chicago;
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 
 import 'package:payouts/src/model/track_invoice_mixin.dart';
-import 'package:chicago/chicago.dart' as chicago;
 import 'package:payouts/ui/common/task_monitor.dart';
 
 class DeleteInvoiceIntent extends Intent {

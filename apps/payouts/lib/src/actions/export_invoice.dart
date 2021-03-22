@@ -1,9 +1,8 @@
 import 'dart:async';
 
+import 'package:chicago/chicago.dart' as chicago;
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
-
-import 'package:chicago/chicago.dart' as chicago;
 
 class ExportInvoiceIntent extends Intent {
   const ExportInvoiceIntent({this.context});

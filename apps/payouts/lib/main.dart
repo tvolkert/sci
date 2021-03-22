@@ -1,3 +1,4 @@
+import 'package:chicago/chicago.dart' as chicago;
 import 'package:flutter/material.dart';
 import 'package:flutter/painting.dart';
 import 'package:flutter/rendering.dart';
@@ -7,10 +8,8 @@ import 'package:flutter/widgets.dart';
 import 'package:payouts/src/actions.dart';
 import 'package:payouts/src/model/debug.dart';
 import 'package:payouts/src/model/payouts.dart';
-import 'package:chicago/chicago.dart' as chicago;
 import 'package:payouts/src/ui/asset_image_precache.dart';
 import 'package:payouts/src/ui/home.dart';
-
 import 'package:payouts/ui/auth/require_user.dart';
 import 'package:payouts/ui/common/task_monitor.dart';
 

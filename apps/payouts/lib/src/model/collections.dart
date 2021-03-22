@@ -1,7 +1,7 @@
 import 'dart:math';
 
-import 'package:flutter/foundation.dart';
 import 'package:chicago/chicago.dart';
+import 'package:flutter/foundation.dart';
 
 typedef ValueAddedHandler<K, V> = void Function(Map<K, V> map, K key);
 

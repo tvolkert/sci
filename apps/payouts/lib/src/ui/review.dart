@@ -1,12 +1,11 @@
 import 'dart:math' as math;
 
+import 'package:chicago/chicago.dart' as chicago;
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/painting.dart';
 import 'package:flutter/rendering.dart';
 import 'package:intl/intl.dart' as intl;
-
-import 'package:chicago/chicago.dart' as chicago;
 
 import 'accomplishments_view.dart';
 import 'rotated_text.dart';

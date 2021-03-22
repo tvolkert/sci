@@ -1,14 +1,14 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:chicago/chicago.dart' as chicago;
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
+
 import 'package:payouts/src/model/constants.dart';
 import 'package:payouts/src/model/http.dart';
 import 'package:payouts/src/model/invoice.dart';
 import 'package:payouts/src/model/user.dart';
-
-import 'package:chicago/chicago.dart' as chicago;
 
 typedef LoginCallback = void Function(String username, String password, bool setCookie);
 

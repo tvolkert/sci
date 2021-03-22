@@ -1,5 +1,6 @@
 import 'dart:math' as math;
 
+import 'package:chicago/chicago.dart' as chicago;
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -7,7 +8,6 @@ import 'package:flutter/services.dart';
 import 'package:payouts/src/actions.dart';
 import 'package:payouts/src/model/constants.dart';
 import 'package:payouts/src/model/invoice.dart';
-import 'package:chicago/chicago.dart' as chicago;
 
 import 'rotated_text.dart';
 

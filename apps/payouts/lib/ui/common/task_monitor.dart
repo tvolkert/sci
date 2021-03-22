@@ -1,8 +1,7 @@
 import 'dart:async';
 
-import 'package:flutter/material.dart';
-
 import 'package:chicago/chicago.dart' as chicago;
+import 'package:flutter/material.dart';
 
 class TaskMonitor extends StatefulWidget {
   const TaskMonitor({

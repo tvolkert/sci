@@ -1,6 +1,7 @@
 import 'dart:math' as math;
 import 'dart:ui' as ui;
 
+import 'package:chicago/chicago.dart' as chicago;
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart' show Ink, Theme;
 import 'package:flutter/painting.dart';
@@ -9,9 +10,7 @@ import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:payouts/src/model/constants.dart';
-
 import 'package:payouts/src/model/invoice.dart';
-import 'package:chicago/chicago.dart' as chicago;
 
 import 'accomplishments_view.dart';
 import 'currency_text.dart';

@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io' show HttpStatus;
 
+import 'package:chicago/chicago.dart' as chicago;
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
@@ -13,7 +14,6 @@ import 'package:payouts/src/model/entry_comparator.dart';
 import 'package:payouts/src/model/invoice.dart';
 import 'package:payouts/src/model/user.dart';
 import 'package:payouts/src/model/track_invoice_mixin.dart';
-import 'package:chicago/chicago.dart' as chicago;
 import 'package:payouts/ui/common/task_monitor.dart';
 
 import 'warn_on_unsaved_changes_mixin.dart';
