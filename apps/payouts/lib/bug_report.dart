@@ -8,12 +8,8 @@ void main() {
 }
 
 class BugReport extends StatelessWidget {
-  chicago.BasicTableCellRenderer _basicRenderer(String columnName) {
-    return ({
-      required BuildContext context,
-      required int rowIndex,
-      required int columnIndex,
-    }) {
+  chicago.BasicTableCellBuilder _basicRenderer(String columnName) {
+    return (BuildContext context, int rowIndex, int columnIndex) {
       return Padding(
         padding: EdgeInsets.all(2),
         child: Text('${columnName}_$rowIndex'),
@@ -21,11 +17,7 @@ class BugReport extends StatelessWidget {
     };
   }
 
-  Widget _renderBar({
-    required BuildContext context,
-    required int rowIndex,
-    required int columnIndex,
-  }) {
+  Widget _renderBar(BuildContext context, int rowIndex, int columnIndex) {
     return MouseRegion(
       cursor: SystemMouseCursors.click,
       child: ColoredBox(
@@ -56,15 +48,15 @@ class BugReport extends StatelessWidget {
             columns: [
               chicago.BasicTableColumn(
                 width: chicago.FixedTableColumnWidth(150),
-                cellRenderer: _basicRenderer('foo'),
+                cellBuilder: _basicRenderer('foo'),
               ),
               chicago.BasicTableColumn(
                 width: chicago.FlexTableColumnWidth(),
-                cellRenderer: _renderBar,
+                cellBuilder: _renderBar,
               ),
               chicago.BasicTableColumn(
                 width: chicago.FixedTableColumnWidth(275),
-                cellRenderer: _basicRenderer('baz'),
+                cellBuilder: _basicRenderer('baz'),
               ),
             ],
           ),

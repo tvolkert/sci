@@ -107,14 +107,14 @@ class AddExpenseSheetState extends State<AddExpenseSheet> {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          chicago.Border(
+          chicago.BorderPane(
             backgroundColor: const Color(0xffffffff),
             borderColor: const Color(0xff999999),
             child: Padding(
               padding: EdgeInsets.all(8),
-              child: chicago.Form(
-                children: <chicago.FormField>[
-                  chicago.FormField(
+              child: chicago.FormPane(
+                children: <chicago.FormPaneField>[
+                  chicago.FormPaneField(
                     label: 'Category',
                     child: chicago.ListButton(
                       items: [],
@@ -122,17 +122,17 @@ class AddExpenseSheetState extends State<AddExpenseSheet> {
                       itemBuilder: _buildExpenseTypeItem,
                     ),
                   ),
-                  chicago.FormField(
+                  chicago.FormPaneField(
                     label: 'Date',
                     child: chicago.CalendarButton(),
                   ),
-                  chicago.FormField(
+                  chicago.FormPaneField(
                     label: 'Amount',
                     child: chicago.TextInput(
                       backgroundColor: const Color(0xfff7f5ee),
                     ),
                   ),
-                  chicago.FormField(
+                  chicago.FormPaneField(
                     label: 'Description',
                     child: Row(
                       children: [
@@ -156,7 +156,7 @@ class AddExpenseSheetState extends State<AddExpenseSheet> {
             // textBaseline: TextBaseline.alphabetic,
             children: [
               chicago.BasicCheckbox(
-                checked: _copyExpenses,
+                state: _copyExpenses ? chicago.CheckboxState.checked : chicago.CheckboxState.unchecked,
                 onTap: _handleToggleCopyExpenses,
                 spacing: 6,
                 trailing: Row(

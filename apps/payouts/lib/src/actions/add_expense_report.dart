@@ -119,13 +119,13 @@ class AddExpenseReportSheetState extends InvoiceEntryEditorState<AddExpenseRepor
   }
 
   @override
-  List<chicago.FormField> buildFormFields() {
-    return <chicago.FormField>[
+  List<chicago.FormPaneField> buildFormFields() {
+    return <chicago.FormPaneField>[
       buildProgramFormField(),
       if (requiresChargeNumber) buildChargeNumberFormField(),
       if (requiresRequestor) buildRequestorFormField(),
       buildTaskFormField(),
-      chicago.FormField(
+      chicago.FormPaneField(
         label: 'Dates',
         child: Row(
           children: [
@@ -143,7 +143,7 @@ class AddExpenseReportSheetState extends InvoiceEntryEditorState<AddExpenseRepor
           ],
         ),
       ),
-      chicago.FormField(
+      chicago.FormPaneField(
         label: 'Purpose of travel',
         flag: _travelPurposeFlag,
         child: chicago.TextInput(
@@ -151,7 +151,7 @@ class AddExpenseReportSheetState extends InvoiceEntryEditorState<AddExpenseRepor
           controller: _travelPurposeController,
         ),
       ),
-      chicago.FormField(
+      chicago.FormPaneField(
         label: 'Destination (city)',
         flag: _travelDestinationFlag,
         child: chicago.TextInput(
@@ -159,7 +159,7 @@ class AddExpenseReportSheetState extends InvoiceEntryEditorState<AddExpenseRepor
           controller: _travelDestinationController,
         ),
       ),
-      chicago.FormField(
+      chicago.FormPaneField(
         label: 'Party or parties visited',
         flag: _travelPartiesFlag,
         child: chicago.TextInput(

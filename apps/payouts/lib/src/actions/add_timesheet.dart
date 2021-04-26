@@ -68,8 +68,8 @@ abstract class TimesheetEditorState<T extends TimesheetEditor> extends InvoiceEn
   @override
   @protected
   @nonVirtual
-  List<chicago.FormField> buildFormFields() {
-    return <chicago.FormField>[
+  List<chicago.FormPaneField> buildFormFields() {
+    return <chicago.FormPaneField>[
       buildProgramFormField(),
       if (requiresChargeNumber) buildChargeNumberFormField(),
       if (requiresRequestor) buildRequestorFormField(),

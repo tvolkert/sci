@@ -274,11 +274,11 @@ class _ExpensesTableViewState extends State<ExpensesTableView> {
   late chicago.TableViewSortController _sortController;
   late chicago.TableViewEditorController _editorController;
 
-  chicago.TableHeaderRenderer _renderHeader(String name) {
-    return ({
-      required BuildContext context,
-      required int columnIndex,
-    }) {
+  chicago.TableHeaderBuilder _renderHeader(String name) {
+    return (
+      BuildContext context,
+      int columnIndex,
+    ) {
       return Text(
         name,
         maxLines: 1,
@@ -288,15 +288,15 @@ class _ExpensesTableViewState extends State<ExpensesTableView> {
     };
   }
 
-  Widget _renderDate({
-    required BuildContext context,
-    required int rowIndex,
-    required int columnIndex,
-    required bool rowSelected,
-    required bool rowHighlighted,
-    required bool isEditing,
-    required bool isRowDisabled,
-  }) {
+  Widget _renderDate(
+    BuildContext context,
+    int rowIndex,
+    int columnIndex,
+    bool rowSelected,
+    bool rowHighlighted,
+    bool isEditing,
+    bool isRowDisabled,
+  ) {
     final DateTime date = widget.expenseReport.expenses[rowIndex].date;
     final String formattedDate = DateFormats.iso8601Short.format(date);
     return ExpenseCellWrapper(
@@ -307,15 +307,15 @@ class _ExpensesTableViewState extends State<ExpensesTableView> {
     );
   }
 
-  Widget _renderType({
-    required BuildContext context,
-    required int rowIndex,
-    required int columnIndex,
-    required bool rowSelected,
-    required bool rowHighlighted,
-    required bool isEditing,
-    required bool isRowDisabled,
-  }) {
+  Widget _renderType(
+    BuildContext context,
+    int rowIndex,
+    int columnIndex,
+    bool rowSelected,
+    bool rowHighlighted,
+    bool isEditing,
+    bool isRowDisabled,
+  ) {
     final ExpenseType type = widget.expenseReport.expenses[rowIndex].type;
     if (isEditing) {
       return _renderTypeEditor(type);
@@ -348,15 +348,15 @@ class _ExpensesTableViewState extends State<ExpensesTableView> {
     );
   }
 
-  Widget _renderAmount({
-    required BuildContext context,
-    required int rowIndex,
-    required int columnIndex,
-    required bool rowSelected,
-    required bool rowHighlighted,
-    required bool isEditing,
-    required bool isRowDisabled,
-  }) {
+  Widget _renderAmount(
+    BuildContext context,
+    int rowIndex,
+    int columnIndex,
+    bool rowSelected,
+    bool rowHighlighted,
+    bool isEditing,
+    bool isRowDisabled,
+  ) {
     final double amount = widget.expenseReport.expenses[rowIndex].amount;
     return ExpenseCellWrapper(
       rowIndex: rowIndex,
@@ -366,15 +366,15 @@ class _ExpensesTableViewState extends State<ExpensesTableView> {
     );
   }
 
-  Widget _renderDescription({
-    required BuildContext context,
-    required int rowIndex,
-    required int columnIndex,
-    required bool rowSelected,
-    required bool rowHighlighted,
-    required bool isEditing,
-    required bool isRowDisabled,
-  }) {
+  Widget _renderDescription(
+    BuildContext context,
+    int rowIndex,
+    int columnIndex,
+    bool rowSelected,
+    bool rowHighlighted,
+    bool isEditing,
+    bool isRowDisabled,
+  ) {
     final String description = widget.expenseReport.expenses[rowIndex].description;
     return ExpenseCellWrapper(
       rowIndex: rowIndex,
@@ -421,26 +421,26 @@ class _ExpensesTableViewState extends State<ExpensesTableView> {
         chicago.TableColumnController(
           key: 'date',
           width: chicago.ConstrainedTableColumnWidth(width: 120, minWidth: 20),
-          cellRenderer: _renderDate,
-          headerRenderer: _renderHeader('Date'),
+          cellBuilder: _renderDate,
+          headerBuilder: _renderHeader('Date'),
         ),
         chicago.TableColumnController(
           key: 'type',
           width: chicago.ConstrainedTableColumnWidth(width: 120, minWidth: 20),
-          cellRenderer: _renderType,
-          headerRenderer: _renderHeader('Type'),
+          cellBuilder: _renderType,
+          headerBuilder: _renderHeader('Type'),
         ),
         chicago.TableColumnController(
           key: 'amount',
           width: chicago.ConstrainedTableColumnWidth(width: 100, minWidth: 20),
-          cellRenderer: _renderAmount,
-          headerRenderer: _renderHeader('Amount'),
+          cellBuilder: _renderAmount,
+          headerBuilder: _renderHeader('Amount'),
         ),
         chicago.TableColumnController(
           key: 'description',
           width: chicago.FlexTableColumnWidth(),
-          cellRenderer: _renderDescription,
-          headerRenderer: _renderHeader('Description'),
+          cellBuilder: _renderDescription,
+          headerBuilder: _renderHeader('Description'),
         ),
       ],
     );
@@ -520,13 +520,13 @@ class _ExpenseReportsListViewState extends State<ExpenseReportsListView> {
     });
   }
 
-  Widget _buildItem({
-    required BuildContext context,
-    required int index,
-    required bool isSelected,
-    required bool isHighlighted,
-    required bool isDisabled,
-  }) {
+  Widget _buildItem(
+    BuildContext context,
+    int index,
+    bool isSelected,
+    bool isHighlighted,
+    bool isDisabled,
+  ) {
     final ExpenseReport data = widget.expenseReports[index];
     final StringBuffer buf = StringBuffer(data.program.name);
 

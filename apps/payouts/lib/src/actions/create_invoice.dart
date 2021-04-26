@@ -167,15 +167,15 @@ class _CreateInvoiceSheetState extends State<CreateInvoiceSheet> {
     });
   }
 
-  Widget _renderBillingPeriod({
-    required BuildContext context,
-    required int rowIndex,
-    required int columnIndex,
-    required bool rowSelected,
-    required bool rowHighlighted,
-    required bool isEditing,
-    required bool isRowDisabled,
-  }) {
+  Widget _renderBillingPeriod(
+    BuildContext context,
+    int rowIndex,
+    int columnIndex,
+    bool rowSelected,
+    bool rowHighlighted,
+    bool isEditing,
+    bool isRowDisabled,
+  ) {
     assert(!isEditing);
     assert(rowIndex >= 0);
     final Map<String, dynamic> row = _billingPeriods![rowIndex];
@@ -278,16 +278,16 @@ class _CreateInvoiceSheetState extends State<CreateInvoiceSheet> {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          chicago.Border(
+          chicago.BorderPane(
             title: 'Create New Invoice',
             titlePadding: EdgeInsets.symmetric(horizontal: 4),
             inset: 9,
             borderColor: const Color(0xff999999),
             child: Padding(
               padding: EdgeInsets.fromLTRB(9, 13, 9, 9),
-              child: chicago.Form(
+              child: chicago.FormPane(
                 children: [
-                  chicago.FormField(
+                  chicago.FormPaneField(
                     label: 'Invoice number',
                     flag: _invoiceNumberFlag,
                     child: chicago.TextInput(
@@ -295,7 +295,7 @@ class _CreateInvoiceSheetState extends State<CreateInvoiceSheet> {
                       autofocus: true,
                     ),
                   ),
-                  chicago.FormField(
+                  chicago.FormPaneField(
                     label: 'Billing period',
                     flag: _billingPeriodFlag,
                     child: SizedBox(
@@ -319,7 +319,7 @@ class _CreateInvoiceSheetState extends State<CreateInvoiceSheet> {
                               columns: [
                                 chicago.TableColumnController(
                                   key: 'billing_period',
-                                  cellRenderer: _renderBillingPeriod,
+                                  cellBuilder: _renderBillingPeriod,
                                 )
                               ],
                             ),

@@ -61,7 +61,7 @@ abstract class InvoiceEntryEditorState<T extends InvoiceEntryEditor> extends Sta
   void handleOk();
 
   @protected
-  List<chicago.FormField> buildFormFields();
+  List<chicago.FormPaneField> buildFormFields();
 
   @protected
   @nonVirtual
@@ -166,8 +166,8 @@ abstract class InvoiceEntryEditorState<T extends InvoiceEntryEditor> extends Sta
 
   @protected
   @nonVirtual
-  chicago.FormField buildProgramFormField() {
-    return chicago.FormField(
+  chicago.FormPaneField buildProgramFormField() {
+    return chicago.FormPaneField(
       label: 'Program',
       flag: _programFlag,
       child: chicago.ListButton<Program>(
@@ -183,8 +183,8 @@ abstract class InvoiceEntryEditorState<T extends InvoiceEntryEditor> extends Sta
 
   @protected
   @nonVirtual
-  chicago.FormField buildChargeNumberFormField() {
-    return chicago.FormField(
+  chicago.FormPaneField buildChargeNumberFormField() {
+    return chicago.FormPaneField(
       label: 'Charge Number',
       flag: _chargeNumberFlag,
       child: chicago.TextInput(
@@ -196,8 +196,8 @@ abstract class InvoiceEntryEditorState<T extends InvoiceEntryEditor> extends Sta
 
   @protected
   @nonVirtual
-  chicago.FormField buildRequestorFormField() {
-    return chicago.FormField(
+  chicago.FormPaneField buildRequestorFormField() {
+    return chicago.FormPaneField(
       label: 'Requestor (Client)',
       flag: _requestorFlag,
       child: chicago.TextInput(
@@ -209,8 +209,8 @@ abstract class InvoiceEntryEditorState<T extends InvoiceEntryEditor> extends Sta
 
   @protected
   @nonVirtual
-  chicago.FormField buildTaskFormField() {
-    return chicago.FormField(
+  chicago.FormPaneField buildTaskFormField() {
+    return chicago.FormPaneField(
       label: 'Task',
       child: Row(
         children: [
@@ -260,12 +260,12 @@ abstract class InvoiceEntryEditorState<T extends InvoiceEntryEditor> extends Sta
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          chicago.Border(
+          chicago.BorderPane(
             backgroundColor: const Color(0xffffffff),
             borderColor: const Color(0xff999999),
             child: Padding(
               padding: EdgeInsets.all(8),
-              child: chicago.Form(children: buildFormFields()),
+              child: chicago.FormPane(children: buildFormFields()),
             ),
           ),
           SizedBox(height: 8),
