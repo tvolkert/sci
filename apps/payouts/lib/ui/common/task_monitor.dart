@@ -319,7 +319,6 @@ class _TaskStatusState<T> extends State<TaskStatus<T>> with TickerProviderStateM
           child: AnimatedSize(
             curve: Curves.elasticOut,
             duration: const Duration(milliseconds: 250),
-            vsync: this,
             child: SizedBox(
               width: _status == _Status.failure ? 400 : 200,
               height: _status == _Status.failure ? 400 : 200,

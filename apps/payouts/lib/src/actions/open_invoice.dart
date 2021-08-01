@@ -327,7 +327,7 @@ class InvoicesTable extends StatefulWidget {
 }
 
 class _InvoicesTableState extends State<InvoicesTable> {
-  late List<chicago.TableColumnController> _columns;
+  late List<chicago.TableColumn> _columns;
 
   Widget _renderBillingPeriodCell(
     BuildContext context,
@@ -420,26 +420,26 @@ class _InvoicesTableState extends State<InvoicesTable> {
   @override
   initState() {
     super.initState();
-    _columns = <chicago.TableColumnController>[
-      chicago.TableColumnController(
+    _columns = <chicago.TableColumn>[
+      chicago.TableColumn(
         key: Keys.billingStart,
         width: chicago.ConstrainedTableColumnWidth(width: 150, minWidth: 50),
         cellBuilder: _renderBillingPeriodCell,
         headerBuilder: _renderBillingPeriodHeader,
       ),
-      chicago.TableColumnController(
+      chicago.TableColumn(
         key: Keys.invoiceNumber,
         width: chicago.ConstrainedTableColumnWidth(width: 125, minWidth: 50),
         cellBuilder: _renderInvoiceNumberCell,
         headerBuilder: _renderInvoiceNumberHeader,
       ),
-      chicago.TableColumnController(
+      chicago.TableColumn(
         key: Keys.submitted,
         width: chicago.ConstrainedTableColumnWidth(width: 125, minWidth: 50),
         cellBuilder: _renderSubmittedCell,
         headerBuilder: _renderSubmittedHeader,
       ),
-      chicago.TableColumnController(
+      chicago.TableColumn(
         key: Keys.resubmit,
         width: chicago.FlexTableColumnWidth(),
         cellBuilder: _renderResubmitCell,

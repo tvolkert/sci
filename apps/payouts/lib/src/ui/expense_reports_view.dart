@@ -417,26 +417,26 @@ class _ExpensesTableViewState extends State<ExpensesTableView> {
       sortController: _sortController,
       editorController: _editorController,
       roundColumnWidthsToWholePixel: false,
-      columns: <chicago.TableColumnController>[
-        chicago.TableColumnController(
+      columns: <chicago.TableColumn>[
+        chicago.TableColumn(
           key: 'date',
           width: chicago.ConstrainedTableColumnWidth(width: 120, minWidth: 20),
           cellBuilder: _renderDate,
           headerBuilder: _renderHeader('Date'),
         ),
-        chicago.TableColumnController(
+        chicago.TableColumn(
           key: 'type',
           width: chicago.ConstrainedTableColumnWidth(width: 120, minWidth: 20),
           cellBuilder: _renderType,
           headerBuilder: _renderHeader('Type'),
         ),
-        chicago.TableColumnController(
+        chicago.TableColumn(
           key: 'amount',
           width: chicago.ConstrainedTableColumnWidth(width: 100, minWidth: 20),
           cellBuilder: _renderAmount,
           headerBuilder: _renderHeader('Amount'),
         ),
-        chicago.TableColumnController(
+        chicago.TableColumn(
           key: 'description',
           width: chicago.FlexTableColumnWidth(),
           cellBuilder: _renderDescription,

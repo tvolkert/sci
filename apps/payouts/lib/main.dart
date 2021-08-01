@@ -55,7 +55,7 @@ class PayoutsApp extends StatelessWidget {
         brightness: Brightness.light,
         visualDensity: VisualDensity.compact,
         primaryColor: const Color(0xFFC8C8BB),
-        accentColor: const Color(0xFFF7F5EE),
+        // accentColor: const Color(0xFFF7F5EE),
         scaffoldBackgroundColor: const Color(0xFFF7F5EE),
         fontFamily: 'Dialog',
         textTheme: const TextTheme(
@@ -69,7 +69,7 @@ class PayoutsApp extends StatelessWidget {
         ...WidgetsApp.defaultActions,
         ...defaultActions,
       },
-      shortcuts: <LogicalKeySet, Intent>{
+      shortcuts: <ShortcutActivator, Intent>{
         ...WidgetsApp.defaultShortcuts,
         ...defaultShortcuts,
       },

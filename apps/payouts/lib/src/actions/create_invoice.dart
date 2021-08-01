@@ -317,7 +317,7 @@ class _CreateInvoiceSheetState extends State<CreateInvoiceSheet> {
                               rowDisabledController: _disablerController,
                               onDoubleTapRow: _handleDoubleTapRow,
                               columns: [
-                                chicago.TableColumnController(
+                                chicago.TableColumn(
                                   key: 'billing_period',
                                   cellBuilder: _renderBillingPeriod,
                                 )
