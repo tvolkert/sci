@@ -21,11 +21,11 @@ dependencies:
     sdk: flutter
 
   chicago: any
-  http: any
-  intl: any
-  meta: any
-  numberpicker: any
-  path_provider: any
+  http: '>=0.13.0'
+  intl: '>=0.17.0'
+  meta: '>=1.3.0'
+  numberpicker: '>=2.0.0'
+  path_provider: '>=2.0.0'
 
 dev_dependencies:
   flutter_test:
@@ -34,16 +34,6 @@ dev_dependencies:
 dependency_overrides:
   chicago:
     path: ../../../chicago
-  http:
-    git:
-      url: https://github.com/dart-lang/http.git
-      ref: 7bc620de8b416d8186f0bed75837c09293f597d4
-  http_parser:
-    git:
-      url: https://github.com/dart-lang/http_parser.git
-      ref: 763512ce970c336b3392a1a75d2ccd9508a33896
-  intl: 0.17.0-nullsafety.2
-  meta: 1.3.0-nullsafety.6
 
 # For information on the generic Dart part of this file, see the
 # following page: https://www.dartlang.org/tools/pub/pubspec
