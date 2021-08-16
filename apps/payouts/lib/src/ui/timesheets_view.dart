@@ -37,10 +37,9 @@ class _RawTimesheetsView extends StatefulWidget {
 class _RawTimesheetsViewState extends State<_RawTimesheetsView> {
   late InvoiceListener _listener;
   late List<_TimesheetRow> _timesheetRows;
+  late FocusNode _focusNode;
 
-  _TimesheetRow _buildTimesheetRow(Timesheet timesheet) {
-    return _TimesheetRow(timesheet: timesheet);
-  }
+  _TimesheetRow _buildTimesheetRow(Timesheet timesheet) => _TimesheetRow(timesheet: timesheet);
 
   void _initTimesheetRows() {
     setState(() {
@@ -64,6 +63,26 @@ class _RawTimesheetsViewState extends State<_RawTimesheetsView> {
     });
   }
 
+  void _handleRawKeyEvent(RawKeyEvent event) {
+    if (event is RawKeyDownEvent) {
+      if (event.logicalKey == LogicalKeyboardKey.arrowUp) {
+        _traverseFocus(TraversalDirection.up);
+      } else if (event.logicalKey == LogicalKeyboardKey.arrowDown) {
+        _traverseFocus(TraversalDirection.down);
+      } else if (event.logicalKey == LogicalKeyboardKey.arrowLeft) {
+        _traverseFocus(TraversalDirection.left);
+      } else if (event.logicalKey == LogicalKeyboardKey.arrowRight) {
+        _traverseFocus(TraversalDirection.right);
+      }
+    }
+  }
+
+  void _traverseFocus(TraversalDirection direction) {
+    final FocusNode? primaryFocus = FocusManager.instance.primaryFocus;
+    assert(primaryFocus != null);
+    primaryFocus!.focusInDirection(direction);
+  }
+
   Invoice get invoice => InvoiceBinding.instance!.invoice!;
 
   @override
@@ -76,11 +95,13 @@ class _RawTimesheetsViewState extends State<_RawTimesheetsView> {
     );
     InvoiceBinding.instance!.addListener(_listener);
     _initTimesheetRows();
+    _focusNode = FocusNode(canRequestFocus: false);
   }
 
   @override
   void dispose() {
     InvoiceBinding.instance!.removeListener(_listener);
+    _focusNode.dispose();
     super.dispose();
   }
 
@@ -105,35 +126,42 @@ class _RawTimesheetsViewState extends State<_RawTimesheetsView> {
               horizontalScrollBarPolicy: chicago.ScrollBarPolicy.expand,
               view: Padding(
                 padding: const EdgeInsets.only(left: 20, right: 25),
-                child: chicago.TablePane(
-                  horizontalIntrinsicSize: MainAxisSize.min,
-                  horizontalSpacing: 1,
-                  verticalSpacing: 1,
-                  columns: const <chicago.TablePaneColumn>[
-                    chicago.TablePaneColumn(width: chicago.IntrinsicTablePaneColumnWidth()),
-                    chicago.TablePaneColumn(width: chicago.FixedTablePaneColumnWidth(32)),
-                    chicago.TablePaneColumn(width: chicago.FixedTablePaneColumnWidth(32)),
-                    chicago.TablePaneColumn(width: chicago.FixedTablePaneColumnWidth(32)),
-                    chicago.TablePaneColumn(width: chicago.FixedTablePaneColumnWidth(32)),
-                    chicago.TablePaneColumn(width: chicago.FixedTablePaneColumnWidth(32)),
-                    chicago.TablePaneColumn(width: chicago.FixedTablePaneColumnWidth(32)),
-                    chicago.TablePaneColumn(width: chicago.FixedTablePaneColumnWidth(32)),
-                    chicago.TablePaneColumn(width: chicago.FixedTablePaneColumnWidth(32)),
-                    chicago.TablePaneColumn(width: chicago.FixedTablePaneColumnWidth(32)),
-                    chicago.TablePaneColumn(width: chicago.FixedTablePaneColumnWidth(32)),
-                    chicago.TablePaneColumn(width: chicago.FixedTablePaneColumnWidth(32)),
-                    chicago.TablePaneColumn(width: chicago.FixedTablePaneColumnWidth(32)),
-                    chicago.TablePaneColumn(width: chicago.FixedTablePaneColumnWidth(32)),
-                    chicago.TablePaneColumn(width: chicago.FixedTablePaneColumnWidth(32)),
-                    chicago.TablePaneColumn(width: chicago.IntrinsicTablePaneColumnWidth()),
-                    chicago.TablePaneColumn(width: chicago.RelativeTablePaneColumnWidth()),
-                  ],
-                  children: <Widget>[
-                    const _HeaderRow(),
-                    ..._timesheetRows,
-                    const _DividerRow(),
-                    const _FooterRow(),
-                  ],
+                child: RawKeyboardListener(
+                  focusNode: _focusNode,
+                  onKey: _handleRawKeyEvent,
+                  child: FocusTraversalGroup(
+                    policy: _TimesheetTraversalPolicy(),
+                    child: chicago.TablePane(
+                      horizontalIntrinsicSize: MainAxisSize.min,
+                      horizontalSpacing: 1,
+                      verticalSpacing: 1,
+                      columns: const <chicago.TablePaneColumn>[
+                        chicago.TablePaneColumn(width: chicago.IntrinsicTablePaneColumnWidth()),
+                        chicago.TablePaneColumn(width: chicago.FixedTablePaneColumnWidth(32)),
+                        chicago.TablePaneColumn(width: chicago.FixedTablePaneColumnWidth(32)),
+                        chicago.TablePaneColumn(width: chicago.FixedTablePaneColumnWidth(32)),
+                        chicago.TablePaneColumn(width: chicago.FixedTablePaneColumnWidth(32)),
+                        chicago.TablePaneColumn(width: chicago.FixedTablePaneColumnWidth(32)),
+                        chicago.TablePaneColumn(width: chicago.FixedTablePaneColumnWidth(32)),
+                        chicago.TablePaneColumn(width: chicago.FixedTablePaneColumnWidth(32)),
+                        chicago.TablePaneColumn(width: chicago.FixedTablePaneColumnWidth(32)),
+                        chicago.TablePaneColumn(width: chicago.FixedTablePaneColumnWidth(32)),
+                        chicago.TablePaneColumn(width: chicago.FixedTablePaneColumnWidth(32)),
+                        chicago.TablePaneColumn(width: chicago.FixedTablePaneColumnWidth(32)),
+                        chicago.TablePaneColumn(width: chicago.FixedTablePaneColumnWidth(32)),
+                        chicago.TablePaneColumn(width: chicago.FixedTablePaneColumnWidth(32)),
+                        chicago.TablePaneColumn(width: chicago.FixedTablePaneColumnWidth(32)),
+                        chicago.TablePaneColumn(width: chicago.IntrinsicTablePaneColumnWidth()),
+                        chicago.TablePaneColumn(width: chicago.RelativeTablePaneColumnWidth()),
+                      ],
+                      children: <Widget>[
+                        const _HeaderRow(),
+                        ..._timesheetRows,
+                        const _DividerRow(),
+                        const _FooterRow(),
+                      ],
+                    ),
+                  ),
                 ),
               ),
             ),
@@ -141,6 +169,64 @@ class _RawTimesheetsViewState extends State<_RawTimesheetsView> {
         ],
       ),
     );
+  }
+}
+
+class _TimesheetTraversalPolicy extends WidgetOrderTraversalPolicy {
+  _TimesheetTraversalPolicy({this.fallthrough = false});
+
+  final bool fallthrough;
+
+  @override
+  bool inDirection(FocusNode focus, TraversalDirection direction) {
+    final Timesheet timesheet = _TimesheetRow.of(focus.context!);
+    int row = timesheet.index;
+    _HoursInputState? hoursInputState = _HoursInput.of(focus.context!);
+    int column = hoursInputState?.widget.hoursIndex ?? -1;
+    chicago.IndexedOffset offset = chicago.TablePane.offsetOf(focus.context!)!;
+    chicago.IndexedOffset adjustment = chicago.IndexedOffset(offset.rowIndex - row, offset.columnIndex - column);
+    switch (direction) {
+      case TraversalDirection.up:
+        row--;
+        break;
+      case TraversalDirection.down:
+        row++;
+        break;
+      case TraversalDirection.left:
+        column--;
+        break;
+      case TraversalDirection.right:
+        column++;
+        break;
+    }
+    if (row < 0 ||
+        row >= InvoiceBinding.instance!.invoice!.timesheets.length ||
+        column < 0 ||
+        column >= timesheet.hours.length) {
+      return fallthrough ? super.inDirection(focus, direction) : false;
+    }
+    chicago.IndexedOffset newOffset = chicago.IndexedOffset(row + adjustment.rowIndex, column + adjustment.columnIndex);
+    chicago.TablePaneElement tablePaneElement = chicago.TablePane.of(focus.context!)!;
+    _TimesheetRowElement rowElement = _childAt(tablePaneElement, newOffset.rowIndex) as _TimesheetRowElement;
+    _TimesheetScopeElement timesheetScopeElement = rowElement._child as _TimesheetScopeElement;
+    chicago.TableRowElement tableRowElement = timesheetScopeElement._child as chicago.TableRowElement;
+    StatefulElement hoursElement = _childAt(tableRowElement, newOffset.columnIndex) as StatefulElement;
+    _HoursInputState hoursState = hoursElement.state as _HoursInputState;
+    hoursState._focusNode.requestFocus();
+    return true;
+  }
+
+  static Element? _childAt(Element parent, int index) {
+    Element? result;
+    int i = -1;
+    parent.visitChildren((Element element) {
+      i++;
+      if (i == index) {
+        assert(result == null);
+        result = element;
+      }
+    });
+    return result;
   }
 }
 
@@ -197,11 +283,17 @@ class _HoursInput extends StatefulWidget {
 
   @override
   _HoursInputState createState() => _HoursInputState();
+
+  static _HoursInputState? of(BuildContext context) {
+    _HoursInputScope? scope = context.dependOnInheritedWidgetOfExactType<_HoursInputScope>();
+    return scope == null ? null : scope.state;
+  }
 }
 
 class _HoursInputState extends State<_HoursInput> {
   late TextEditingController _controller;
   late TextEditingValue _lastValidValue;
+  late FocusNode _focusNode;
 
   void _handleEdit() {
     final String text = _controller.text;
@@ -243,10 +335,17 @@ class _HoursInputState extends State<_HoursInput> {
     _controller = TextEditingController(text: text);
     _controller.addListener(_handleEdit);
     _lastValidValue = _controller.value;
+    _focusNode = FocusNode(descendantsAreFocusable: false);
+    _focusNode.addListener(() {
+      if (_focusNode.hasFocus) {
+        _controller.selection = TextSelection(baseOffset: 0, extentOffset: _controller.text.length);
+      }
+    });
   }
 
   @override
   void dispose() {
+    _focusNode.dispose();
     _controller.removeListener(_handleEdit);
     _controller.dispose();
     super.dispose();
@@ -264,11 +363,33 @@ class _HoursInputState extends State<_HoursInput> {
 
   @override
   Widget build(BuildContext context) {
-    return chicago.TextInput(
-      controller: _controller,
-      backgroundColor: widget.isWeekend ? const Color(0xffdddcd5) : const Color(0xffffffff),
-      enabled: widget.enabled,
+    return _HoursInputScope(
+      state: this,
+      updateCount: 0, // TODO
+      child: chicago.TextInput(
+        controller: _controller,
+        focusNode: _focusNode,
+        backgroundColor: widget.isWeekend ? const Color(0xffdddcd5) : const Color(0xffffffff),
+        enabled: widget.enabled,
+      ),
     );
+  }
+}
+
+class _HoursInputScope extends InheritedWidget {
+  const _HoursInputScope({
+    Key? key,
+    required this.state,
+    required this.updateCount,
+    required Widget child,
+  }) : super(key: key, child: child);
+
+  final _HoursInputState state;
+  final int updateCount;
+
+  @override
+  bool updateShouldNotify(_HoursInputScope old) {
+    return updateCount != old.updateCount;
   }
 }
 
@@ -281,11 +402,25 @@ class _TimesheetRow extends StatefulWidget {
   final Timesheet timesheet;
 
   @override
+  StatefulElement createElement() => _TimesheetRowElement(this);
+
+  @override
   State<StatefulWidget> createState() => _TimesheetRowState();
 
   static Timesheet of(BuildContext context) {
     _TimesheetScope scope = context.dependOnInheritedWidgetOfExactType<_TimesheetScope>()!;
     return scope.state.widget.timesheet;
+  }
+}
+
+class _TimesheetRowElement extends StatefulElement {
+  _TimesheetRowElement(StatefulWidget widget) : super(widget);
+
+  Element? _child;
+
+  @override
+  Element? updateChild(Element? child, Widget? newWidget, Object? newSlot) {
+    return _child = super.updateChild(child, newWidget, newSlot);
   }
 }
 
@@ -389,8 +524,22 @@ class _TimesheetScope extends InheritedWidget {
   final int updateCount;
 
   @override
+  InheritedElement createElement() => _TimesheetScopeElement(this);
+
+  @override
   bool updateShouldNotify(_TimesheetScope old) {
     return updateCount != old.updateCount;
+  }
+}
+
+class _TimesheetScopeElement extends InheritedElement {
+  _TimesheetScopeElement(InheritedWidget widget) : super(widget);
+
+  Element? _child;
+
+  @override
+  Element? updateChild(Element? child, Widget? newWidget, Object? newSlot) {
+    return _child = super.updateChild(child, newWidget, newSlot);
   }
 }
 
