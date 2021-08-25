@@ -34,10 +34,13 @@ class _RawTimesheetsView extends StatefulWidget {
   _RawTimesheetsViewState createState() => _RawTimesheetsViewState();
 }
 
+
 class _RawTimesheetsViewState extends State<_RawTimesheetsView> {
   late InvoiceListener _listener;
   late List<_TimesheetRow> _timesheetRows;
   late FocusNode _focusNode;
+
+  static final GlobalKey _key = GlobalKey();
 
   _TimesheetRow _buildTimesheetRow(Timesheet timesheet) => _TimesheetRow(timesheet: timesheet);
 
@@ -130,8 +133,9 @@ class _RawTimesheetsViewState extends State<_RawTimesheetsView> {
                   focusNode: _focusNode,
                   onKey: _handleRawKeyEvent,
                   child: FocusTraversalGroup(
-                    policy: _TimesheetTraversalPolicy(),
+                    policy: _TimesheetTraversalPolicy(key: _key),
                     child: chicago.TablePane(
+                      key: _key,
                       horizontalIntrinsicSize: MainAxisSize.min,
                       horizontalSpacing: 1,
                       verticalSpacing: 1,
@@ -172,49 +176,13 @@ class _RawTimesheetsViewState extends State<_RawTimesheetsView> {
   }
 }
 
-class _TimesheetTraversalPolicy extends WidgetOrderTraversalPolicy {
-  _TimesheetTraversalPolicy({this.fallthrough = false});
+class _TimesheetTraversalPolicy extends FocusTraversalPolicy {
+  const _TimesheetTraversalPolicy({required this.key});
 
-  final bool fallthrough;
+  final GlobalKey key;
 
-  @override
-  bool inDirection(FocusNode focus, TraversalDirection direction) {
-    final Timesheet timesheet = _TimesheetRow.of(focus.context!);
-    int row = timesheet.index;
-    _HoursInputState? hoursInputState = _HoursInput.of(focus.context!);
-    int column = hoursInputState?.widget.hoursIndex ?? -1;
-    chicago.IndexedOffset offset = chicago.TablePane.offsetOf(focus.context!)!;
-    chicago.IndexedOffset adjustment = chicago.IndexedOffset(offset.rowIndex - row, offset.columnIndex - column);
-    switch (direction) {
-      case TraversalDirection.up:
-        row--;
-        break;
-      case TraversalDirection.down:
-        row++;
-        break;
-      case TraversalDirection.left:
-        column--;
-        break;
-      case TraversalDirection.right:
-        column++;
-        break;
-    }
-    if (row < 0 ||
-        row >= InvoiceBinding.instance!.invoice!.timesheets.length ||
-        column < 0 ||
-        column >= timesheet.hours.length) {
-      return fallthrough ? super.inDirection(focus, direction) : false;
-    }
-    chicago.IndexedOffset newOffset = chicago.IndexedOffset(row + adjustment.rowIndex, column + adjustment.columnIndex);
-    chicago.TablePaneElement tablePaneElement = chicago.TablePane.of(focus.context!)!;
-    _TimesheetRowElement rowElement = _childAt(tablePaneElement, newOffset.rowIndex) as _TimesheetRowElement;
-    _TimesheetScopeElement timesheetScopeElement = rowElement._child as _TimesheetScopeElement;
-    chicago.TableRowElement tableRowElement = timesheetScopeElement._child as chicago.TableRowElement;
-    StatefulElement hoursElement = _childAt(tableRowElement, newOffset.columnIndex) as StatefulElement;
-    _HoursInputState hoursState = hoursElement.state as _HoursInputState;
-    hoursState._focusNode.requestFocus();
-    return true;
-  }
+  static const int rowOffset = 1;
+  static const int columnOffset = 1;
 
   static Element? _childAt(Element parent, int index) {
     Element? result;
@@ -227,6 +195,84 @@ class _TimesheetTraversalPolicy extends WidgetOrderTraversalPolicy {
       }
     });
     return result;
+  }
+
+  FocusNode? findFocusAtLocation(int timesheetIndex, int hoursIndex) {
+    if (key.currentContext == null) {
+      return null;
+    }
+    assert(timesheetIndex >= 0);
+    assert(hoursIndex >= 0);
+    final Invoice invoice = InvoiceBinding.instance!.invoice!;
+    if (timesheetIndex >= invoice.timesheets.length ||
+        hoursIndex >= invoice.timesheets[timesheetIndex].hours.length) {
+      return null;
+    }
+    final chicago.TablePaneElement tablePaneElement = chicago.TablePane.of(key.currentContext!)!;
+    final _TimesheetRowElement timesheetRowElement = _childAt(tablePaneElement, timesheetIndex + rowOffset) as _TimesheetRowElement;
+    final _TimesheetScopeElement timesheetScopeElement = timesheetRowElement._child as _TimesheetScopeElement;
+    final chicago.TableRowElement tableRowElement = timesheetScopeElement._child as chicago.TableRowElement;
+    final StatefulElement hoursElement = _childAt(tableRowElement, hoursIndex + columnOffset) as StatefulElement;
+    final _HoursInputState hoursState = hoursElement.state as _HoursInputState;
+    return hoursState._focusNode;
+  }
+
+  @override
+  bool inDirection(FocusNode focus, TraversalDirection direction) {
+    final BuildContext? focusContext = focus.context;
+    if (focusContext == null) {
+      return false;
+    }
+    final Timesheet? timesheet = _TimesheetRow.of(focusContext);
+    if (timesheet == null) {
+      return false;
+    }
+    int timesheetIndex = timesheet.index;
+    _HoursInputState? hoursInputState = _HoursInput.of(focusContext);
+    int hoursIndex = hoursInputState?.widget.hoursIndex ?? -1;
+    switch (direction) {
+      case TraversalDirection.up:
+        timesheetIndex--;
+        break;
+      case TraversalDirection.down:
+        timesheetIndex++;
+        break;
+      case TraversalDirection.left:
+        hoursIndex--;
+        break;
+      case TraversalDirection.right:
+        hoursIndex++;
+        break;
+    }
+    if (timesheetIndex < 0 || hoursIndex < 0) {
+      return false;
+    }
+    final FocusNode? newFocusNode = findFocusAtLocation(timesheetIndex, hoursIndex);
+    if (newFocusNode == null) {
+      return false;
+    }
+    newFocusNode.requestFocus();
+    return true;
+  }
+
+  @override
+  FocusNode? findFirstFocusInDirection(FocusNode currentNode, TraversalDirection direction) {
+    switch (direction) {
+      case TraversalDirection.up:
+      case TraversalDirection.left:
+        final Invoice invoice = InvoiceBinding.instance!.invoice!;
+        final int timesheetIndex = invoice.timesheets.length - 1;
+        final int hoursIndex = invoice.timesheets[timesheetIndex].hours.length - 1;
+        return findFocusAtLocation(timesheetIndex, hoursIndex);
+      case TraversalDirection.down:
+      case TraversalDirection.right:
+        return findFocusAtLocation(0, 0);
+    }
+  }
+
+  @override
+  Iterable<FocusNode> sortDescendants(Iterable<FocusNode> descendants, FocusNode currentNode) {
+    return descendants;
   }
 }
 
@@ -407,9 +453,9 @@ class _TimesheetRow extends StatefulWidget {
   @override
   State<StatefulWidget> createState() => _TimesheetRowState();
 
-  static Timesheet of(BuildContext context) {
-    _TimesheetScope scope = context.dependOnInheritedWidgetOfExactType<_TimesheetScope>()!;
-    return scope.state.widget.timesheet;
+  static Timesheet? of(BuildContext context) {
+    _TimesheetScope? scope = context.dependOnInheritedWidgetOfExactType<_TimesheetScope>();
+    return scope?.state.widget.timesheet;
   }
 }
 
@@ -547,7 +593,7 @@ class _TimesheetHeader extends StatelessWidget {
   const _TimesheetHeader({Key? key}) : super(key: key);
 
   static Widget _buildHeader(BuildContext context, bool hover) {
-    final Timesheet timesheet = _TimesheetRow.of(context);
+    final Timesheet timesheet = _TimesheetRow.of(context)!;
     return Row(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       textBaseline: TextBaseline.alphabetic,
@@ -561,24 +607,34 @@ class _TimesheetHeader extends StatelessWidget {
             ),
           ),
         ),
-        Opacity(
-          opacity: hover ? 1 : 0,
-          child: chicago.ActionPushButton(
-            intent: EditTimesheetIntent(timesheet),
-            padding: const EdgeInsets.fromLTRB(4, 3, 0, 3),
-            icon: 'assets/pencil.png',
-            showTooltip: false,
-            isToolbar: true,
+        SizedBox(
+          width: 24,
+          height: 24,
+          child: Opacity(
+            opacity: hover ? 1 : 0,
+            child: chicago.ActionPushButton(
+              intent: EditTimesheetIntent(timesheet),
+              padding: const EdgeInsets.fromLTRB(4, 3, 0, 3),
+              icon: 'assets/pencil.png',
+              showTooltip: false,
+              isToolbar: true,
+              isFocusable: false,
+            ),
           ),
         ),
-        Opacity(
-          opacity: hover ? 1 : 0,
-          child: chicago.ActionPushButton(
-            intent: DeleteTimesheetIntent(timesheet),
-            padding: const EdgeInsets.fromLTRB(4, 3, 0, 3),
-            icon: 'assets/cross.png',
-            showTooltip: false,
-            isToolbar: true,
+        SizedBox(
+          width: 24,
+          height: 24,
+          child: Opacity(
+            opacity: hover ? 1 : 0,
+            child: chicago.ActionPushButton(
+              intent: DeleteTimesheetIntent(timesheet),
+              padding: const EdgeInsets.fromLTRB(4, 3, 0, 3),
+              icon: 'assets/cross.png',
+              showTooltip: false,
+              isToolbar: true,
+              isFocusable: false,
+            ),
           ),
         ),
         const SizedBox(width: 1),
@@ -599,7 +655,7 @@ class _TimesheetFooter extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final Timesheet timesheet = _TimesheetRow.of(context);
+    final Timesheet timesheet = _TimesheetRow.of(context)!;
     final StringBuffer summary = StringBuffer()
       ..writeAll(<String>[
         '${NumberFormats.maybeDecimal.format(timesheet.totalHours)} hrs',
