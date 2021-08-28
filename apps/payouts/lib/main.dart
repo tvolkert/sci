@@ -6,6 +6,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 
 import 'package:payouts/src/actions.dart';
+import 'package:payouts/src/model/localizations.dart';
 import 'package:payouts/src/model/debug.dart';
 import 'package:payouts/src/model/payouts.dart';
 import 'package:payouts/src/ui/asset_image_precache.dart';
@@ -51,6 +52,9 @@ class PayoutsApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Payouts',
+      localizationsDelegates: <LocalizationsDelegate<dynamic>>[
+        DefaultPayoutsLocalizations.delegate,
+      ],
       theme: ThemeData(
         brightness: Brightness.light,
         visualDensity: VisualDensity.compact,
