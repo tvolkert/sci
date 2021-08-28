@@ -12,7 +12,8 @@ class PayoutsBinding extends AppBindingBase
         HttpBinding,
         UserBinding,
         InvoiceBinding,
-        AssignmentsBinding {
+        AssignmentsBinding,
+        ExpenseTypesBinding {
   /// Creates and initializes the application binding if necessary.
   ///
   /// Applications should call this method before calling [runApp].

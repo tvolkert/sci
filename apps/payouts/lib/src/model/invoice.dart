@@ -108,6 +108,39 @@ mixin AssignmentsBinding on AppBindingBase, UserBinding {
   }
 }
 
+mixin ExpenseTypesBinding on AppBindingBase, UserBinding {
+  @override
+  void initInstances() {
+    super.initInstances();
+    _instance = this;
+    addPostLoginCallback(_loadExpenseTypes);
+  }
+
+  /// The singleton instance of this object.
+  static ExpenseTypesBinding? _instance;
+  static ExpenseTypesBinding? get instance => _instance;
+
+  List<ExpenseType>? _expenseTypes;
+  List<ExpenseType>? get expenseTypes => _expenseTypes;
+
+  Future<void> _loadExpenseTypes() async {
+    final Uri url = Server.uri(Server.expenseTypesUrl);
+    final http.Response response =
+        await UserBinding.instance!.user!.authenticate().get(url).timeout(httpTimeout);
+    if (response.statusCode == HttpStatus.ok) {
+      final List<dynamic> rawData = json.decode(response.body);
+      _expenseTypes = rawData
+          .cast<Map<String, dynamic>>()
+          .map<ExpenseType>((Map<String, dynamic> data) => ExpenseType._(data))
+          .toList(growable: false);
+    } else if (response.statusCode == HttpStatus.forbidden) {
+      throw const InvalidCredentials();
+    } else {
+      throw HttpStatusException(response.statusCode);
+    }
+  }
+}
+
 @immutable
 class NewInvoiceProperties {
   const NewInvoiceProperties({
@@ -1186,7 +1219,7 @@ class ExpenseReport implements ExpenseReportMetadata {
   Invoice get invoice => _owner;
 
   /// The index of this expense report in the list of expense reports.
-  int get _index => _owner.expenseReports._data.indexOf(this);
+  int get index => _owner.expenseReports._data.indexOf(this);
 
   double? _total;
   double get total {
@@ -1263,6 +1296,20 @@ class ExpenseMetadata {
   final ExpenseType type;
   final double amount;
   final String description;
+
+  ExpenseMetadata copyWith({
+    DateTime? date,
+    ExpenseType? type,
+    double? amount,
+    String? description,
+  }) {
+    return ExpenseMetadata(
+      date: date ?? this.date,
+      type: type ?? this.type,
+      amount: amount ?? this.amount,
+      description: description ?? this.description,
+    );
+  }
 }
 
 /// The list of expenses in an expense report within an invoice.
@@ -1311,7 +1358,7 @@ class Expenses with ForwardingIterable<Expense>, DisallowCollectionConversion<Ex
       description: entry.description,
     );
     _data.insert(insertIndex, expense);
-    _owner._owner.onExpenseInserted(_parent._index, insertIndex);
+    _owner._owner.onExpenseInserted(_parent.index, insertIndex);
     _owner._setIsDirty(true);
     _parent.total = previousTotal + entry.amount;
     return expense;
@@ -1323,7 +1370,7 @@ class Expenses with ForwardingIterable<Expense>, DisallowCollectionConversion<Ex
     // lazy total calculation before removing the expense from _data.
     final double previousTotal = _parent.total;
     final Expense removed = _data.removeAt(index);
-    _owner._owner.onExpensesRemoved(_parent._index, index, <Expense>[removed]);
+    _owner._owner.onExpensesRemoved(_parent.index, index, <Expense>[removed]);
     _owner._setIsDirty(true);
     _parent.total = previousTotal - removed.amount;
     return removed;
@@ -1336,6 +1383,13 @@ class Expenses with ForwardingIterable<Expense>, DisallowCollectionConversion<Ex
         removeAt(i);
       }
     }
+  }
+
+  void sort(int compare(Expense a, Expense b)) {
+    _owner._checkDisposed();
+    _data.sort(compare);
+    // No need to notify listeners or mark dirty since nothing substantively
+    // changed about the invoice (the caller is responsible for updating UI).
   }
 }
 
@@ -1355,8 +1409,8 @@ class Expense implements ExpenseMetadata {
     required String description,
   }) {
     return Expense._(owner, parent, <String, dynamic>{
-      Keys.date: date,
-      Keys.expenseType: type,
+      Keys.date: DateFormats.iso8601Short.format(date),
+      Keys.expenseType: type._data,
       Keys.amount: amount,
       Keys.description: description,
       Keys.ordinal: 0, // TODO: monotonically increasing value
@@ -1367,7 +1421,8 @@ class Expense implements ExpenseMetadata {
   final ExpenseReport _parent;
   final Map<String, dynamic> _data;
 
-  int get _index => _parent.expenses._data.indexOf(this);
+  /// The index of this expense in the list of expenses.
+  int get index => _parent.expenses._data.indexOf(this);
 
   DateTime? _date;
 
@@ -1385,8 +1440,9 @@ class Expense implements ExpenseMetadata {
     _owner._checkDisposed();
     DateTime previousValue = date;
     if (value != previousValue) {
-      _data[Keys.date] = value;
-      _owner._owner.onExpenseUpdated(_parent._index, _index, Keys.date, previousValue);
+      _date = null;
+      _data[Keys.date] = DateFormats.iso8601Short.format(value);
+      _owner._owner.onExpenseUpdated(_parent.index, index, Keys.date, previousValue);
       _owner._setIsDirty(true);
     }
   }
@@ -1407,8 +1463,9 @@ class Expense implements ExpenseMetadata {
     _owner._checkDisposed();
     ExpenseType previousValue = type;
     if (value != previousValue) {
-      _data[Keys.expenseType] = value;
-      _owner._owner.onExpenseUpdated(_parent._index, _index, Keys.expenseType, previousValue);
+      _type = null;
+      _data[Keys.expenseType] = value._data;
+      _owner._owner.onExpenseUpdated(_parent.index, index, Keys.expenseType, previousValue);
       _owner._setIsDirty(true);
     }
   }
@@ -1428,7 +1485,7 @@ class Expense implements ExpenseMetadata {
       // lazy total calculation before updating the amount.
       final double previousTotal = _parent.total;
       _data[Keys.amount] = value;
-      _owner._owner.onExpenseUpdated(_parent._index, _index, Keys.amount, previousAmount);
+      _owner._owner.onExpenseUpdated(_parent.index, index, Keys.amount, previousAmount);
       _owner._setIsDirty(true);
       _parent.total = previousTotal + (value - previousAmount);
     }
@@ -1446,20 +1503,37 @@ class Expense implements ExpenseMetadata {
     String previousValue = description;
     if (value != previousValue) {
       _data[Keys.description] = value;
-      _owner._owner.onExpenseUpdated(_parent._index, _index, Keys.description, previousValue);
+      _owner._owner.onExpenseUpdated(_parent.index, index, Keys.description, previousValue);
       _owner._setIsDirty(true);
     }
   }
 
   /// The order in which the expense was originally added.
   int get ordinal => _owner._checkDisposed(() => _data[Keys.ordinal])!;
+
+  @override
+  ExpenseMetadata copyWith({
+    DateTime? date,
+    ExpenseType? type,
+    double? amount,
+    String? description,
+  }) {
+    return Expense._fromParts(
+      owner: _owner,
+      parent: _parent,
+      date: date ?? this.date,
+      type: type ?? this.type,
+      amount: amount ?? this.amount,
+      description: description ?? this.description,
+    );
+  }
 }
 
 /// Class representing the type of an expense line item.
 ///
 /// This is the value of the [Expense.type] member.
 @immutable
-class ExpenseType {
+class ExpenseType implements Comparable<ExpenseType> {
   const ExpenseType._(this._data);
 
   final Map<String, dynamic> _data;
@@ -1497,7 +1571,7 @@ class ExpenseType {
   int get depth => _data[Keys.depth];
 
   /// Administrative comment about the expense type.
-  String get comment => _data[Keys.comment];
+  String? get comment => _data[Keys.comment];
 
   @override
   int get hashCode => expenseTypeId.hashCode;
@@ -1506,6 +1580,11 @@ class ExpenseType {
   bool operator ==(Object other) {
     if (identical(this, other)) return true;
     return other is ExpenseType && other.expenseTypeId == expenseTypeId;
+  }
+
+  @override
+  int compareTo(ExpenseType other) {
+    return name.compareTo(other.name);
   }
 }
 
@@ -1573,7 +1652,7 @@ class Accomplishment {
   final Map<String, dynamic> _data;
 
   /// The index of this accomplishment in the list of accomplishments.
-  int get _index => _owner.accomplishments._data.indexOf(this);
+  int get index => _owner.accomplishments._data.indexOf(this);
 
   /// The program (assignment) against which this accomplishment is to be
   /// recorded.
@@ -1589,7 +1668,7 @@ class Accomplishment {
     String previousValue = description;
     if (value != previousValue) {
       _data[Keys.description] = value;
-      _owner._owner.onAccomplishmentTextUpdated(_index, previousValue);
+      _owner._owner.onAccomplishmentTextUpdated(index, previousValue);
       _owner._setIsDirty(true);
     }
   }
