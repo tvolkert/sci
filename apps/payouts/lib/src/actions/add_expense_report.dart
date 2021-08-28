@@ -79,14 +79,14 @@ class AddExpenseReportSheetState extends InvoiceEntryEditorState<AddExpenseRepor
   late chicago.CalendarSelectionController _toDateController;
   late chicago.CalendarDate _lastAvailableDay;
 
-  void _handleFromDateChanged(chicago.CalendarDate date) {
-    if (date > _toDateController.value!) {
+  void _handleFromDateChanged(chicago.CalendarDate? date) {
+    if (date! > _toDateController.value!) {
       _toDateController.value = date;
     }
   }
 
-  void _handleToDateChanged(chicago.CalendarDate date) {
-    if (date < _fromDateController.value!) {
+  void _handleToDateChanged(chicago.CalendarDate? date) {
+    if (date! < _fromDateController.value!) {
       _fromDateController.value = date;
     }
   }

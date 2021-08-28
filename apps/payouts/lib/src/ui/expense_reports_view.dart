@@ -1,14 +1,21 @@
-import 'package:chicago/chicago.dart' as chicago;
-import 'package:flutter/material.dart';
+import 'package:chicago/chicago.dart';
+import 'package:flutter/material.dart' show Divider, Theme;
 import 'package:flutter/rendering.dart';
-import 'package:flutter/widgets.dart';
+import 'package:flutter/scheduler.dart';
+import 'package:flutter/services.dart' hide TextInput;
+import 'package:flutter/widgets.dart' hide TableRow;
 
 import 'package:payouts/src/actions.dart';
 import 'package:payouts/src/model/constants.dart';
 import 'package:payouts/src/model/invoice.dart';
+import 'package:payouts/src/model/track_expense_report_mixin.dart';
 import 'package:payouts/src/model/track_expense_reports_mixin.dart';
+import 'package:payouts/src/widgets/expense_type_list_button.dart';
+import 'package:payouts/src/widgets/text_input_validators.dart';
 
 class ExpenseReportsView extends StatelessWidget {
+  const ExpenseReportsView();
+
   @override
   Widget build(BuildContext context) {
     return Actions(
@@ -30,7 +37,7 @@ class _RawExpenseReportsView extends StatefulWidget {
 
 class _RawExpenseReportsViewState extends State<_RawExpenseReportsView>
     with TrackExpenseReportsMixin {
-  late chicago.ListViewSelectionController _selectionController;
+  late ListViewSelectionController _selectionController;
   ExpenseReports? _expenseReports;
   ExpenseReport? _selectedExpenseReport;
 
@@ -81,7 +88,7 @@ class _RawExpenseReportsViewState extends State<_RawExpenseReportsView>
   void initState() {
     super.initState();
     initInstance();
-    _selectionController = chicago.ListViewSelectionController();
+    _selectionController = ListViewSelectionController();
     _expenseReports = this.expenseReports;
     _selectionController.selectedIndex = _expenseReports == null ? -1 : 0;
     if (_expenseReports != null) {
@@ -105,7 +112,7 @@ class _RawExpenseReportsViewState extends State<_RawExpenseReportsView>
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: <Widget>[
-          chicago.ActionLinkButton(
+          ActionLinkButton(
             image: AssetImage('assets/money_add.png'),
             text: 'Add expense report',
             intent: AddExpenseReportIntent(context: context),
@@ -133,18 +140,18 @@ class _ExpenseReportContainer extends StatelessWidget {
 
   final ExpenseReports? expenseReports;
   final ExpenseReport? selectedExpenseReport;
-  final chicago.ListViewSelectionController selectionController;
+  final ListViewSelectionController selectionController;
 
   @override
   Widget build(BuildContext context) {
     if (expenseReports == null) {
       return Container();
     } else {
-      return chicago.SplitPane(
+      return SplitPane(
         orientation: Axis.horizontal,
         initialSplitRatio: 0.25,
         roundToWholePixel: true,
-        resizePolicy: chicago.SplitPaneResizePolicy.maintainBeforeSplitSize,
+        resizePolicy: SplitPaneResizePolicy.maintainBeforeSplitSize,
         before: ExpenseReportsListView(
           expenseReports: expenseReports!,
           selectionController: selectionController,
@@ -153,15 +160,15 @@ class _ExpenseReportContainer extends StatelessWidget {
           decoration: BoxDecoration(border: Border.all(color: Color(0xFF999999))),
           child: selectedExpenseReport == null
               ? Container()
-              : _ExpenseReportView(expenseReport: selectedExpenseReport!),
+              : ExpenseReportView(expenseReport: selectedExpenseReport!),
         ),
       );
     }
   }
 }
 
-class _ExpenseReportView extends StatelessWidget {
-  const _ExpenseReportView({
+class ExpenseReportView extends StatelessWidget {
+  const ExpenseReportView({
     Key? key,
     required this.expenseReport,
   }) : super(key: key);
@@ -185,9 +192,9 @@ class _ExpenseReportView extends StatelessWidget {
 
   String _buildDateRangeDisplay(DateRange dateRange) {
     StringBuffer buf = StringBuffer()
-      ..write(chicago.CalendarDateFormat.iso8601.formatDateTime(dateRange.start))
+      ..write(CalendarDateFormat.iso8601.formatDateTime(dateRange.start))
       ..write(' to ')
-      ..write(chicago.CalendarDateFormat.iso8601.formatDateTime(dateRange.end));
+      ..write(CalendarDateFormat.iso8601.formatDateTime(dateRange.end));
     return buf.toString();
   }
 
@@ -199,13 +206,13 @@ class _ExpenseReportView extends StatelessWidget {
         Padding(
           padding: EdgeInsets.fromLTRB(11, 11, 11, 9),
           child: DefaultTextStyle(
-            style: Theme.of(context).textTheme.bodyText2!.copyWith(color: Colors.black),
-            child: Table(
-              columnWidths: {
-                0: IntrinsicColumnWidth(),
-                1: FlexColumnWidth(),
-              },
-              children: [
+            style: Theme.of(context).textTheme.bodyText2!.copyWith(color: const Color(0xff000000)),
+            child: TablePane(
+              columns: <TablePaneColumn>[
+                TablePaneColumn(width: IntrinsicTablePaneColumnWidth()),
+                TablePaneColumn(width: RelativeTablePaneColumnWidth()),
+              ],
+              children: <TableRow>[
                 _buildMetadataRow('Program', expenseReport.program.name),
                 if (expenseReport.chargeNumber.isNotEmpty)
                   _buildMetadataRow('Charge number', expenseReport.chargeNumber),
@@ -227,7 +234,7 @@ class _ExpenseReportView extends StatelessWidget {
           padding: EdgeInsets.only(bottom: 9, left: 11),
           child: Row(
             children: [
-              chicago.ActionLinkButton(
+              ActionLinkButton(
                 image: AssetImage('assets/money_add.png'),
                 text: 'Add expense line item',
                 intent: AddExpenseIntent(
@@ -258,7 +265,7 @@ class _ExpenseReportView extends StatelessWidget {
 }
 
 class ExpensesTableView extends StatefulWidget {
-  const ExpensesTableView({
+  ExpensesTableView({
     Key? key,
     required this.expenseReport,
   }) : super(key: key);
@@ -269,12 +276,18 @@ class ExpensesTableView extends StatefulWidget {
   _ExpensesTableViewState createState() => _ExpensesTableViewState();
 }
 
-class _ExpensesTableViewState extends State<ExpensesTableView> {
-  late chicago.TableViewSelectionController _selectionController;
-  late chicago.TableViewSortController _sortController;
-  late chicago.TableViewEditorController _editorController;
+class _ExpensesTableViewState extends State<ExpensesTableView> with TrackExpenseReportMixin {
+  late TableViewSelectionController _selectionController;
+  late TableViewSortController _sortController;
+  late TableViewEditorController _editorController;
+  late TableViewSortListener _sortListener;
+  late TableViewEditorListener _editorListener;
+  ExpenseTypeListButtonController? _expenseTypeController;
+  CalendarSelectionController? _dateController;
+  TextEditingController? _amountController;
+  TextEditingController? _descriptionController;
 
-  chicago.TableHeaderBuilder _renderHeader(String name) {
+  TableHeaderBuilder _renderHeader(String name) {
     return (
       BuildContext context,
       int columnIndex,
@@ -298,12 +311,22 @@ class _ExpensesTableViewState extends State<ExpensesTableView> {
     bool isRowDisabled,
   ) {
     final DateTime date = widget.expenseReport.expenses[rowIndex].date;
+    if (isEditing) {
+      return _renderDateEditor(date);
+    }
     final String formattedDate = DateFormats.iso8601Short.format(date);
     return ExpenseCellWrapper(
       rowIndex: rowIndex,
       rowHighlighted: rowHighlighted,
       rowSelected: rowSelected,
       content: formattedDate,
+    );
+  }
+
+  Widget _renderDateEditor(DateTime dateTime) {
+    return CalendarButton(
+      format: CalendarDateFormat.iso8601,
+      selectionController: _dateController,
     );
   }
 
@@ -329,22 +352,9 @@ class _ExpensesTableViewState extends State<ExpensesTableView> {
   }
 
   Widget _renderTypeEditor(ExpenseType type) {
-    return chicago.PushButton<String>(
-      onPressed: () {},
-      label: type.name,
-      menuItems: <PopupMenuEntry<String>>[
-        PopupMenuItem<String>(
-          value: 'type1',
-          height: 22,
-          child: Text('Another type'),
-        ),
-        PopupMenuItem<String>(
-          value: 'type2',
-          height: 22,
-          child: Text('Yet another type'),
-        ),
-      ],
-      onMenuItemSelected: (String? value) {},
+    return ExpenseTypeListButton(
+      expenseReport: widget.expenseReport,
+      controller: _expenseTypeController,
     );
   }
 
@@ -358,11 +368,22 @@ class _ExpensesTableViewState extends State<ExpensesTableView> {
     bool isRowDisabled,
   ) {
     final double amount = widget.expenseReport.expenses[rowIndex].amount;
+    if (isEditing) {
+      return _buildAmountEditor(amount);
+    }
     return ExpenseCellWrapper(
       rowIndex: rowIndex,
       rowHighlighted: rowHighlighted,
       rowSelected: rowSelected,
       content: NumberFormats.currency.format(amount),
+    );
+  }
+
+  Widget _buildAmountEditor(double amount) {
+    return TextInput(
+      controller: _amountController,
+      validator: TextInputValidators.validateCurrency,
+      backgroundColor: const Color(0xfff7f5ee),
     );
   }
 
@@ -376,6 +397,9 @@ class _ExpensesTableViewState extends State<ExpensesTableView> {
     bool isRowDisabled,
   ) {
     final String description = widget.expenseReport.expenses[rowIndex].description;
+    if (isEditing) {
+      return _buildDescriptionEditor(description);
+    }
     return ExpenseCellWrapper(
       rowIndex: rowIndex,
       rowHighlighted: rowHighlighted,
@@ -384,65 +408,196 @@ class _ExpensesTableViewState extends State<ExpensesTableView> {
     );
   }
 
+  Widget _buildDescriptionEditor(String description) {
+    return TextInput(
+      controller: _descriptionController,
+      backgroundColor: const Color(0xfff7f5ee),
+    );
+  }
+
+  void _handleSortChanged(TableViewSortController controller) {
+    assert(controller.length == 1);
+    final String columnName = controller.keys.single;
+    final SortDirection sortDirection = controller[columnName]!;
+    setState(() {
+      _selectionController.clearSelection();
+      widget.expenseReport.expenses.sort((Expense a, Expense b) {
+        Comparable<dynamic> fieldA, fieldB;
+        switch (columnName) {
+          case Keys.date:
+            fieldA = a.date;
+            fieldB = b.date;
+            break;
+          case Keys.expenseType:
+            fieldA = a.type;
+            fieldB = b.type;
+            break;
+          case Keys.amount:
+            fieldA = a.amount;
+            fieldB = b.amount;
+            break;
+          case Keys.description:
+            fieldA = a.description;
+            fieldB = b.description;
+            break;
+          default:
+            throw UnimplementedError();
+        }
+        final int result = fieldA.compareTo(fieldB);
+        switch (sortDirection) {
+          case SortDirection.ascending:
+            return result;
+          case SortDirection.descending:
+            return result * -1;
+        }
+      });
+    });
+  }
+
+  Expense _getExpenseBeingEdited(TableViewEditorController controller) {
+    final Iterable<int> rowsBeingEdited = controller.cellsBeingEdited.rows;
+    assert(rowsBeingEdited.length == 1);
+    final int rowIndex = rowsBeingEdited.single;
+    return widget.expenseReport.expenses[rowIndex];
+  }
+
+  void _handleEditStarted(TableViewEditorController controller) {
+    _expenseTypeController = ExpenseTypeListButtonController();
+    _dateController = CalendarSelectionController();
+    _amountController = TextEditingController();
+    _descriptionController = TextEditingController();
+    final Expense expense = _getExpenseBeingEdited(controller);
+    _expenseTypeController!.value = expense.type;
+    _dateController!.value = CalendarDate.fromDateTime(expense.date);
+    _amountController!.text = expense.amount.toString();
+    _descriptionController!.text = expense.description;
+  }
+
+  Vote _handlePreviewEditFinished(TableViewEditorController controller) {
+    return _amountController!.text.isEmpty ? Vote.deny : Vote.approve;
+  }
+
+  void _handleEditFinished(TableViewEditorController controller, TableViewEditOutcome outcome) {
+    assert(_expenseTypeController != null);
+    assert(_dateController != null);
+    assert(_amountController != null);
+    assert(_descriptionController != null);
+    if (outcome == TableViewEditOutcome.saved) {
+      final Expense expense = _getExpenseBeingEdited(controller);
+      expense.type = _expenseTypeController!.value!;
+      expense.date = _dateController!.value!.toDateTime();
+      expense.amount = double.tryParse(_amountController!.text) ?? 0;
+      expense.description = _descriptionController!.text;
+    }
+    SchedulerBinding.instance!.addPostFrameCallback((Duration timeStamp) {
+      // Disposing of these synchronously will cause the cell editors to throw
+      // when they're disposed, since the cell editors unregister listeners
+      // from the controllers in their dispose() methods.
+      _expenseTypeController!.dispose();
+      _dateController!.dispose();
+      _amountController!.dispose();
+      _descriptionController!.dispose();
+    });
+  }
+
+  KeyEventResult _handleKey(FocusNode focusNode, RawKeyEvent keyEvent) {
+    if (_editorController.isEditing) {
+      if (keyEvent.logicalKey == LogicalKeyboardKey.enter) {
+        _editorController.save();
+        return KeyEventResult.handled;
+      } else if (keyEvent.logicalKey == LogicalKeyboardKey.escape) {
+        _editorController.cancel();
+        return KeyEventResult.handled;
+      }
+    }
+    return KeyEventResult.ignored;
+  }
+
   @override
   void initState() {
     super.initState();
-    _selectionController = chicago.TableViewSelectionController(selectMode: chicago.SelectMode.multi);
-    _sortController = chicago.TableViewSortController(sortMode: chicago.TableViewSortMode.singleColumn);
-    _editorController = chicago.TableViewEditorController();
+    initInstance(widget.expenseReport);
+    _selectionController = TableViewSelectionController(selectMode: SelectMode.multi);
+    _sortController = TableViewSortController(sortMode: TableViewSortMode.singleColumn);
+    _editorController = TableViewEditorController();
+    _sortListener = TableViewSortListener(
+      onChanged: _handleSortChanged,
+    );
+    _editorListener = TableViewEditorListener(
+      onEditStarted: _handleEditStarted,
+      onPreviewEditFinished: _handlePreviewEditFinished,
+      onEditFinished: _handleEditFinished,
+    );
+    _sortController.addListener(_sortListener);
+    _editorController.addListener(_editorListener);
   }
 
   @override
   void didUpdateWidget(ExpensesTableView oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (widget.expenseReport != oldWidget.expenseReport) {
+      updateExpenseReport(widget.expenseReport);
       _selectionController.selectedIndex = -1;
     }
   }
 
   @override
   void dispose() {
+    _sortController.removeListener(_sortListener);
+    _editorController.removeListener(_editorListener);
     _selectionController.dispose();
     _sortController.dispose();
     _editorController.dispose();
+    destroy();
     super.dispose();
   }
 
   @override
+  void onExpensesChanged() {
+    super.onExpensesChanged();
+    setState(() {
+      // State is held in the expense report itself.
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return chicago.ScrollableTableView(
-      rowHeight: 19,
-      length: widget.expenseReport.expenses.length,
-      selectionController: _selectionController,
-      sortController: _sortController,
-      editorController: _editorController,
-      roundColumnWidthsToWholePixel: false,
-      columns: <chicago.TableColumn>[
-        chicago.TableColumn(
-          key: 'date',
-          width: chicago.ConstrainedTableColumnWidth(width: 120, minWidth: 20),
-          cellBuilder: _renderDate,
-          headerBuilder: _renderHeader('Date'),
-        ),
-        chicago.TableColumn(
-          key: 'type',
-          width: chicago.ConstrainedTableColumnWidth(width: 120, minWidth: 20),
-          cellBuilder: _renderType,
-          headerBuilder: _renderHeader('Type'),
-        ),
-        chicago.TableColumn(
-          key: 'amount',
-          width: chicago.ConstrainedTableColumnWidth(width: 100, minWidth: 20),
-          cellBuilder: _renderAmount,
-          headerBuilder: _renderHeader('Amount'),
-        ),
-        chicago.TableColumn(
-          key: 'description',
-          width: chicago.FlexTableColumnWidth(),
-          cellBuilder: _renderDescription,
-          headerBuilder: _renderHeader('Description'),
-        ),
-      ],
+    return Focus(
+      onKey: _handleKey,
+      child: ScrollableTableView(
+        rowHeight: 19,
+        length: widget.expenseReport.expenses.length,
+        selectionController: _selectionController,
+        sortController: _sortController,
+        editorController: _editorController,
+        roundColumnWidthsToWholePixel: false,
+        columns: <TableColumn>[
+          TableColumn(
+            key: Keys.date,
+            width: ConstrainedTableColumnWidth(width: 120, minWidth: 20),
+            cellBuilder: _renderDate,
+            headerBuilder: _renderHeader('Date'),
+          ),
+          TableColumn(
+            key: Keys.expenseType,
+            width: ConstrainedTableColumnWidth(width: 120, minWidth: 20),
+            cellBuilder: _renderType,
+            headerBuilder: _renderHeader('Type'),
+          ),
+          TableColumn(
+            key: Keys.amount,
+            width: ConstrainedTableColumnWidth(width: 100, minWidth: 20),
+            cellBuilder: _renderAmount,
+            headerBuilder: _renderHeader('Amount'),
+          ),
+          TableColumn(
+            key: Keys.description,
+            width: FlexTableColumnWidth(),
+            cellBuilder: _renderDescription,
+            headerBuilder: _renderHeader('Description'),
+          ),
+        ],
+      ),
     );
   }
 }
@@ -499,7 +654,7 @@ class ExpenseReportsListView extends StatefulWidget {
   }) : super(key: key);
 
   final ExpenseReports expenseReports;
-  final chicago.ListViewSelectionController selectionController;
+  final ListViewSelectionController selectionController;
 
   @override
   _ExpenseReportsListViewState createState() => _ExpenseReportsListViewState();
@@ -596,7 +751,7 @@ class _ExpenseReportsListViewState extends State<ExpenseReportsListView> {
       ),
       child: Padding(
         padding: const EdgeInsets.all(1),
-        child: chicago.ScrollableListView(
+        child: ScrollableListView(
           itemHeight: 19,
           length: widget.expenseReports.length,
           itemBuilder: _buildItem,

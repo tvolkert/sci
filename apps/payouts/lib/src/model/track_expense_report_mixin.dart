@@ -7,7 +7,7 @@ mixin TrackExpenseReportMixin {
   late ExpenseReport _expenseReport;
 
   bool _isTrackedExpenseReport(int index) {
-    return _expenseReport.invoice.expenseReports.indexOf(_expenseReport) == index;
+    return _expenseReport.index == index;
   }
 
   void _handleExpenseInserted(int index, int expensesIndex) {
@@ -42,6 +42,12 @@ mixin TrackExpenseReportMixin {
       onExpenseUpdated: _handleExpenseUpdated,
     );
     InvoiceBinding.instance!.addListener(_listener);
+  }
+
+  @protected
+  @mustCallSuper
+  void updateExpenseReport(ExpenseReport expenseReport) {
+    _expenseReport = expenseReport;
   }
 
   /// Releases any resources retained by this object.

@@ -1,10 +1,13 @@
 import 'dart:async';
 
-import 'package:chicago/chicago.dart' as chicago;
+import 'package:chicago/chicago.dart';
+import 'package:flutter/services.dart' hide TextInput;
 import 'package:flutter/widgets.dart';
 
 import 'package:payouts/src/model/invoice.dart';
 import 'package:payouts/src/model/track_invoice_mixin.dart';
+import 'package:payouts/src/widgets/expense_type_list_button.dart';
+import 'package:payouts/src/widgets/text_input_validators.dart';
 
 class AddExpenseIntent extends Intent {
   const AddExpenseIntent({this.context, required this.expenseReport});
@@ -39,14 +42,28 @@ class AddExpenseAction extends ContextAction<AddExpenseIntent> with TrackInvoice
       throw StateError('No context in which to invoke $runtimeType');
     }
 
-    final ExpenseMetadata? metadata = await AddExpenseSheet.open(
+    final AddExpenseMetadata? metadata = await AddExpenseSheet.open(
       context: context,
       expenseReport: intent.expenseReport,
     );
     if (metadata != null) {
-      intent.expenseReport.expenses.add(metadata);
+      for (int i = 0; i < metadata.count; i++) {
+        intent.expenseReport.expenses.add(metadata.expenseMetadata.copyWith(
+          date: metadata.expenseMetadata.date.add(Duration(days: i)),
+        ));
+      }
     }
   }
+}
+
+class AddExpenseMetadata {
+  const AddExpenseMetadata({
+    required this.expenseMetadata,
+    required this.count,
+  });
+
+  final ExpenseMetadata expenseMetadata;
+  final int count;
 }
 
 class AddExpenseSheet extends StatefulWidget {
@@ -60,11 +77,11 @@ class AddExpenseSheet extends StatefulWidget {
   @override
   AddExpenseSheetState createState() => AddExpenseSheetState();
 
-  static Future<ExpenseMetadata?> open({
+  static Future<AddExpenseMetadata?> open({
     required BuildContext context,
     required ExpenseReport expenseReport,
   }) {
-    return chicago.Sheet.open<ExpenseMetadata>(
+    return Sheet.open<AddExpenseMetadata>(
       context: context,
       content: AddExpenseSheet(expenseReport: expenseReport),
       barrierDismissible: true,
@@ -73,6 +90,14 @@ class AddExpenseSheet extends StatefulWidget {
 }
 
 class AddExpenseSheetState extends State<AddExpenseSheet> {
+  late ExpenseTypeListButtonController _expenseTypeController;
+  late CalendarSelectionController _dateController;
+  late TextEditingController _amountController;
+  late TextEditingController _descriptionController;
+  late SpinnerController _copyController;
+  Flag? _expenseTypeFlag;
+  Flag? _dateFlag;
+  Flag? _amountFlag;
   bool _copyExpenses = false;
 
   void _handleToggleCopyExpenses() {
@@ -82,62 +107,144 @@ class AddExpenseSheetState extends State<AddExpenseSheet> {
   }
 
   void _handleOk() {
-    // TODO
+    bool isInputValid = true;
+
+    if (_expenseTypeController.value == null) {
+      isInputValid = false;
+      setState(() {
+        _expenseTypeFlag = Flag(
+          messageType: MessageType.error,
+          message: 'TODO',
+        );
+      });
+    } else {
+      setState(() {
+        _expenseTypeFlag = null;
+      });
+    }
+
+    if (_dateController.value == null) {
+      isInputValid = false;
+      setState(() {
+        _dateFlag = Flag(
+          messageType: MessageType.error,
+          message: 'TODO',
+        );
+      });
+    } else {
+      setState(() {
+        _dateFlag = null;
+      });
+    }
+
+    if (_amountController.text.isEmpty) {
+      isInputValid = false;
+      setState(() {
+        _amountFlag = Flag(
+          messageType: MessageType.error,
+          message: 'TODO',
+        );
+      });
+    } else {
+      setState(() {
+        _amountFlag = null;
+      });
+    }
+
+    if (isInputValid) {
+      final ExpenseMetadata metadata = ExpenseMetadata(
+        date: _dateController.value!.toDateTime(),
+        type: _expenseTypeController.value!,
+        amount: double.parse(_amountController.text),
+        description: _descriptionController.text,
+      );
+      final AddExpenseMetadata addExpenseMetadata = AddExpenseMetadata(
+        expenseMetadata: metadata,
+        count: _copyExpenses ? _copyController.selectedIndex + 1 : 1,
+      );
+
+      Navigator.of(context).pop<AddExpenseMetadata>(addExpenseMetadata);
+    }
+
+    if (!isInputValid) {
+      SystemSound.play(SystemSoundType.alert);
+    }
   }
 
-  Widget _buildExpenseType<T>(BuildContext context, T? item, bool isForMeasurementOnly) {
-    return Container();
+  @override
+  void initState() {
+    super.initState();
+    _expenseTypeController = ExpenseTypeListButtonController();
+    _dateController = CalendarSelectionController();
+    _amountController = TextEditingController();
+    _descriptionController = TextEditingController();
+    _copyController = SpinnerController()..selectedIndex = 0;
   }
 
-  Widget _buildExpenseTypeItem<T>(
-    BuildContext context,
-    T item,
-    bool isSelected,
-    bool isHighlighted,
-    bool isDisabled,
-  ) {
-    return Container();
+  @override
+  void dispose() {
+    _expenseTypeController.dispose();
+    _dateController.dispose();
+    _amountController.dispose();
+    _descriptionController.dispose();
+    _copyController.dispose();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
+    final CalendarDate startDate = CalendarDate.fromDateTime(widget.expenseReport.period.start);
     return SizedBox(
       width: 400,
       child: Column(
         mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          chicago.BorderPane(
+          BorderPane(
             backgroundColor: const Color(0xffffffff),
             borderColor: const Color(0xff999999),
             child: Padding(
               padding: EdgeInsets.all(8),
-              child: chicago.FormPane(
-                children: <chicago.FormPaneField>[
-                  chicago.FormPaneField(
+              child: FormPane(
+                children: <FormPaneField>[
+                  FormPaneField(
                     label: 'Category',
-                    child: chicago.ListButton(
-                      items: [],
-                      builder: _buildExpenseType,
-                      itemBuilder: _buildExpenseTypeItem,
+                    flag: _expenseTypeFlag,
+                    child: ExpenseTypeListButton(
+                      expenseReport: widget.expenseReport,
+                      controller: _expenseTypeController,
                     ),
                   ),
-                  chicago.FormPaneField(
+                  FormPaneField(
                     label: 'Date',
-                    child: chicago.CalendarButton(),
-                  ),
-                  chicago.FormPaneField(
-                    label: 'Amount',
-                    child: chicago.TextInput(
-                      backgroundColor: const Color(0xfff7f5ee),
+                    flag: _dateFlag,
+                    child: CalendarButton(
+                      selectionController: _dateController,
+                      initialMonth: startDate.month,
+                      initialYear: startDate.year,
+                      width: CalendarButtonWidth.shrinkWrap,
+                      disabledDateFilter: (CalendarDate date) => false, // Change from original app
                     ),
                   ),
-                  chicago.FormPaneField(
+                  FormPaneField(
+                    label: 'Amount',
+                    flag: _amountFlag,
+                    child: SizedBox(
+                      width: 180,
+                      child: TextInput(
+                        controller: _amountController,
+                        validator: TextInputValidators.validateCurrency,
+                        backgroundColor: const Color(0xfff7f5ee),
+                      ),
+                    ),
+                  ),
+                  FormPaneField(
                     label: 'Description',
                     child: Row(
                       children: [
-                        Expanded(
-                          child: chicago.TextInput(
+                        SizedBox(
+                          width: 180,
+                          child: TextInput(
+                            controller: _descriptionController,
                             backgroundColor: const Color(0xfff7f5ee),
                           ),
                         ),
@@ -155,39 +262,43 @@ class AddExpenseSheetState extends State<AddExpenseSheet> {
             // crossAxisAlignment: CrossAxisAlignment.baseline,
             // textBaseline: TextBaseline.alphabetic,
             children: [
-              chicago.BasicCheckbox(
-                state: _copyExpenses ? chicago.CheckboxState.checked : chicago.CheckboxState.unchecked,
+              BasicCheckbox(
+                state: _copyExpenses ? CheckboxState.checked : CheckboxState.unchecked,
                 onTap: _handleToggleCopyExpenses,
-                spacing: 6,
-                trailing: Row(
-                  children: [
-                    Text('Copy this expense for a total of'),
-                    SizedBox(width: 4),
-                    chicago.Spinner(
-                      isEnabled: _copyExpenses,
-                      length: 14,
-                      itemBuilder: (BuildContext context, int index, bool isEnabled) {
-                        return chicago.Spinner.defaultItemBuilder(context, '${index + 1}');
-                      },
-                    ),
-                    SizedBox(width: 4),
-                    Text('day(s)'),
-                  ],
-                ),
+                spacing: 4,
+                trailing: Text('Copy this expense for a total of'),
               ),
               SizedBox(width: 4),
+              Spinner(
+                isEnabled: _copyExpenses,
+                controller: _copyController,
+                sizeToContent: true,
+                length: 14,
+                itemBuilder: (BuildContext context, int index, bool isEnabled) {
+                  Widget built = Spinner.defaultItemBuilder(context, '${index + 1}');
+                  if (!isEnabled) {
+                    built = DefaultTextStyle.merge(
+                      style: const TextStyle(color: Color(0xff999999)),
+                      child: built,
+                    );
+                  }
+                  return built;
+                },
+              ),
+              SizedBox(width: 4),
+              Text('day(s)'),
             ],
           ),
           SizedBox(height: 8),
           Row(
             mainAxisAlignment: MainAxisAlignment.end,
             children: [
-              chicago.CommandPushButton(
+              CommandPushButton(
                 label: 'OK',
                 onPressed: _handleOk,
               ),
               SizedBox(width: 6),
-              chicago.CommandPushButton(
+              CommandPushButton(
                 label: 'Cancel',
                 onPressed: () => Navigator.of(context).pop(),
               ),

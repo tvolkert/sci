@@ -14,6 +14,12 @@ class NumberFormats {
   static final intl.NumberFormat maybeDecimal = intl.NumberFormat(r'#,###.##');
 }
 
+class Strings {
+  const Strings._();
+
+  static const String mileageRate = 'mileageRate';
+}
+
 class Keys {
   const Keys._();
 
