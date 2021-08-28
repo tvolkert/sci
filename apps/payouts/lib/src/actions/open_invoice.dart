@@ -7,7 +7,7 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/widgets.dart';
 import 'package:http/http.dart' as http;
-import 'package:intl/intl.dart';
+import 'package:intl/intl.dart' as intl;
 
 import 'package:payouts/src/model/constants.dart';
 import 'package:payouts/src/model/entry_comparator.dart';
@@ -539,7 +539,7 @@ class BillingPeriodCell extends StatelessWidget {
 
   final Map<String, dynamic> invoice;
 
-  static final DateFormat format = DateFormat('M/d/y');
+  static final intl.DateFormat format = intl.DateFormat('M/d/y');
 
   @override
   Widget build(BuildContext context) {
@@ -578,7 +578,7 @@ class SubmittedCell extends StatelessWidget {
 
   final Map<String, dynamic> invoice;
 
-  static final DateFormat format = DateFormat('M/d/y h:mm a');
+  static final intl.DateFormat format = intl.DateFormat('M/d/y h:mm a');
 
   @override
   Widget build(BuildContext context) {
