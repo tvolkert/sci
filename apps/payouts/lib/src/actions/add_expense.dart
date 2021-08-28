@@ -194,10 +194,11 @@ class AddExpenseSheetState extends State<AddExpenseSheet> {
   @override
   Widget build(BuildContext context) {
     final CalendarDate startDate = CalendarDate.fromDateTime(widget.expenseReport.period.start);
-    return SizedBox(
-      width: 400,
+    return ConstrainedBox(
+      constraints: BoxConstraints(maxWidth: 370),
       child: Column(
         mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           BorderPane(
             backgroundColor: const Color(0xffffffff),

@@ -171,7 +171,7 @@ abstract class InvoiceEntryEditorState<T extends InvoiceEntryEditor> extends Sta
       label: 'Program',
       flag: _programFlag,
       child: chicago.ListButton<Program>(
-        width: chicago.ListButtonWidth.expand,
+        width: chicago.ListButtonWidth.shrinkWrapAllItems,
         items: _assignments,
         selectionController: _programSelectionController,
         builder: _buildProgramButtonData,
@@ -254,8 +254,8 @@ abstract class InvoiceEntryEditorState<T extends InvoiceEntryEditor> extends Sta
   @protected
   @nonVirtual
   Widget build(BuildContext context) {
-    return SizedBox(
-      width: 400,
+    return ConstrainedBox(
+      constraints: BoxConstraints(maxWidth: 400),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
