@@ -272,6 +272,7 @@ class _InvoiceNumberEditorState extends State<InvoiceNumberEditor> {
     assert(isEditing);
     invoice.invoiceNumber = _invoiceNumberEditor!.text;
     setState(() => _invoiceNumberEditor = null);
+    FocusManager.instance.primaryFocus?.unfocus();
   }
 
   void _handleCancelEdit() {
