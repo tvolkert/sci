@@ -2,7 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io' show HttpStatus;
 
-import 'package:chicago/chicago.dart' as chicago;
+import 'package:chicago/chicago.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/widgets.dart';
@@ -60,7 +60,7 @@ class OpenInvoiceSheet extends StatefulWidget {
   _OpenInvoiceSheetState createState() => _OpenInvoiceSheetState();
 
   static Future<int?> open({required BuildContext context}) {
-    return chicago.Sheet.open<int>(
+    return Sheet.open<int>(
       context: context,
       content: OpenInvoiceSheet(),
       barrierDismissible: true,
@@ -70,20 +70,20 @@ class OpenInvoiceSheet extends StatefulWidget {
 
 class _OpenInvoiceSheetState extends State<OpenInvoiceSheet>
     with SingleTickerProviderStateMixin<OpenInvoiceSheet> {
-  late chicago.TableViewMetricsController _metricsController;
-  late chicago.TableViewSelectionController _selectionController;
-  late chicago.TableViewSortController _sortController;
-  late chicago.TableViewSortListener _sortListener;
-  late chicago.ScrollPaneController _scrollController;
+  late TableViewMetricsController _metricsController;
+  late TableViewSelectionController _selectionController;
+  late TableViewSortController _sortController;
+  late TableViewSortListener _sortListener;
+  late ScrollPaneController _scrollController;
   late AnimationController _scrollAnimationController;
   List<Map<String, dynamic>>? _invoices;
   int? _selectedInvoiceId;
 
   static const _scrollDuration = Duration(milliseconds: 250);
 
-  static EntryComparator _comparator(chicago.TableViewSortController controller) {
+  static EntryComparator _comparator(TableViewSortController controller) {
     final String sortKey = controller.keys.first;
-    final chicago.SortDirection direction = controller[sortKey] ?? chicago.SortDirection.ascending;
+    final SortDirection direction = controller[sortKey] ?? SortDirection.ascending;
     return EntryComparator(key: sortKey, direction: direction);
   }
 
@@ -92,7 +92,7 @@ class _OpenInvoiceSheetState extends State<OpenInvoiceSheet>
     _handleInvoiceSelected(rowIndex >= 0 ? _invoices![rowIndex][Keys.invoiceId] : null);
   }
 
-  void _handleSortChanged(chicago.TableViewSortController controller) {
+  void _handleSortChanged(TableViewSortController controller) {
     assert(controller == _sortController);
     assert(controller.length == 1);
 
@@ -105,7 +105,7 @@ class _OpenInvoiceSheetState extends State<OpenInvoiceSheet>
     _invoices!.sort(comparator.compare);
 
     if (selectedItem != null) {
-      int selectedIndex = chicago.binarySearch(_invoices!, selectedItem, compare: comparator.compare);
+      int selectedIndex = binarySearch(_invoices!, selectedItem, compare: comparator.compare);
       assert(selectedIndex >= 0);
       _selectionController.selectedIndex = selectedIndex;
       final Rect rowBounds = _metricsController.metrics.getRowBounds(selectedIndex);
@@ -156,7 +156,7 @@ class _OpenInvoiceSheetState extends State<OpenInvoiceSheet>
           final Invoice? currentInvoice = InvoiceBinding.instance!.invoice;
           if (currentInvoice != null) {
             final Map<String, dynamic> invoiceData = currentInvoice.rawData;
-            final int rowIndex = chicago.binarySearch(invoices, invoiceData, compare: comparator.compare);
+            final int rowIndex = binarySearch(invoices, invoiceData, compare: comparator.compare);
             assert(rowIndex >= 0);
             _selectionController.selectedIndex = rowIndex;
             final Rect rowBounds = _metricsController.metrics.getRowBounds(rowIndex);
@@ -173,14 +173,14 @@ class _OpenInvoiceSheetState extends State<OpenInvoiceSheet>
   @override
   void initState() {
     super.initState();
-    _metricsController = chicago.TableViewMetricsController();
-    _selectionController = chicago.TableViewSelectionController(selectMode: chicago.SelectMode.single);
+    _metricsController = TableViewMetricsController();
+    _selectionController = TableViewSelectionController(selectMode: SelectMode.single);
     _selectionController.addListener(_handleSelectionChanged);
-    _sortListener = chicago.TableViewSortListener(onChanged: _handleSortChanged);
-    _sortController = chicago.TableViewSortController(sortMode: chicago.TableViewSortMode.singleColumn);
-    _sortController[Keys.billingStart] = chicago.SortDirection.descending;
+    _sortListener = TableViewSortListener(onChanged: _handleSortChanged);
+    _sortController = TableViewSortController(sortMode: TableViewSortMode.singleColumn);
+    _sortController[Keys.billingStart] = SortDirection.descending;
     _sortController.addListener(_sortListener);
-    _scrollController = chicago.ScrollPaneController();
+    _scrollController = ScrollPaneController();
     _scrollAnimationController = AnimationController(duration: _scrollDuration, vsync: this);
     _requestInvoices();
   }
@@ -205,7 +205,7 @@ class _OpenInvoiceSheetState extends State<OpenInvoiceSheet>
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          chicago.BorderPane(
+          BorderPane(
             title: 'Open Existing Invoice',
             titlePadding: const EdgeInsets.symmetric(horizontal: 4),
             inset: 9,
@@ -244,19 +244,19 @@ class _OpenInvoiceSheetState extends State<OpenInvoiceSheet>
                       SizedBox(
                         width: 20,
                         height: 20,
-                        child: chicago.ActivityIndicator(),
+                        child: ActivityIndicator(),
                       ),
                       SizedBox(width: 4),
                       Text('Loading invoice...'),
                     ],
                   ),
                 ),
-              chicago.CommandPushButton(
+              CommandPushButton(
                 label: 'OK',
                 onPressed: _selectedInvoiceId != null ? _handleInvoiceChosen : null,
               ),
               SizedBox(width: 4),
-              chicago.CommandPushButton(
+              CommandPushButton(
                 label: 'Cancel',
                 onPressed: () => Navigator.of(context).pop(),
               ),
@@ -280,10 +280,10 @@ class InvoicesView extends StatelessWidget {
   }) : super(key: key);
 
   final List<Map<String, dynamic>>? invoices;
-  final chicago.TableViewMetricsController metricsController;
-  final chicago.TableViewSelectionController selectionController;
-  final chicago.TableViewSortController sortController;
-  final chicago.ScrollPaneController scrollController;
+  final TableViewMetricsController metricsController;
+  final TableViewSelectionController selectionController;
+  final TableViewSortController sortController;
+  final ScrollPaneController scrollController;
   final VoidCallback onInvoiceChosen;
 
   @override
@@ -316,10 +316,10 @@ class InvoicesTable extends StatefulWidget {
   }) : super(key: key);
 
   final List<Map<String, dynamic>> invoices;
-  final chicago.TableViewMetricsController metricsController;
-  final chicago.TableViewSelectionController selectionController;
-  final chicago.TableViewSortController sortController;
-  final chicago.ScrollPaneController scrollController;
+  final TableViewMetricsController metricsController;
+  final TableViewSelectionController selectionController;
+  final TableViewSortController sortController;
+  final ScrollPaneController scrollController;
   final VoidCallback onInvoiceChosen;
 
   @override
@@ -327,90 +327,90 @@ class InvoicesTable extends StatefulWidget {
 }
 
 class _InvoicesTableState extends State<InvoicesTable> {
-  late List<chicago.TableColumn> _columns;
+  late List<TableColumn> _columns;
 
-  Widget _renderBillingPeriodCell(
+  Widget _buildBillingPeriodCell(
     BuildContext context,
     int rowIndex,
     int columnIndex,
-    bool rowHighlighted,
-    bool rowSelected,
+    bool isRowSelected,
+    bool isRowHighlighted,
     bool isEditing,
     bool isRowDisabled,
   ) {
     return CellWrapper(
-      selected: rowSelected,
+      selected: isRowSelected,
       child: BillingPeriodCell(invoice: widget.invoices[rowIndex]),
     );
   }
 
-  Widget _renderBillingPeriodHeader(
+  Widget _buildBillingPeriodHeader(
     BuildContext context,
     int columnIndex,
   ) {
     return SingleLineText(data: 'Billing Period');
   }
 
-  Widget _renderInvoiceNumberCell(
+  Widget _buildInvoiceNumberCell(
     BuildContext context,
     int rowIndex,
     int columnIndex,
-    bool rowHighlighted,
-    bool rowSelected,
+    bool isRowSelected,
+    bool isRowHighlighted,
     bool isEditing,
     bool isRowDisabled,
   ) {
     return CellWrapper(
-      selected: rowSelected,
+      selected: isRowSelected,
       child: InvoiceNumberCell(invoice: widget.invoices[rowIndex]),
     );
   }
 
-  Widget _renderInvoiceNumberHeader(
+  Widget _buildInvoiceNumberHeader(
     BuildContext context,
     int columnIndex,
   ) {
     return SingleLineText(data: 'Invoice Number');
   }
 
-  Widget _renderSubmittedCell(
+  Widget _buildSubmittedCell(
     BuildContext context,
     int rowIndex,
     int columnIndex,
-    bool rowHighlighted,
-    bool rowSelected,
+    bool isRowSelected,
+    bool isRowHighlighted,
     bool isEditing,
     bool isRowDisabled,
   ) {
     return CellWrapper(
-      selected: rowSelected,
+      selected: isRowSelected,
       child: SubmittedCell(invoice: widget.invoices[rowIndex]),
     );
   }
 
-  Widget _renderSubmittedHeader(
+  Widget _buildSubmittedHeader(
     BuildContext context,
     int columnIndex,
   ) {
     return SingleLineText(data: 'Submitted');
   }
 
-  Widget _renderResubmitCell(
+  Widget _buildResubmitCell(
     BuildContext context,
     int rowIndex,
     int columnIndex,
-    bool rowHighlighted,
-    bool rowSelected,
+    bool isRowSelected,
+    bool isRowHighlighted,
     bool isEditing,
     bool isRowDisabled,
   ) {
     return CellWrapper(
-      selected: rowSelected,
+      selected: isRowSelected,
       child: ResubmitCell(invoice: widget.invoices[rowIndex]),
     );
   }
 
-  Widget _renderResubmitHeader(
+  Widget _buildResubmitHeader(
     BuildContext context,
     int columnIndex,
   ) {
@@ -420,30 +420,30 @@ class _InvoicesTableState extends State<InvoicesTable> {
   @override
   initState() {
     super.initState();
-    _columns = <chicago.TableColumn>[
-      chicago.TableColumn(
+    _columns = <TableColumn>[
+      TableColumn(
         key: Keys.billingStart,
-        width: chicago.ConstrainedTableColumnWidth(width: 150, minWidth: 50),
-        cellBuilder: _renderBillingPeriodCell,
-        headerBuilder: _renderBillingPeriodHeader,
+        width: ConstrainedTableColumnWidth(width: 150, minWidth: 50),
+        cellBuilder: _buildBillingPeriodCell,
+        headerBuilder: _buildBillingPeriodHeader,
       ),
-      chicago.TableColumn(
+      TableColumn(
         key: Keys.invoiceNumber,
-        width: chicago.ConstrainedTableColumnWidth(width: 125, minWidth: 50),
-        cellBuilder: _renderInvoiceNumberCell,
-        headerBuilder: _renderInvoiceNumberHeader,
+        width: ConstrainedTableColumnWidth(width: 125, minWidth: 50),
+        cellBuilder: _buildInvoiceNumberCell,
+        headerBuilder: _buildInvoiceNumberHeader,
       ),
-      chicago.TableColumn(
+      TableColumn(
         key: Keys.submitted,
-        width: chicago.ConstrainedTableColumnWidth(width: 125, minWidth: 50),
-        cellBuilder: _renderSubmittedCell,
-        headerBuilder: _renderSubmittedHeader,
+        width: ConstrainedTableColumnWidth(width: 125, minWidth: 50),
+        cellBuilder: _buildSubmittedCell,
+        headerBuilder: _buildSubmittedHeader,
       ),
-      chicago.TableColumn(
+      TableColumn(
         key: Keys.resubmit,
-        width: chicago.FlexTableColumnWidth(),
-        cellBuilder: _renderResubmitCell,
-        headerBuilder: _renderResubmitHeader,
+        width: FlexTableColumnWidth(),
+        cellBuilder: _buildResubmitCell,
+        headerBuilder: _buildResubmitHeader,
       ),
     ];
   }
@@ -459,7 +459,7 @@ class _InvoicesTableState extends State<InvoicesTable> {
   Widget build(BuildContext context) {
     return ColoredBox(
       color: const Color(0xffffffff),
-      child: chicago.ScrollableTableView(
+      child: ScrollableTableView(
         length: widget.invoices.length,
         rowHeight: 19,
         roundColumnWidthsToWholePixel: true,
@@ -487,11 +487,11 @@ class CellWrapper extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     Widget result = DecoratedBox(
-      decoration: BoxDecoration(
-        border: const Border(bottom: BorderSide(color: const Color(0xfff7f5ee))),
+      decoration: const BoxDecoration(
+        border: Border(bottom: BorderSide(color: Color(0xfff7f5ee))),
       ),
       child: Padding(
-        padding: EdgeInsets.only(left: 2),
+        padding: const EdgeInsets.only(left: 2),
         child: Align(
           alignment: Alignment.centerLeft,
           child: child,
