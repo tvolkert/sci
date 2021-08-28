@@ -7,6 +7,8 @@ import 'package:flutter/painting.dart';
 import 'package:flutter/rendering.dart';
 import 'package:intl/intl.dart' as intl;
 
+import 'package:payouts/src/model/invoice.dart';
+
 import 'accomplishments_view.dart';
 import 'rotated_text.dart';
 
@@ -487,8 +489,8 @@ class ReviewAndSubmit extends StatelessWidget {
                 ),
               ),
               AccomplishmentsEntryField(
-                initialText: 'qdlkajs flsdsdl',
-                readOnly: true,
+                accomplishment: InvoiceBinding.instance!.invoice!.accomplishments.first,
+                isReadOnly: true,
               ),
               Padding(
                 padding: EdgeInsets.only(top: 22),

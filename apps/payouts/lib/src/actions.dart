@@ -1,4 +1,5 @@
 export 'actions/about.dart';
+export 'actions/add_accomplishment.dart';
 export 'actions/add_expense.dart';
 export 'actions/add_expense_report.dart';
 export 'actions/add_timesheet.dart';

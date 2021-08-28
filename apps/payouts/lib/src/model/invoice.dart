@@ -1629,6 +1629,16 @@ class Accomplishments
     _owner._setIsDirty(true);
     return accomplishment;
   }
+
+  int indexOf(Program program) {
+    for (int i = 0; i < _data.length; i++) {
+      final Accomplishment accomplishment = _data[i];
+      if (accomplishment.program == program) {
+        return i;
+      }
+    }
+    return -1;
+  }
 }
 
 /// Class representing a single accomplishment in an invoice.
@@ -1651,12 +1661,16 @@ class Accomplishment {
   final Invoice _owner;
   final Map<String, dynamic> _data;
 
+  /// The invoice to which this accomplishment belongs.
+  Invoice get invoice => _owner;
+
   /// The index of this accomplishment in the list of accomplishments.
   int get index => _owner.accomplishments._data.indexOf(this);
 
+  Program? _program;
+
   /// The program (assignment) against which this accomplishment is to be
   /// recorded.
-  Program? _program;
   Program get program {
     _owner._checkDisposed();
     return _program ??= Program._(_data[Keys.program]);
