@@ -8,6 +8,7 @@ import 'package:flutter/services.dart';
 import 'package:payouts/src/actions.dart';
 import 'package:payouts/src/model/constants.dart';
 import 'package:payouts/src/model/invoice.dart';
+import 'package:payouts/src/widgets/text_input_validators.dart';
 
 import 'rotated_text.dart';
 
@@ -338,39 +339,10 @@ class _HoursInput extends StatefulWidget {
 
 class _HoursInputState extends State<_HoursInput> {
   late TextEditingController _controller;
-  late TextEditingValue _lastValidValue;
   late FocusNode _focusNode;
 
-  void _handleEdit() {
-    final String text = _controller.text;
-    if (text == _lastValidValue.text) {
-      // Shortcut to trivial success
-      _lastValidValue = _controller.value;
-      return;
-    }
-
-    bool valid = true;
-    double? value = text.isEmpty ? 0 : double.tryParse(text);
-
-    if (value == null) {
-      valid = false;
-    } else if (value < 0 || value > 24) {
-      valid = false;
-    } else if (text.contains('.')) {
-      final String afterDecimal = text.substring(text.indexOf('.') + 1);
-      assert(!afterDecimal.contains('.'));
-      if (afterDecimal.length > 2) {
-        valid = false;
-      }
-    }
-
-    if (valid) {
-      _lastValidValue = _controller.value;
-      widget.hours[widget.hoursIndex] = value!;
-    } else {
-      _controller.value = _lastValidValue;
-      SystemSound.play(SystemSoundType.alert);
-    }
+  void _handleEdit(String text) {
+    widget.hours[widget.hoursIndex] = text.isEmpty ? 0 : double.parse(text);
   }
 
   @override
@@ -379,8 +351,6 @@ class _HoursInputState extends State<_HoursInput> {
     final double initialValue = widget.hours[widget.hoursIndex];
     final String text = initialValue == 0 ? '' : NumberFormats.maybeDecimal.format(initialValue);
     _controller = TextEditingController(text: text);
-    _controller.addListener(_handleEdit);
-    _lastValidValue = _controller.value;
     _focusNode = FocusNode(descendantsAreFocusable: false);
     _focusNode.addListener(() {
       if (_focusNode.hasFocus) {
@@ -392,7 +362,6 @@ class _HoursInputState extends State<_HoursInput> {
   @override
   void dispose() {
     _focusNode.dispose();
-    _controller.removeListener(_handleEdit);
     _controller.dispose();
     super.dispose();
   }
@@ -415,6 +384,8 @@ class _HoursInputState extends State<_HoursInput> {
       child: chicago.TextInput(
         controller: _controller,
         focusNode: _focusNode,
+        onTextUpdated: _handleEdit,
+        validator: TextInputValidators.validateHoursInDay,
         backgroundColor: widget.isWeekend ? const Color(0xffdddcd5) : const Color(0xffffffff),
         enabled: widget.enabled,
       ),
@@ -609,7 +580,7 @@ class _TimesheetHeader extends StatelessWidget {
         ),
         SizedBox(
           width: 24,
-          height: 24,
+          height: 22,
           child: Opacity(
             opacity: hover ? 1 : 0,
             child: chicago.ActionPushButton(
@@ -624,7 +595,7 @@ class _TimesheetHeader extends StatelessWidget {
         ),
         SizedBox(
           width: 24,
-          height: 24,
+          height: 22,
           child: Opacity(
             opacity: hover ? 1 : 0,
             child: chicago.ActionPushButton(
