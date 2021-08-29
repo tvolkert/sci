@@ -2,9 +2,9 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io' show HttpStatus;
 
-import 'package:chicago/chicago.dart' as chicago;
+import 'package:chicago/chicago.dart';
 import 'package:flutter/rendering.dart';
-import 'package:flutter/services.dart';
+import 'package:flutter/services.dart' hide TextInput;
 import 'package:flutter/widgets.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart' as intl;
@@ -60,7 +60,7 @@ class CreateInvoiceSheet extends StatefulWidget {
   _CreateInvoiceSheetState createState() => _CreateInvoiceSheetState();
 
   static Future<NewInvoiceProperties?> open({required BuildContext context}) {
-    return chicago.Sheet.open<NewInvoiceProperties>(
+    return Sheet.open<NewInvoiceProperties>(
       context: context,
       content: CreateInvoiceSheet(),
       barrierDismissible: true,
@@ -72,15 +72,15 @@ class _CreateInvoiceSheetState extends State<CreateInvoiceSheet> {
   List<Map<String, dynamic>>? _billingPeriods;
   late double _billingPeriodsBaseline;
   late TextEditingController _invoiceNumberController;
-  late chicago.TableViewSelectionController _selectionController;
-  late chicago.TableViewRowDisablerController _disablerController;
-  chicago.Flag? _invoiceNumberFlag;
-  chicago.Flag? _billingPeriodFlag;
+  late TableViewSelectionController _selectionController;
+  late TableViewRowDisablerController _disablerController;
+  Flag? _invoiceNumberFlag;
+  Flag? _billingPeriodFlag;
 
   static final intl.DateFormat dateFormat = intl.DateFormat('M/d/yyyy');
   static const EntryComparator _comparator = EntryComparator(
     key: Keys.billingPeriod,
-    direction: chicago.SortDirection.descending,
+    direction: SortDirection.descending,
   );
 
   bool _canProceed = false;
@@ -109,8 +109,8 @@ class _CreateInvoiceSheetState extends State<CreateInvoiceSheet> {
     setState(() {
       if (invoiceNumber.isEmpty) {
         isInputValid = false;
-        _invoiceNumberFlag = chicago.Flag(
-          messageType: chicago.MessageType.error,
+        _invoiceNumberFlag = Flag(
+          messageType: MessageType.error,
           message: 'TODO',
         );
       } else {
@@ -119,8 +119,8 @@ class _CreateInvoiceSheetState extends State<CreateInvoiceSheet> {
 
       if (selectedIndex == -1) {
         isInputValid = false;
-        _billingPeriodFlag = chicago.Flag(
-          messageType: chicago.MessageType.error,
+        _billingPeriodFlag = Flag(
+          messageType: MessageType.error,
           message: 'TODO',
         );
       } else {
@@ -142,7 +142,9 @@ class _CreateInvoiceSheetState extends State<CreateInvoiceSheet> {
 
   void _handleDoubleTapRow(int row) {
     assert(row >= 0);
-    _handleOk();
+    if (_selectionController.selectedIndex == row) {
+      _handleOk();
+    }
   }
 
   bool _isRowDisabled(int rowIndex) {
@@ -167,12 +169,12 @@ class _CreateInvoiceSheetState extends State<CreateInvoiceSheet> {
     });
   }
 
-  Widget _renderBillingPeriod(
+  Widget _buildBillingPeriod(
     BuildContext context,
     int rowIndex,
     int columnIndex,
-    bool rowSelected,
-    bool rowHighlighted,
+    bool isRowSelected,
+    bool isRowHighlighted,
     bool isEditing,
     bool isRowDisabled,
   ) {
@@ -218,7 +220,7 @@ class _CreateInvoiceSheetState extends State<CreateInvoiceSheet> {
         style: style.copyWith(color: const Color(0xff999999)),
         child: result,
       );
-    } else if (rowSelected) {
+    } else if (isRowSelected) {
       final TextStyle style = DefaultTextStyle.of(context).style;
       result = DefaultTextStyle(
         style: style.copyWith(color: const Color(0xffffffff)),
@@ -236,11 +238,11 @@ class _CreateInvoiceSheetState extends State<CreateInvoiceSheet> {
   @override
   void initState() {
     super.initState();
-    _selectionController = chicago.TableViewSelectionController();
+    _selectionController = TableViewSelectionController();
     _selectionController.addListener(_checkCanProceed);
     _invoiceNumberController = TextEditingController();
     _invoiceNumberController.addListener(_checkCanProceed);
-    _disablerController = chicago.TableViewRowDisablerController(filter: _isRowDisabled);
+    _disablerController = TableViewRowDisablerController(filter: _isRowDisabled);
     _requestParameters();
   }
 
@@ -249,7 +251,7 @@ class _CreateInvoiceSheetState extends State<CreateInvoiceSheet> {
     super.didChangeDependencies();
     final TextStyle style = DefaultTextStyle.of(context).style;
     final TextDirection textDirection = Directionality.of(context);
-    const chicago.WidgetSurveyor surveyor = chicago.WidgetSurveyor();
+    const WidgetSurveyor surveyor = WidgetSurveyor();
     setState(() {
       _billingPeriodsBaseline = surveyor.measureDistanceToBaseline(
         Padding(
@@ -278,24 +280,25 @@ class _CreateInvoiceSheetState extends State<CreateInvoiceSheet> {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          chicago.BorderPane(
+          BorderPane(
             title: 'Create New Invoice',
             titlePadding: EdgeInsets.symmetric(horizontal: 4),
             inset: 9,
             borderColor: const Color(0xff999999),
             child: Padding(
               padding: EdgeInsets.fromLTRB(9, 13, 9, 9),
-              child: chicago.FormPane(
+              child: FormPane(
+                stretch: true,
                 children: [
-                  chicago.FormPaneField(
+                  FormPaneField(
                     label: 'Invoice number',
                     flag: _invoiceNumberFlag,
-                    child: chicago.TextInput(
+                    child: TextInput(
                       controller: _invoiceNumberController,
                       autofocus: true,
                     ),
                   ),
-                  chicago.FormPaneField(
+                  FormPaneField(
                     label: 'Billing period',
                     flag: _billingPeriodFlag,
                     child: SizedBox(
@@ -307,9 +310,9 @@ class _CreateInvoiceSheetState extends State<CreateInvoiceSheet> {
                         ),
                         child: Padding(
                           padding: EdgeInsets.all(1),
-                          child: chicago.SetBaseline(
+                          child: SetBaseline(
                             baseline: _billingPeriodsBaseline,
-                            child: chicago.ScrollableTableView(
+                            child: ScrollableTableView(
                               rowHeight: 19,
                               length: _billingPeriods?.length ?? 0,
                               includeHeader: false,
@@ -317,9 +320,9 @@ class _CreateInvoiceSheetState extends State<CreateInvoiceSheet> {
                               rowDisabledController: _disablerController,
                               onDoubleTapRow: _handleDoubleTapRow,
                               columns: [
-                                chicago.TableColumn(
+                                TableColumn(
                                   key: 'billing_period',
-                                  cellBuilder: _renderBillingPeriod,
+                                  cellBuilder: _buildBillingPeriod,
                                 )
                               ],
                             ),
@@ -343,19 +346,19 @@ class _CreateInvoiceSheetState extends State<CreateInvoiceSheet> {
                       SizedBox(
                         width: 20,
                         height: 20,
-                        child: chicago.ActivityIndicator(),
+                        child: ActivityIndicator(),
                       ),
                       SizedBox(width: 4),
                       Text('Loading data...'),
                     ],
                   ),
                 ),
-              chicago.CommandPushButton(
+              CommandPushButton(
                 label: 'OK',
                 onPressed: canProceed ? _handleOk : null,
               ),
               SizedBox(width: 4),
-              chicago.CommandPushButton(
+              CommandPushButton(
                 label: 'Cancel',
                 onPressed: () => Navigator.of(context).pop(),
               ),
