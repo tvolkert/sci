@@ -736,6 +736,9 @@ class Timesheets with ForwardingIterable<Timesheet>, DisallowCollectionConversio
   final List<Map<String, dynamic>> _data;
   final List<Timesheet> _view;
 
+  /// The invoice to which this timesheet belongs.
+  Invoice get invoice => _owner;
+
   @override
   @protected
   Iterable<Timesheet> get delegate => _view;
@@ -744,8 +747,6 @@ class Timesheets with ForwardingIterable<Timesheet>, DisallowCollectionConversio
   Timesheet operator [](int index) => _owner._checkDisposed(() => _view[index])!;
 
   /// Computes the total dollar amount for the sum of all timesheets.
-  @protected
-  @visibleForTesting
   double computeTotal() {
     return fold<double>(0, (double sum, Timesheet timesheet) => sum + timesheet.total);
   }
@@ -1075,8 +1076,6 @@ class ExpenseReports
   Iterable<ExpenseReport> get delegate => _data;
 
   /// Computes the total dollar amount for this expense report.
-  @protected
-  @visibleForTesting
   double computeTotal() {
     return fold<double>(0, (double sum, ExpenseReport report) => sum + report.total);
   }
@@ -1238,6 +1237,27 @@ class ExpenseReport implements ExpenseReportMetadata {
       _total = value;
       _owner.total = previousInvoiceTotal + (value - previousValue);
     }
+  }
+
+  /// The "name" of this expense report.
+  ///
+  /// This is an amalgamation of the program name, the charge number (if
+  /// supplied), and the task (if supplied).
+  String? _name;
+  String get name {
+    _owner._checkDisposed();
+    return _name ??= () {
+      final StringBuffer buf = StringBuffer(program.name);
+      final String chargeNumber = this.chargeNumber;
+      if (chargeNumber.isNotEmpty) {
+        buf.write(' ($chargeNumber)');
+      }
+      final String task = this.task;
+      if (task.isNotEmpty) {
+        buf.write(' ($task)');
+      }
+      return buf.toString();
+    }();
   }
 
   Program? _program;

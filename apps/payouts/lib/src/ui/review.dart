@@ -1,497 +1,454 @@
 import 'dart:math' as math;
 
-import 'package:chicago/chicago.dart' as chicago;
+import 'package:chicago/chicago.dart' hide TableColumnWidth, TableRow;
 import 'package:flutter/gestures.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter/painting.dart';
 import 'package:flutter/rendering.dart';
+import 'package:flutter/widgets.dart';
 import 'package:intl/intl.dart' as intl;
 
+import 'package:payouts/src/model/constants.dart';
 import 'package:payouts/src/model/invoice.dart';
 
 import 'accomplishments_view.dart';
 import 'rotated_text.dart';
 
+const _coloredRowDecoration = BoxDecoration(
+  color: Color(0xffffffff),
+);
+
+class _ExpenseAggregation implements Comparable<_ExpenseAggregation> {
+  _ExpenseAggregation(this.name, this.expenses);
+
+  final String name;
+  final List<double> expenses;
+  double before = 0;
+  double after = 0;
+
+  @override
+  int compareTo(_ExpenseAggregation other) => name.compareTo(other.name);
+}
+
 class ReviewAndSubmit extends StatelessWidget {
   const ReviewAndSubmit({Key? key}) : super(key: key);
+
+  List<Widget> _buildHeaderBlock() {
+    final Invoice invoice = InvoiceBinding.instance!.invoice!;
+    final String startDate = DateFormats.mdyyyy.format(invoice.billingPeriod.start);
+    final String endDate = DateFormats.mdyyyy.format(invoice.billingPeriod.end);
+    final String total = NumberFormats.currency.format(invoice.total);
+    return <Widget>[
+      Padding(
+        padding: EdgeInsets.only(bottom: 4),
+        child: Text(invoice.vendor, style: TextStyle(fontWeight: FontWeight.bold)),
+      ),
+      Padding(
+        padding: EdgeInsets.only(bottom: 4),
+        child: Text('Invoice #${invoice.invoiceNumber}'),
+      ),
+      Padding(
+        padding: EdgeInsets.only(bottom: 4),
+        child: Text('$startDate - $endDate'),
+      ),
+      Padding(
+        padding: EdgeInsets.only(bottom: 4),
+        child: Text(total),
+      ),
+    ];
+  }
+
+  List<TableRow> _buildTimesheetRowHeaderCells() {
+    final Timesheets timesheets = InvoiceBinding.instance!.invoice!.timesheets;
+    bool colorRow = true;
+    return <TableRow>[
+      ...timesheets.map<TableRow>((Timesheet timesheet) {
+        final Decoration? decoration = colorRow ? _coloredRowDecoration : null;
+        colorRow = !colorRow;
+        return TableRow(
+          decoration: decoration,
+          children: <Widget>[SummaryRowHeader(label: timesheet.name)],
+        );
+      }),
+      TableRow(
+        decoration: BoxDecoration(
+          color: Color(0xffedead9),
+        ),
+        children: [SummaryRowHeader(label: 'Daily Totals', isAggregate: true)],
+      ),
+    ];
+  }
+
+  Widget _buildDateHeading(DateTime date) {
+    return SummaryDateHeading(DateFormats.md.format(date));
+  }
+
+  List<TableRow> _buildTimesheetEntryRows() {
+    final Timesheets timesheets = InvoiceBinding.instance!.invoice!.timesheets;
+    bool colorRow = true;
+    double weeklyAggregateTotal = 0;
+    List<double> dailyTotals = List<double>.filled(14, 0);
+    int dayIndex = 0;
+    Widget buildHours(
+      double amount, {
+      bool isWeekend = false,
+      bool isAggregate = false,
+      bool isWeeklyTotal = false,
+    }) {
+      if (!isAggregate) {
+        dailyTotals[dayIndex++] += amount;
+      }
+      return DailyTotalHours(
+        amount: amount,
+        isWeekend: isWeekend,
+        isAggregate: isAggregate,
+        isWeeklyTotal: isWeeklyTotal,
+      );
+    }
+
+    Widget buildWeekdayHours(double amount) => buildHours(amount);
+    Widget buildWeekendHours(double amount) => buildHours(amount, isWeekend: true);
+    Widget buildAggregateHours(double amount, {bool isWeeklyTotal = false}) {
+      if (isWeeklyTotal) {
+        weeklyAggregateTotal = 0;
+      } else {
+        weeklyAggregateTotal += amount;
+      }
+      return buildHours(amount, isAggregate: true, isWeeklyTotal: isWeeklyTotal);
+    }
+
+    return <TableRow>[
+      ...timesheets.map<TableRow>((Timesheet timesheet) {
+        dayIndex = 0;
+        final Decoration? decoration = colorRow ? _coloredRowDecoration : null;
+        colorRow = !colorRow;
+        return TableRow(
+          decoration: decoration,
+          children: <Widget>[
+            ...timesheet.hours.take(5).map<Widget>(buildWeekdayHours),
+            ...timesheet.hours.skip(5).take(2).map<Widget>(buildWeekendHours),
+            buildAggregateHours(0),
+            ...timesheet.hours.skip(7).take(5).map<Widget>(buildWeekdayHours),
+            ...timesheet.hours.skip(12).take(2).map<Widget>(buildWeekendHours),
+            buildAggregateHours(0),
+            Container(),
+          ],
+        );
+      }),
+      TableRow(
+        decoration: const BoxDecoration(
+          color: Color(0xffedead9),
+        ),
+        children: <Widget>[
+          ...dailyTotals.take(7).map<Widget>(buildAggregateHours),
+          buildAggregateHours(weeklyAggregateTotal, isWeeklyTotal: true),
+          ...dailyTotals.skip(7).take(7).map<Widget>(buildAggregateHours),
+          buildAggregateHours(weeklyAggregateTotal, isWeeklyTotal: true),
+          Container(),
+        ],
+      ),
+    ];
+  }
+
+  List<Widget> _buildTimesheetBlock() {
+    final Invoice invoice = InvoiceBinding.instance!.invoice!;
+    final Timesheets timesheets = invoice.timesheets;
+    final String total = NumberFormats.currency.format(timesheets.computeTotal());
+    return <Widget>[
+      Padding(
+        padding: EdgeInsets.only(top: 27),
+        child: Row(
+          children: [
+            Expanded(
+              child: DefaultTextStyle.merge(
+                style: TextStyle(fontWeight: FontWeight.bold),
+                child: Text('Billable Hours'),
+              ),
+            ),
+            Text(total),
+          ],
+        ),
+      ),
+      DecoratedBox(
+        decoration: const BoxDecoration(
+          border: Border(bottom: BorderSide(color: Color(0xffb3b3b3))),
+        ),
+        child: Padding(
+          padding: EdgeInsets.only(bottom: 1),
+          child: ScrollPane(
+            horizontalScrollBarPolicy: ScrollBarPolicy.expand,
+            topLeftCorner: Container(),
+            bottomLeftCorner: const DecoratedBox(
+              decoration: BoxDecoration(
+                border: Border(left: BorderSide(color: Color(0xffb3b3b3))),
+              ),
+              child: Padding(
+                padding: EdgeInsets.only(left: 1),
+                child: ColoredBox(
+                  color: Color(0xfff0ece7),
+                ),
+              ),
+            ),
+            rowHeader: Container(
+              foregroundDecoration: const BoxDecoration(
+                border: Border(
+                  top: BorderSide(color: Color(0xffb3b3b3)),
+                  left: BorderSide(color: Color(0xffb3b3b3)),
+                  right: BorderSide(color: Color(0xffb3b3b3)),
+                ),
+              ),
+              child: Table(
+                defaultColumnWidth: IntrinsicColumnWidth(),
+                border: TestBorder(
+                  lastRowIsAggregate: true,
+                ),
+                children: _buildTimesheetRowHeaderCells(),
+              ),
+            ),
+            columnHeader: Table(
+              defaultColumnWidth: FixedColumnWidth(34),
+              columnWidths: <int, TableColumnWidth>{
+                16: FlexColumnWidth(),
+              },
+              children: <TableRow>[
+                TableRow(
+                  children: <Widget>[
+                    ...invoice.billingPeriod.take(7).map<Widget>(_buildDateHeading),
+                    Container(),
+                    ...invoice.billingPeriod.skip(7).take(7).map<Widget>(_buildDateHeading),
+                    Container(),
+                    Container(),
+                  ],
+                ),
+              ],
+            ),
+            view: Container(
+              foregroundDecoration: const BoxDecoration(
+                border: Border(
+                  top: BorderSide(color: Color(0xffb3b3b3)),
+                  right: BorderSide(color: Color(0xffb3b3b3)),
+                ),
+              ),
+              child: Table(
+                defaultColumnWidth: FixedColumnWidth(34),
+                columnWidths: <int, TableColumnWidth>{
+                  16: FlexColumnWidth(),
+                },
+                border: TestBorder(
+                  aggregateColumns: <int>[7, 15],
+                  lastRowIsAggregate: true,
+                ),
+                children: _buildTimesheetEntryRows(),
+              ),
+            ),
+          ),
+        ),
+      ),
+    ];
+  }
+
+  List<_ExpenseAggregation> _buildExpenseRows(ExpenseReport expenseReport) {
+    final int duration = expenseReport.invoice.billingPeriod.length;
+    final Map<int, _ExpenseAggregation> lookup = <int, _ExpenseAggregation>{};
+    for (Expense expense in expenseReport.expenses) {
+      final int id = expense.type.expenseTypeId;
+      final _ExpenseAggregation row = lookup.putIfAbsent(id, () {
+        return _ExpenseAggregation(expense.type.name, List<double>.filled(duration, 0));
+      });
+      final int index = expense.date.difference(expenseReport.invoice.billingPeriod.start).inDays;
+      if (index < 0) {
+        row.before += expense.amount;
+      } else if (index >= row.expenses.length) {
+        row.after += expense.amount;
+      } else {
+        row.expenses[index] += expense.amount;
+      }
+    }
+    return lookup.values.toList()..sort();
+  }
+
+  Widget _buildWeekdayExpenseCell(double amount) {
+    return DailyTotalDollars(amount: amount);
+  }
+
+  Widget _buildWeekendExpenseCell(double amount) {
+    return DailyTotalDollars(amount: amount, isWeekend: true);
+  }
+
+  Widget _buildExpenseReport(ExpenseReport expenseReport) {
+    final List<_ExpenseAggregation> rows = _buildExpenseRows(expenseReport);
+    bool colorRow = true;
+    return DecoratedBox(
+      decoration: const BoxDecoration(
+        border: Border(bottom: BorderSide(color: Color(0xffb3b3b3))),
+      ),
+      child: Padding(
+        padding: EdgeInsets.only(bottom: 1, top: 14),
+        child: ScrollPane(
+          horizontalScrollBarPolicy: ScrollBarPolicy.expand,
+          topLeftCorner: Align(
+            alignment: Alignment.bottomLeft,
+            child: Text(expenseReport.name, maxLines: 1),
+          ),
+          bottomLeftCorner: const DecoratedBox(
+            decoration: BoxDecoration(
+              border: Border(left: BorderSide(color: Color(0xffb3b3b3))),
+            ),
+            child: Padding(
+              padding: EdgeInsets.only(left: 1),
+              child: ColoredBox(
+                color: Color(0xfff0ece7),
+              ),
+            ),
+          ),
+          rowHeader: ConstrainedBox(
+            constraints: BoxConstraints(minWidth: 200),
+            child: Container(
+              foregroundDecoration: const BoxDecoration(
+                border: Border(
+                  top: BorderSide(color: Color(0xffb3b3b3)),
+                  left: BorderSide(color: Color(0xffb3b3b3)),
+                  right: BorderSide(color: Color(0xffb3b3b3)),
+                ),
+              ),
+              child: Table(
+                defaultColumnWidth: IntrinsicColumnWidth(),
+                border: TestBorder(),
+                children: <TableRow>[
+                  ...rows.map<TableRow>((_ExpenseAggregation row) {
+                    final Decoration? decoration = colorRow ? _coloredRowDecoration : null;
+                    colorRow = !colorRow;
+                    return TableRow(
+                      decoration: decoration,
+                      children: [SummaryRowHeader(label: row.name)],
+                    );
+                  }),
+                ],
+              ),
+            ),
+          ),
+          columnHeader: Table(
+            defaultColumnWidth: FixedColumnWidth(34),
+            columnWidths: <int, TableColumnWidth>{
+              16: FlexColumnWidth(),
+            },
+            children: <TableRow>[
+              TableRow(
+                children: <Widget>[
+                  SummaryDateHeading('...'),
+                  ...expenseReport.invoice.billingPeriod.map((DateTime date) {
+                    return SummaryDateHeading(DateFormats.md.format(date));
+                  }),
+                  SummaryDateHeading('...'),
+                  Container(),
+                ],
+              ),
+            ],
+          ),
+          view: Container(
+            foregroundDecoration: const BoxDecoration(
+              border: Border(
+                top: BorderSide(color: Color(0xffb3b3b3)),
+                right: BorderSide(color: Color(0xffb3b3b3)),
+              ),
+            ),
+            child: Table(
+              defaultColumnWidth: FixedColumnWidth(34),
+              columnWidths: <int, TableColumnWidth>{
+                16: FlexColumnWidth(),
+              },
+              border: const TestBorder(aggregateColumns: <int>[0, 15, 16]),
+              children: <TableRow>[
+                ...(){colorRow = true; return [];}(),
+                ...rows.map<TableRow>((_ExpenseAggregation row) {
+                  final Decoration? decoration = colorRow ? _coloredRowDecoration : null;
+                  colorRow = !colorRow;
+                  return TableRow(
+                    decoration: decoration,
+                    children: <Widget>[
+                      _buildWeekdayExpenseCell(row.before),
+                      ...row.expenses.take(5).map<Widget>(_buildWeekdayExpenseCell),
+                      ...row.expenses.skip(5).take(2).map<Widget>(_buildWeekendExpenseCell),
+                      ...row.expenses.skip(7).take(5).map<Widget>(_buildWeekdayExpenseCell),
+                      ...row.expenses.skip(12).take(2).map<Widget>(_buildWeekendExpenseCell),
+                      _buildWeekdayExpenseCell(row.after),
+                      Container(),
+                    ],
+                  );
+                }),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  List<Widget> _buildExpenseReportBlock() {
+    final ExpenseReports expenseReports = InvoiceBinding.instance!.invoice!.expenseReports;
+    final String total = NumberFormats.currency.format(expenseReports.computeTotal());
+    return <Widget>[
+      Padding(
+        padding: EdgeInsets.only(top: 30),
+        child: Row(
+          children: [
+            Expanded(
+              child: DefaultTextStyle.merge(
+                style: TextStyle(fontWeight: FontWeight.bold),
+                child: Text('Expense Reports'),
+              ),
+            ),
+            Text(total),
+          ],
+        ),
+      ),
+      ...expenseReports.map<Widget>(_buildExpenseReport),
+    ];
+  }
+
+  List<Widget> _buildAccomplishmentBlock() {
+    return <Widget>[
+      Padding(
+        padding: EdgeInsets.only(top: 30),
+        child: Row(
+          children: [
+            DefaultTextStyle.merge(
+              style: TextStyle(fontWeight: FontWeight.bold),
+              child: Text('Accomplishments'),
+            ),
+          ],
+        ),
+      ),
+      Padding(
+        padding: EdgeInsets.fromLTRB(5, 16, 0, 5),
+        child: Row(
+          children: [
+            Text('BSS, NNV8-913197 (COSC)'),
+          ],
+        ),
+      ),
+      AccomplishmentsEntryField(
+        accomplishment: InvoiceBinding.instance!.invoice!.accomplishments.first,
+        isReadOnly: true,
+      ),
+    ];
+  }
 
   @override
   Widget build(BuildContext context) {
     return Padding(
       padding: EdgeInsets.all(6),
-      child: chicago.ScrollPane(
-        horizontalScrollBarPolicy: chicago.ScrollBarPolicy.stretch,
+      child: ScrollPane(
+        horizontalScrollBarPolicy: ScrollBarPolicy.stretch,
         view: Padding(
           padding: EdgeInsets.all(20),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.start,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: <Widget>[
-              Padding(
-                padding: EdgeInsets.only(bottom: 4),
-                child: Text('Volkert, Todd', style: TextStyle(fontWeight: FontWeight.bold)),
-              ),
-              Padding(
-                padding: EdgeInsets.only(bottom: 4),
-                child: Text('Invoice #FOO'),
-              ),
-              Padding(
-                padding: EdgeInsets.only(bottom: 4),
-                child: Text('10/12/2015 - 10/25/2015'),
-              ),
-              Padding(
-                padding: EdgeInsets.only(bottom: 4),
-                child: Text(r'$5,296.63'),
-              ),
-              Padding(
-                padding: EdgeInsets.only(top: 27),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: DefaultTextStyle.merge(
-                        style: TextStyle(fontWeight: FontWeight.bold),
-                        child: Text('Billable Hours'),
-                      ),
-                    ),
-                    Text(r'$2,160.95'),
-                  ],
-                ),
-              ),
-              DecoratedBox(
-                decoration: const BoxDecoration(
-                  border: Border(bottom: BorderSide(color: Color(0xffb3b3b3))),
-                ),
-                child: Padding(
-                  padding: EdgeInsets.only(bottom: 1),
-                  child: chicago.ScrollPane(
-                    horizontalScrollBarPolicy: chicago.ScrollBarPolicy.expand,
-                    topLeftCorner: Container(),
-                    bottomLeftCorner: const DecoratedBox(
-                      decoration: BoxDecoration(
-                        border: Border(left: BorderSide(color: Color(0xffb3b3b3))),
-                      ),
-                      child: Padding(
-                        padding: EdgeInsets.only(left: 1),
-                        child: ColoredBox(
-                          color: Color(0xfff0ece7),
-                        ),
-                      ),
-                    ),
-                    rowHeader: Container(
-                      foregroundDecoration: const BoxDecoration(
-                        border: Border(
-                          top: BorderSide(color: Color(0xffb3b3b3)),
-                          left: BorderSide(color: Color(0xffb3b3b3)),
-                          right: BorderSide(color: Color(0xffb3b3b3)),
-                        ),
-                      ),
-                      child: Table(
-                        defaultColumnWidth: IntrinsicColumnWidth(),
-                        border: TestBorder(
-                          lastRowIsAggregate: true,
-                        ),
-                        children: <TableRow>[
-                          TableRow(
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                            ),
-                            children: [SummaryRowHeader(label: 'SCI - Overhead')],
-                          ),
-                          TableRow(
-                            children: [SummaryRowHeader(label: 'BSS, NNV8-913197 (COSC) (123)')],
-                          ),
-                          TableRow(
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                            ),
-                            children: [SummaryRowHeader(label: 'Orbital Sciences (abd)')],
-                          ),
-                          TableRow(
-                            children: [SummaryRowHeader(label: 'Loral - T14R')],
-                          ),
-                          TableRow(
-                            decoration: BoxDecoration(
-                              color: Color(0xffedead9),
-                            ),
-                            children: [SummaryRowHeader(label: 'Daily Totals', isAggregate: true)],
-                          ),
-                        ],
-                      ),
-                    ),
-                    columnHeader: Table(
-                      defaultColumnWidth: FixedColumnWidth(34),
-                      columnWidths: <int, TableColumnWidth>{
-                        16: FlexColumnWidth(),
-                      },
-                      children: <TableRow>[
-                        TableRow(
-                          children: <Widget>[
-                            SummaryDateHeading('10/12'),
-                            SummaryDateHeading('10/13'),
-                            SummaryDateHeading('10/14'),
-                            SummaryDateHeading('10/15'),
-                            SummaryDateHeading('10/16'),
-                            SummaryDateHeading('10/17'),
-                            SummaryDateHeading('10/18'),
-                            Container(),
-                            SummaryDateHeading('10/19'),
-                            SummaryDateHeading('10/20'),
-                            SummaryDateHeading('10/21'),
-                            SummaryDateHeading('10/22'),
-                            SummaryDateHeading('10/23'),
-                            SummaryDateHeading('10/24'),
-                            SummaryDateHeading('10/25'),
-                            Container(),
-                            Container(),
-                          ],
-                        ),
-                      ],
-                    ),
-                    view: Container(
-                      foregroundDecoration: const BoxDecoration(
-                        border: Border(
-                          top: BorderSide(color: Color(0xffb3b3b3)),
-                          right: BorderSide(color: Color(0xffb3b3b3)),
-                        ),
-                      ),
-                      child: Table(
-                        defaultColumnWidth: FixedColumnWidth(34),
-                        columnWidths: <int, TableColumnWidth>{
-                          16: FlexColumnWidth(),
-                        },
-                        border: TestBorder(
-                          aggregateColumns: <int>[7, 15],
-                          lastRowIsAggregate: true,
-                        ),
-                        children: <TableRow>[
-                          TableRow(
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                            ),
-                            children: <Widget>[
-                              DailyTotalHours(amount: 4),
-                              DailyTotalHours(amount: 4),
-                              DailyTotalHours(amount: 5),
-                              DailyTotalHours(amount: 6),
-                              DailyTotalHours(amount: 6),
-                              DailyTotalHours(amount: 7, isWeekend: true),
-                              DailyTotalHours(amount: 6, isWeekend: true),
-                              DailyTotalHours(amount: 0, isAggregate: true),
-                              DailyTotalHours(amount: 7),
-                              DailyTotalHours(amount: 0),
-                              DailyTotalHours(amount: 0),
-                              DailyTotalHours(amount: 0),
-                              DailyTotalHours(amount: 0),
-                              DailyTotalHours(amount: 0, isWeekend: true),
-                              DailyTotalHours(amount: 0, isWeekend: true),
-                              DailyTotalHours(amount: 0, isAggregate: true),
-                              Container(),
-                            ],
-                          ),
-                          TableRow(
-                            children: <Widget>[
-                              DailyTotalHours(amount: 0),
-                              DailyTotalHours(amount: 0),
-                              DailyTotalHours(amount: 0),
-                              DailyTotalHours(amount: 10),
-                              DailyTotalHours(amount: 0),
-                              DailyTotalHours(amount: 0, isWeekend: true),
-                              DailyTotalHours(amount: 0, isWeekend: true),
-                              DailyTotalHours(amount: 0, isAggregate: true),
-                              DailyTotalHours(amount: 0),
-                              DailyTotalHours(amount: 0),
-                              DailyTotalHours(amount: 0),
-                              DailyTotalHours(amount: 0),
-                              DailyTotalHours(amount: 0),
-                              DailyTotalHours(amount: 0, isWeekend: true),
-                              DailyTotalHours(amount: 0, isWeekend: true),
-                              DailyTotalHours(amount: 0, isAggregate: true),
-                              Container(),
-                            ],
-                          ),
-                          TableRow(
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                            ),
-                            children: <Widget>[
-                              DailyTotalHours(amount: 0),
-                              DailyTotalHours(amount: 2),
-                              DailyTotalHours(amount: 1),
-                              DailyTotalHours(amount: 0),
-                              DailyTotalHours(amount: 0),
-                              DailyTotalHours(amount: 0, isWeekend: true),
-                              DailyTotalHours(amount: 0, isWeekend: true),
-                              DailyTotalHours(amount: 0, isAggregate: true),
-                              DailyTotalHours(amount: 0),
-                              DailyTotalHours(amount: 0),
-                              DailyTotalHours(amount: 0),
-                              DailyTotalHours(amount: 0),
-                              DailyTotalHours(amount: 0),
-                              DailyTotalHours(amount: 0, isWeekend: true),
-                              DailyTotalHours(amount: 0, isWeekend: true),
-                              DailyTotalHours(amount: 0, isAggregate: true),
-                              Container(),
-                            ],
-                          ),
-                          TableRow(
-                            children: <Widget>[
-                              DailyTotalHours(amount: 0),
-                              DailyTotalHours(amount: 0),
-                              DailyTotalHours(amount: 0),
-                              DailyTotalHours(amount: 0),
-                              DailyTotalHours(amount: 0),
-                              DailyTotalHours(amount: 0, isWeekend: true),
-                              DailyTotalHours(amount: 0, isWeekend: true),
-                              DailyTotalHours(amount: 0, isAggregate: true),
-                              DailyTotalHours(amount: 8),
-                              DailyTotalHours(amount: 0),
-                              DailyTotalHours(amount: 0),
-                              DailyTotalHours(amount: 0),
-                              DailyTotalHours(amount: 0),
-                              DailyTotalHours(amount: 0, isWeekend: true),
-                              DailyTotalHours(amount: 0, isWeekend: true),
-                              DailyTotalHours(amount: 0, isAggregate: true),
-                              Container(),
-                            ],
-                          ),
-                          TableRow(
-                            decoration: BoxDecoration(
-                              color: Color(0xffedead9),
-                            ),
-                            children: <Widget>[
-                              DailyTotalHours(amount: 4, isAggregate: true),
-                              DailyTotalHours(amount: 6, isAggregate: true),
-                              DailyTotalHours(amount: 6, isAggregate: true),
-                              DailyTotalHours(amount: 16, isAggregate: true),
-                              DailyTotalHours(amount: 6, isAggregate: true),
-                              DailyTotalHours(amount: 7, isAggregate: true),
-                              DailyTotalHours(amount: 6, isAggregate: true),
-                              DailyTotalHours(amount: 51, isAggregate: true, isWeeklyTotal: true),
-                              DailyTotalHours(amount: 15, isAggregate: true),
-                              DailyTotalHours(amount: 0, isAggregate: true),
-                              DailyTotalHours(amount: 0, isAggregate: true),
-                              DailyTotalHours(amount: 0, isAggregate: true),
-                              DailyTotalHours(amount: 0, isAggregate: true),
-                              DailyTotalHours(amount: 0, isAggregate: true),
-                              DailyTotalHours(amount: 0, isAggregate: true),
-                              DailyTotalHours(amount: 15, isAggregate: true, isWeeklyTotal: true),
-                              Container(),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-              Padding(
-                padding: EdgeInsets.only(top: 30),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: DefaultTextStyle.merge(
-                        style: TextStyle(fontWeight: FontWeight.bold),
-                        child: Text('Expense Reports'),
-                      ),
-                    ),
-                    Text(r'$3,136.63'),
-                  ],
-                ),
-              ),
-              DecoratedBox(
-                decoration: const BoxDecoration(
-                  border: Border(bottom: BorderSide(color: Color(0xffb3b3b3))),
-                ),
-                child: Padding(
-                  padding: EdgeInsets.only(bottom: 1),
-                  child: chicago.ScrollPane(
-                    horizontalScrollBarPolicy: chicago.ScrollBarPolicy.expand,
-                    topLeftCorner: Align(
-                      alignment: Alignment.bottomLeft,
-                      child: Text('Orbital Sciences (123)', maxLines: 1),
-                    ),
-                    bottomLeftCorner: const DecoratedBox(
-                      decoration: BoxDecoration(
-                        border: Border(left: BorderSide(color: Color(0xffb3b3b3))),
-                      ),
-                      child: Padding(
-                        padding: EdgeInsets.only(left: 1),
-                        child: ColoredBox(
-                          color: Color(0xfff0ece7),
-                        ),
-                      ),
-                    ),
-                    rowHeader: ConstrainedBox(
-                      constraints: BoxConstraints(minWidth: 200),
-                      child: Container(
-                        foregroundDecoration: const BoxDecoration(
-                          border: Border(
-                            top: BorderSide(color: Color(0xffb3b3b3)),
-                            left: BorderSide(color: Color(0xffb3b3b3)),
-                            right: BorderSide(color: Color(0xffb3b3b3)),
-                          ),
-                        ),
-                        child: Table(
-                          defaultColumnWidth: IntrinsicColumnWidth(),
-                          border: TestBorder(),
-                          children: <TableRow>[
-                            TableRow(
-                              decoration: BoxDecoration(
-                                color: Colors.white,
-                              ),
-                              children: [SummaryRowHeader(label: 'Car Rental')],
-                            ),
-                            TableRow(
-                              children: [SummaryRowHeader(label: 'Lodging')],
-                            ),
-                            TableRow(
-                              decoration: BoxDecoration(
-                                color: Colors.white,
-                              ),
-                              children: [
-                                Padding(
-                                  padding: EdgeInsets.only(bottom: 1),
-                                  child: SummaryRowHeader(label: 'Parking'),
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                    columnHeader: Table(
-                      defaultColumnWidth: FixedColumnWidth(34),
-                      columnWidths: <int, TableColumnWidth>{
-                        14: FlexColumnWidth(),
-                      },
-                      children: <TableRow>[
-                        TableRow(
-                          children: <Widget>[
-                            SummaryDateHeading('10/12'),
-                            SummaryDateHeading('10/13'),
-                            SummaryDateHeading('10/14'),
-                            SummaryDateHeading('10/15'),
-                            SummaryDateHeading('10/16'),
-                            SummaryDateHeading('10/17'),
-                            SummaryDateHeading('10/18'),
-                            SummaryDateHeading('10/19'),
-                            SummaryDateHeading('10/20'),
-                            SummaryDateHeading('10/21'),
-                            SummaryDateHeading('10/22'),
-                            SummaryDateHeading('10/23'),
-                            SummaryDateHeading('10/24'),
-                            SummaryDateHeading('10/25'),
-                            Container(),
-                          ],
-                        ),
-                      ],
-                    ),
-                    view: Container(
-                      foregroundDecoration: const BoxDecoration(
-                        border: Border(
-                          top: BorderSide(color: Color(0xffb3b3b3)),
-                          right: BorderSide(color: Color(0xffb3b3b3)),
-                        ),
-                      ),
-                      child: Table(
-                        defaultColumnWidth: FixedColumnWidth(34),
-                        columnWidths: <int, TableColumnWidth>{
-                          14: FlexColumnWidth(),
-                        },
-                        border: const TestBorder(aggregateColumns: <int>[14]),
-                        children: <TableRow>[
-                          TableRow(
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                            ),
-                            children: <Widget>[
-                              DailyTotalDollars(amount: 0),
-                              DailyTotalDollars(amount: 34),
-                              DailyTotalDollars(amount: 23),
-                              DailyTotalDollars(amount: 0),
-                              DailyTotalDollars(amount: 0),
-                              DailyTotalDollars(amount: 0, isWeekend: true),
-                              DailyTotalDollars(amount: 0, isWeekend: true),
-                              DailyTotalDollars(amount: 0),
-                              DailyTotalDollars(amount: 0),
-                              DailyTotalDollars(amount: 0),
-                              DailyTotalDollars(amount: 0),
-                              DailyTotalDollars(amount: 0),
-                              DailyTotalDollars(amount: 0, isWeekend: true),
-                              DailyTotalDollars(amount: 0, isWeekend: true),
-                              Container(),
-                            ],
-                          ),
-                          TableRow(
-                            children: <Widget>[
-                              DailyTotalDollars(amount: 219),
-                              DailyTotalDollars(amount: 219),
-                              DailyTotalDollars(amount: 219),
-                              DailyTotalDollars(amount: 219),
-                              DailyTotalDollars(amount: 219),
-                              DailyTotalDollars(amount: 219, isWeekend: true),
-                              DailyTotalDollars(amount: 219, isWeekend: true),
-                              DailyTotalDollars(amount: 219),
-                              DailyTotalDollars(amount: 219),
-                              DailyTotalDollars(amount: 219),
-                              DailyTotalDollars(amount: 219),
-                              DailyTotalDollars(amount: 219),
-                              DailyTotalDollars(amount: 219, isWeekend: true),
-                              DailyTotalDollars(amount: 219, isWeekend: true),
-                              Container(),
-                            ],
-                          ),
-                          TableRow(
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                            ),
-                            children: <Widget>[
-                              DailyTotalDollars(amount: 0),
-                              DailyTotalDollars(amount: 12),
-                              DailyTotalDollars(amount: 0),
-                              DailyTotalDollars(amount: 0),
-                              DailyTotalDollars(amount: 0),
-                              DailyTotalDollars(amount: 0, isWeekend: true),
-                              DailyTotalDollars(amount: 0, isWeekend: true),
-                              DailyTotalDollars(amount: 0),
-                              DailyTotalDollars(amount: 0),
-                              DailyTotalDollars(amount: 0),
-                              DailyTotalDollars(amount: 0),
-                              DailyTotalDollars(amount: 0),
-                              DailyTotalDollars(amount: 0, isWeekend: true),
-                              DailyTotalDollars(amount: 0, isWeekend: true),
-                              Container(),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-              Padding(
-                padding: EdgeInsets.only(top: 30),
-                child: Row(
-                  children: [
-                    DefaultTextStyle.merge(
-                      style: TextStyle(fontWeight: FontWeight.bold),
-                      child: Text('Accomplishments'),
-                    ),
-                  ],
-                ),
-              ),
-              Padding(
-                padding: EdgeInsets.fromLTRB(5, 16, 0, 5),
-                child: Row(
-                  children: [
-                    Text('BSS, NNV8-913197 (COSC)'),
-                  ],
-                ),
-              ),
-              AccomplishmentsEntryField(
-                accomplishment: InvoiceBinding.instance!.invoice!.accomplishments.first,
-                isReadOnly: true,
-              ),
+              ..._buildHeaderBlock(),
+              ..._buildTimesheetBlock(),
+              ..._buildExpenseReportBlock(),
+              ..._buildAccomplishmentBlock(),
               Padding(
                 padding: EdgeInsets.only(top: 22),
                 child: CertifyAndSubmit(),
@@ -524,7 +481,7 @@ class SummaryRowHeader extends StatelessWidget {
     Key? key,
     required this.label,
     this.isAggregate = false,
-  })  : super(key: key);
+  }) : super(key: key);
 
   final String label;
   final bool isAggregate;
@@ -562,7 +519,7 @@ class _CertifyAndSubmitState extends State<CertifyAndSubmit> {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        chicago.PushButton(
+        PushButton(
           icon: 'assets/lock.png',
           label: 'Submit Invoice',
           onPressed: certified ? _handleSubmit : null,
@@ -597,7 +554,7 @@ class DailyTotalHours extends StatelessWidget {
     this.isAggregate = false,
     this.isWeeklyTotal = false,
     Key? key,
-  })  : super(key: key);
+  }) : super(key: key);
 
   final double amount;
   final bool isWeekend;
@@ -623,7 +580,7 @@ class DailyTotalDollars extends StatelessWidget {
     this.isAggregate = false,
     this.isWeeklyTotal = false,
     Key? key,
-  })  : super(key: key);
+  }) : super(key: key);
 
   final double amount;
   final bool isWeekend;
@@ -649,7 +606,7 @@ class DailyTotal extends StatelessWidget {
     this.isWeeklyTotal = false,
     this.cautionIfExceeded,
     Key? key,
-  })  : super(key: key);
+  }) : super(key: key);
 
   final double amount;
   final bool isWeekend;
@@ -697,7 +654,7 @@ class TestBorder extends TableBorder {
   const TestBorder({
     this.aggregateColumns = const <int>[],
     this.lastRowIsAggregate = false,
-  })  : super(
+  }) : super(
           top: _outsideBorder,
           right: _outsideBorder,
           bottom: _outsideBorder,
