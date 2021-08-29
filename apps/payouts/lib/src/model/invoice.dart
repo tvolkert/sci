@@ -1071,6 +1071,9 @@ class ExpenseReports
   final Invoice _owner;
   final List<ExpenseReport> _data;
 
+  /// The invoice to which these expense reports belong.
+  Invoice get invoice => _owner;
+
   @override
   @protected
   Iterable<ExpenseReport> get delegate => _data;

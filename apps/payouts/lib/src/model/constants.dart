@@ -2,7 +2,14 @@ import 'dart:io' show HttpStatus;
 
 import 'package:intl/intl.dart' as intl;
 
+class Dates {
+  const Dates._();
+  // Add two hours to allow for daylight savings differences
+  static const Duration approximatelyOneDay = Duration(days: 1, hours: 2);
+}
+
 class DateFormats {
+  const DateFormats._();
   static final intl.DateFormat iso8601Short = intl.DateFormat('yyyy-MM-dd');
   static final intl.DateFormat mmddyyyy = intl.DateFormat('MM/dd/yyyy');
   static final intl.DateFormat mdyyyy = intl.DateFormat('M/d/yyyy');
@@ -10,6 +17,7 @@ class DateFormats {
 }
 
 class NumberFormats {
+  const NumberFormats._();
   static final intl.NumberFormat currency = intl.NumberFormat.currency(symbol: r'$');
   static final intl.NumberFormat decimal = intl.NumberFormat(r'#,##0.00');
   static final intl.NumberFormat maybeDecimal = intl.NumberFormat(r'#,###.##');
@@ -17,13 +25,11 @@ class NumberFormats {
 
 class Strings {
   const Strings._();
-
   static const String mileageRate = 'mileageRate';
 }
 
 class Keys {
   const Keys._();
-
   static const String name = 'name';
   static const String expenseTypeId = 'expense_type_id';
   static const String fromDate = 'from_date';
@@ -95,6 +101,7 @@ class Keys {
 }
 
 class Server {
+  const Server._();
   static const String scheme = 'https';
   static const String host = 'www.satelliteconsulting.com';
 
@@ -116,6 +123,7 @@ class Server {
 }
 
 class QueryParameters {
+  const QueryParameters._();
   static const String invoiceId = 'invoiceId';
 }
 

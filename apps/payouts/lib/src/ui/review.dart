@@ -1,14 +1,13 @@
 import 'dart:math' as math;
 
 import 'package:chicago/chicago.dart' hide TableColumnWidth, TableRow;
-import 'package:flutter/gestures.dart';
-import 'package:flutter/painting.dart';
-import 'package:flutter/rendering.dart';
+import 'package:flutter/material.dart' show Tooltip;
 import 'package:flutter/widgets.dart';
 import 'package:intl/intl.dart' as intl;
 
 import 'package:payouts/src/model/constants.dart';
 import 'package:payouts/src/model/invoice.dart';
+import 'package:payouts/src/model/summary_data.dart';
 
 import 'accomplishments_view.dart';
 import 'rotated_text.dart';
@@ -17,16 +16,38 @@ const _coloredRowDecoration = BoxDecoration(
   color: Color(0xffffffff),
 );
 
-class _ExpenseAggregation implements Comparable<_ExpenseAggregation> {
-  _ExpenseAggregation(this.name, this.expenses);
+class ExpenseReportName extends StatelessWidget {
+  const ExpenseReportName({required this.name, this.isFlagged = false});
 
   final String name;
-  final List<double> expenses;
-  double before = 0;
-  double after = 0;
+  final bool isFlagged;
 
   @override
-  int compareTo(_ExpenseAggregation other) => name.compareTo(other.name);
+  Widget build(BuildContext context) {
+    final List<Widget> children = <Widget>[
+      Expanded(child: Text(name, maxLines: 1, overflow: TextOverflow.ellipsis)),
+    ];
+    if (isFlagged) {
+      children.add(
+        Padding(
+          padding: EdgeInsets.only(right: 5),
+          child: Tooltip(
+            message: 'This expense report contains expenses before or after this invoice\'s billing period',
+            child: Image.asset(
+              'assets/message_type-error-16x16.png',
+              width: 16,
+              height: 16,
+              alignment: Alignment.centerRight,
+            ),
+          ),
+        ),
+      );
+    }
+    return Padding(
+      padding: EdgeInsets.only(bottom: 4),
+      child: Row(children: children),
+    );
+  }
 }
 
 class ReviewAndSubmit extends StatelessWidget {
@@ -79,7 +100,7 @@ class ReviewAndSubmit extends StatelessWidget {
   }
 
   Widget _buildDateHeading(DateTime date) {
-    return SummaryDateHeading(DateFormats.md.format(date));
+    return SummaryDateHeading(date: date);
   }
 
   List<TableRow> _buildTimesheetEntryRows() {
@@ -97,11 +118,12 @@ class ReviewAndSubmit extends StatelessWidget {
       if (!isAggregate) {
         dailyTotals[dayIndex++] += amount;
       }
-      return DailyTotalHours(
+      return DailyTotal(
         amount: amount,
         isWeekend: isWeekend,
         isAggregate: isAggregate,
         isWeeklyTotal: isWeeklyTotal,
+        cautionIfExceeded: 12,
       );
     }
 
@@ -246,48 +268,28 @@ class ReviewAndSubmit extends StatelessWidget {
     ];
   }
 
-  List<_ExpenseAggregation> _buildExpenseRows(ExpenseReport expenseReport) {
-    final int duration = expenseReport.invoice.billingPeriod.length;
-    final Map<int, _ExpenseAggregation> lookup = <int, _ExpenseAggregation>{};
-    for (Expense expense in expenseReport.expenses) {
-      final int id = expense.type.expenseTypeId;
-      final _ExpenseAggregation row = lookup.putIfAbsent(id, () {
-        return _ExpenseAggregation(expense.type.name, List<double>.filled(duration, 0));
-      });
-      final int index = expense.date.difference(expenseReport.invoice.billingPeriod.start).inDays;
-      if (index < 0) {
-        row.before += expense.amount;
-      } else if (index >= row.expenses.length) {
-        row.after += expense.amount;
-      } else {
-        row.expenses[index] += expense.amount;
-      }
-    }
-    return lookup.values.toList()..sort();
-  }
-
-  Widget _buildWeekdayExpenseCell(double amount) {
-    return DailyTotalDollars(amount: amount);
-  }
-
-  Widget _buildWeekendExpenseCell(double amount) {
-    return DailyTotalDollars(amount: amount, isWeekend: true);
-  }
-
-  Widget _buildExpenseReport(ExpenseReport expenseReport) {
-    final List<_ExpenseAggregation> rows = _buildExpenseRows(expenseReport);
+  Widget _buildExpenseReport(ExpenseReportSummaryData expenseReport) {
+    final int length = expenseReport.owner.dates.length;
     bool colorRow = true;
+    Decoration? getToggledRowDecoration() {
+      final Decoration? decoration = colorRow ? _coloredRowDecoration : null;
+      colorRow = !colorRow;
+      return decoration;
+    }
     return DecoratedBox(
       decoration: const BoxDecoration(
         border: Border(bottom: BorderSide(color: Color(0xffb3b3b3))),
       ),
       child: Padding(
-        padding: EdgeInsets.only(bottom: 1, top: 14),
+        padding: EdgeInsets.only(bottom: 1, top: 10),
         child: ScrollPane(
           horizontalScrollBarPolicy: ScrollBarPolicy.expand,
           topLeftCorner: Align(
             alignment: Alignment.bottomLeft,
-            child: Text(expenseReport.name, maxLines: 1),
+            child: ExpenseReportName(
+              name: expenseReport.name,
+              isFlagged: expenseReport.isFlagged,
+            ),
           ),
           bottomLeftCorner: const DecoratedBox(
             decoration: BoxDecoration(
@@ -314,14 +316,23 @@ class ReviewAndSubmit extends StatelessWidget {
                 defaultColumnWidth: IntrinsicColumnWidth(),
                 border: TestBorder(),
                 children: <TableRow>[
-                  ...rows.map<TableRow>((_ExpenseAggregation row) {
-                    final Decoration? decoration = colorRow ? _coloredRowDecoration : null;
-                    colorRow = !colorRow;
+                  ...expenseReport.rows.map<TableRow>((ExpenseTypeSummaryData row) {
                     return TableRow(
-                      decoration: decoration,
+                      decoration: getToggledRowDecoration(),
                       children: [SummaryRowHeader(label: row.name)],
                     );
                   }),
+                  if (expenseReport.rows.isEmpty) () {
+                    return TableRow(
+                      decoration: getToggledRowDecoration(),
+                      children: <Widget>[
+                        DefaultTextStyle.merge(
+                          style: TextStyle(fontStyle: FontStyle.italic, color: Color(0xff999999)),
+                          child: SummaryRowHeader(label: 'n/a (empty expense report)'),
+                        )
+                      ],
+                    );
+                  }(),
                 ],
               ),
             ),
@@ -329,16 +340,14 @@ class ReviewAndSubmit extends StatelessWidget {
           columnHeader: Table(
             defaultColumnWidth: FixedColumnWidth(34),
             columnWidths: <int, TableColumnWidth>{
-              16: FlexColumnWidth(),
+              length: FlexColumnWidth(),
             },
             children: <TableRow>[
               TableRow(
                 children: <Widget>[
-                  SummaryDateHeading('...'),
-                  ...expenseReport.invoice.billingPeriod.map((DateTime date) {
-                    return SummaryDateHeading(DateFormats.md.format(date));
+                  ...expenseReport.owner.dates.map<Widget>((DateTime? date) {
+                    return SummaryDateHeading(date: date);
                   }),
-                  SummaryDateHeading('...'),
                   Container(),
                 ],
               ),
@@ -354,27 +363,51 @@ class ReviewAndSubmit extends StatelessWidget {
             child: Table(
               defaultColumnWidth: FixedColumnWidth(34),
               columnWidths: <int, TableColumnWidth>{
-                16: FlexColumnWidth(),
+                length: FlexColumnWidth(),
               },
-              border: const TestBorder(aggregateColumns: <int>[0, 15, 16]),
+              border: TestBorder(aggregateColumns: <int>[length]),
               children: <TableRow>[
-                ...(){colorRow = true; return [];}(),
-                ...rows.map<TableRow>((_ExpenseAggregation row) {
-                  final Decoration? decoration = colorRow ? _coloredRowDecoration : null;
-                  colorRow = !colorRow;
+                ...() {
+                  colorRow = true;
+                  return [];
+                }(),
+                ...expenseReport.rows.map<TableRow>((ExpenseTypeSummaryData row) {
                   return TableRow(
-                    decoration: decoration,
+                    decoration: getToggledRowDecoration(),
                     children: <Widget>[
-                      _buildWeekdayExpenseCell(row.before),
-                      ...row.expenses.take(5).map<Widget>(_buildWeekdayExpenseCell),
-                      ...row.expenses.skip(5).take(2).map<Widget>(_buildWeekendExpenseCell),
-                      ...row.expenses.skip(7).take(5).map<Widget>(_buildWeekdayExpenseCell),
-                      ...row.expenses.skip(12).take(2).map<Widget>(_buildWeekendExpenseCell),
-                      _buildWeekdayExpenseCell(row.after),
+                      ...row.expenses.asMap().entries.map<Widget>((MapEntry<int, double> entry) {
+                        final DateTime? date = row.owner.owner.dates[entry.key];
+                        final double amount = entry.value;
+                        final bool isWeekend = date != null && date.weekday >= 6;
+                        double? cautionIfExceeded;
+                        final DateRange billingPeriod = expenseReport.owner.invoice.billingPeriod;
+                        if (date != null &&
+                            (billingPeriod.start.difference(date) > Dates.approximatelyOneDay ||
+                            date.difference(billingPeriod.end) > Dates.approximatelyOneDay)) {
+                          cautionIfExceeded = 0;
+                        }
+                        return DailyTotal(
+                          amount: amount,
+                          isWeekend: isWeekend,
+                          cautionIfExceeded: cautionIfExceeded,
+                        );
+                      }),
                       Container(),
                     ],
                   );
                 }),
+                if (expenseReport.rows.isEmpty) () {
+                  return TableRow(
+                    decoration: getToggledRowDecoration(),
+                    children: <Widget>[
+                      ...expenseReport.owner.dates.map<Widget>((DateTime? date) {
+                        final bool isWeekend = date != null && date.weekday >= 6;
+                        return DailyTotal(amount: 0, isWeekend: isWeekend);
+                      }),
+                      Container(),
+                    ],
+                  );
+                }(),
               ],
             ),
           ),
@@ -383,8 +416,9 @@ class ReviewAndSubmit extends StatelessWidget {
     );
   }
 
-  List<Widget> _buildExpenseReportBlock() {
+  List<Widget> _buildExpenseReportsBlock() {
     final ExpenseReports expenseReports = InvoiceBinding.instance!.invoice!.expenseReports;
+    final ExpenseReportsSummaryData summaryData = ExpenseReportsSummaryData.build(expenseReports);
     final String total = NumberFormats.currency.format(expenseReports.computeTotal());
     return <Widget>[
       Padding(
@@ -401,7 +435,7 @@ class ReviewAndSubmit extends StatelessWidget {
           ],
         ),
       ),
-      ...expenseReports.map<Widget>(_buildExpenseReport),
+      ...summaryData.reports.map<Widget>(_buildExpenseReport),
     ];
   }
 
@@ -447,7 +481,7 @@ class ReviewAndSubmit extends StatelessWidget {
             children: <Widget>[
               ..._buildHeaderBlock(),
               ..._buildTimesheetBlock(),
-              ..._buildExpenseReportBlock(),
+              ..._buildExpenseReportsBlock(),
               ..._buildAccomplishmentBlock(),
               Padding(
                 padding: EdgeInsets.only(top: 22),
@@ -462,16 +496,16 @@ class ReviewAndSubmit extends StatelessWidget {
 }
 
 class SummaryDateHeading extends StatelessWidget {
-  const SummaryDateHeading(this.text);
+  const SummaryDateHeading({required this.date});
 
-  final String text;
+  final DateTime? date;
 
   @override
   Widget build(BuildContext context) {
     return RotatedText(
       offset: const Offset(-6, 0.5),
       angle: math.pi / 2 - 1,
-      text: text,
+      text: date == null ? '...' : DateFormats.md.format(date!),
     );
   }
 }
@@ -543,57 +577,6 @@ class _CertifyAndSubmitState extends State<CertifyAndSubmit> {
           ),
         ),
       ],
-    );
-  }
-}
-
-class DailyTotalHours extends StatelessWidget {
-  const DailyTotalHours({
-    required this.amount,
-    this.isWeekend = false,
-    this.isAggregate = false,
-    this.isWeeklyTotal = false,
-    Key? key,
-  }) : super(key: key);
-
-  final double amount;
-  final bool isWeekend;
-  final bool isAggregate;
-  final bool isWeeklyTotal;
-
-  @override
-  Widget build(BuildContext context) {
-    return DailyTotal(
-      amount: amount,
-      isWeekend: isWeekend,
-      isAggregate: isAggregate,
-      isWeeklyTotal: isWeeklyTotal,
-      cautionIfExceeded: 12,
-    );
-  }
-}
-
-class DailyTotalDollars extends StatelessWidget {
-  const DailyTotalDollars({
-    required this.amount,
-    this.isWeekend = false,
-    this.isAggregate = false,
-    this.isWeeklyTotal = false,
-    Key? key,
-  }) : super(key: key);
-
-  final double amount;
-  final bool isWeekend;
-  final bool isAggregate;
-  final bool isWeeklyTotal;
-
-  @override
-  Widget build(BuildContext context) {
-    return DailyTotal(
-      amount: amount,
-      isWeekend: isWeekend,
-      isAggregate: isAggregate,
-      isWeeklyTotal: isWeeklyTotal,
     );
   }
 }
