@@ -8,6 +8,7 @@ import 'package:intl/intl.dart' as intl;
 import 'package:payouts/src/model/constants.dart';
 import 'package:payouts/src/model/invoice.dart';
 import 'package:payouts/src/model/summary_data.dart';
+import 'package:payouts/src/model/track_invoice_mixin.dart';
 
 import 'accomplishments_view.dart';
 import 'rotated_text.dart';
@@ -32,7 +33,8 @@ class ExpenseReportName extends StatelessWidget {
         Padding(
           padding: EdgeInsets.only(right: 5),
           child: Tooltip(
-            message: 'This expense report contains expenses before or after this invoice\'s billing period',
+            message: 'This expense report contains expenses before or after this '
+                'invoice\'s billing period',
             child: Image.asset(
               'assets/message_type-error-16x16.png',
               width: 16,
@@ -50,9 +52,14 @@ class ExpenseReportName extends StatelessWidget {
   }
 }
 
-class ReviewAndSubmit extends StatelessWidget {
+class ReviewAndSubmit extends StatefulWidget {
   const ReviewAndSubmit({Key? key}) : super(key: key);
 
+  @override
+  State<ReviewAndSubmit> createState() => _ReviewAndSubmitState();
+}
+
+class _ReviewAndSubmitState extends State<ReviewAndSubmit> with TrackInvoiceMixin {
   List<Widget> _buildHeaderBlock() {
     final Invoice invoice = InvoiceBinding.instance!.invoice!;
     final String startDate = DateFormats.mdyyyy.format(invoice.billingPeriod.start);
@@ -439,7 +446,27 @@ class ReviewAndSubmit extends StatelessWidget {
     ];
   }
 
-  List<Widget> _buildAccomplishmentBlock() {
+  Widget _buildAccomplishmentBlock(Accomplishment accomplishment) {
+    return Column(
+      children: [
+        Padding(
+          padding: EdgeInsets.fromLTRB(5, 16, 0, 5),
+          child: Row(
+            children: [
+              Text(accomplishment.program.name),
+            ],
+          ),
+        ),
+        AccomplishmentsEntryField(
+          accomplishment: accomplishment,
+          isReadOnly: true,
+        ),
+      ],
+    );
+  }
+
+  List<Widget> _buildAccomplishmentsBlock() {
+    final Accomplishments accomplishments = InvoiceBinding.instance!.invoice!.accomplishments;
     return <Widget>[
       Padding(
         padding: EdgeInsets.only(top: 30),
@@ -452,19 +479,26 @@ class ReviewAndSubmit extends StatelessWidget {
           ],
         ),
       ),
-      Padding(
-        padding: EdgeInsets.fromLTRB(5, 16, 0, 5),
-        child: Row(
-          children: [
-            Text('BSS, NNV8-913197 (COSC)'),
-          ],
-        ),
-      ),
-      AccomplishmentsEntryField(
-        accomplishment: InvoiceBinding.instance!.invoice!.accomplishments.first,
-        isReadOnly: true,
-      ),
+      ...accomplishments.map<Widget>(_buildAccomplishmentBlock),
     ];
+  }
+
+  @override
+  void onInvoiceChanged() {
+    super.onInvoiceChanged();
+    setState(() {}); // State is pulled from the invoice binding.
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    initInstance();
+  }
+
+  @override
+  void dispose() {
+    destroy();
+    super.dispose();
   }
 
   @override
@@ -482,7 +516,7 @@ class ReviewAndSubmit extends StatelessWidget {
               ..._buildHeaderBlock(),
               ..._buildTimesheetBlock(),
               ..._buildExpenseReportsBlock(),
-              ..._buildAccomplishmentBlock(),
+              ..._buildAccomplishmentsBlock(),
               Padding(
                 padding: EdgeInsets.only(top: 22),
                 child: CertifyAndSubmit(),
@@ -560,20 +594,18 @@ class _CertifyAndSubmitState extends State<CertifyAndSubmit> {
         ),
         Padding(
           padding: EdgeInsets.fromLTRB(10, 0, 3, 0),
-          child: TerraCheckbox(
-            value: certified,
-            onChanged: (bool value) {
+          child: BasicCheckbox(
+            state: certified ? CheckboxState.checked : CheckboxState.unchecked,
+            onTap: () {
               setState(() {
-                certified = value;
+                certified = !certified;
               });
             },
-          ),
-        ),
-        Expanded(
-          child: Text(
-            'I certify that I have worked the above hours as described.',
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
+            trailing: Text(
+              'I certify that I have worked the above hours as described.',
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
           ),
         ),
       ],
@@ -735,15 +767,6 @@ class TestBorder extends TableBorder {
         );
       }
     }
-
-//    paintBorder(
-//      canvas,
-//      Rect.fromLTRB(rect.left, rect.top/* + rowsList.first*/, rect.right, rect.bottom),
-//      top: top,
-//      right: right,
-//      bottom: bottom,
-//      left: left,
-//    );
   }
 
   @override
@@ -767,89 +790,4 @@ class TestBorder extends TableBorder {
   @override
   String toString() =>
       'TestBorder($top, $right, $bottom, $left, $horizontalInside, $verticalInside, $aggregateColumns)';
-}
-
-class TerraCheckbox extends StatelessWidget {
-  const TerraCheckbox({
-    Key? key,
-    required this.value,
-    required this.onChanged,
-  });
-
-  final bool value;
-  final ValueChanged<bool> onChanged;
-
-  @override
-  Widget build(BuildContext context) {
-    return MouseRegion(
-      cursor: SystemMouseCursors.click,
-      child: GestureDetector(
-        onTap: () {
-          onChanged(!value);
-        },
-        child: SizedBox(
-          width: 14,
-          height: 14,
-          child: DecoratedBox(
-            decoration: BoxDecoration(
-              border: Border.all(color: const Color(0xff999999)),
-            ),
-            child: Padding(
-              padding: EdgeInsets.all(1),
-              child: DecoratedBox(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.bottomCenter,
-                    end: Alignment.topCenter,
-                    colors: const <Color>[Color(0xfffcfcfc), Color(0xffe9e9e9)],
-                  ),
-                ),
-                child: CustomPaint(
-                  painter: CheckMarkPainter(checked: value),
-                ),
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class CheckMarkPainter extends CustomPainter {
-  const CheckMarkPainter({
-    required this.checked,
-    this.color = const Color(0xff2b5580),
-  });
-
-  final bool checked;
-  final Color color;
-
-  static const double _checkmarkSize = 10;
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    if (checked) {
-      Paint paint = Paint()
-        ..color = color
-        ..style = PaintingStyle.stroke
-        ..strokeCap = StrokeCap.round
-        ..strokeWidth = 2.5;
-
-      final double n = _checkmarkSize / 2;
-      final double m = _checkmarkSize / 4;
-      final double offsetX = (size.width - (n + m)) / 2;
-      final double offsetY = (size.height - n) / 2;
-
-      canvas.drawLine(Offset(offsetX, (n - m) + offsetY), Offset(m + offsetX, n + offsetY), paint);
-      canvas.drawLine(Offset(m + offsetX, n + offsetY), Offset((m + n) + offsetX, offsetY), paint);
-    }
-  }
-
-  @override
-  bool shouldRepaint(CustomPainter old) {
-    assert(old is CheckMarkPainter);
-    CheckMarkPainter oldPainter = old as CheckMarkPainter;
-    return checked != oldPainter.checked;
-  }
 }
