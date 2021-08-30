@@ -15,7 +15,7 @@ class DeleteInvoiceIntent extends Intent {
 
 class DeleteInvoiceAction extends ContextAction<DeleteInvoiceIntent> with TrackInvoiceMixin {
   DeleteInvoiceAction._() {
-    initInstance();
+    startTrackingInvoiceActivity();
   }
 
   static final DeleteInvoiceAction instance = DeleteInvoiceAction._();
@@ -34,7 +34,7 @@ class DeleteInvoiceAction extends ContextAction<DeleteInvoiceIntent> with TrackI
 
   @override
   bool isEnabled(DeleteInvoiceIntent intent) {
-    return isInvoiceOpened && !invoice.isSubmitted;
+    return isInvoiceOpened && !openedInvoice.isSubmitted;
   }
 
   @override
@@ -57,7 +57,7 @@ class DeleteInvoiceAction extends ContextAction<DeleteInvoiceIntent> with TrackI
 
     if (selectedOption == 0) {
       await TaskMonitor.of(context).monitor<void>(
-        future: invoice.delete(),
+        future: openedInvoice.delete(),
         inProgressMessage: 'Deleting invoice...',
         completedMessage: 'Invoice deleted',
       );

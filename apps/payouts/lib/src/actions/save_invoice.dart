@@ -11,7 +11,7 @@ class SaveInvoiceIntent extends Intent {
 
 class SaveInvoiceAction extends ContextAction<SaveInvoiceIntent> with TrackInvoiceMixin {
   SaveInvoiceAction._() {
-    initInstance();
+    startTrackingInvoiceActivity();
   }
 
   static final SaveInvoiceAction instance = SaveInvoiceAction._();
@@ -43,7 +43,7 @@ class SaveInvoiceAction extends ContextAction<SaveInvoiceIntent> with TrackInvoi
     }
 
     await TaskMonitor.of(context).monitor<void>(
-      future: invoice.save(),
+      future: openedInvoice.save(),
       inProgressMessage: 'Saving invoice...',
       completedMessage: 'Invoice saved',
     );

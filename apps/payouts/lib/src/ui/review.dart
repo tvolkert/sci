@@ -509,12 +509,12 @@ class _RawReviewAndSubmitState extends State<_RawReviewAndSubmit> with TrackInvo
   @override
   void initState() {
     super.initState();
-    initInstance();
+    startTrackingInvoiceActivity();
   }
 
   @override
   void dispose() {
-    destroy();
+    stopTrackingInvoiceActivity();
     super.dispose();
   }
 

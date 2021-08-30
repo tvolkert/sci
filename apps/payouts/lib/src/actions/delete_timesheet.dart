@@ -13,7 +13,7 @@ class DeleteTimesheetIntent extends Intent {
 
 class DeleteTimesheetAction extends ContextAction<DeleteTimesheetIntent> with TrackInvoiceMixin {
   DeleteTimesheetAction._() {
-    initInstance();
+    startTrackingInvoiceActivity();
   }
 
   static final DeleteTimesheetAction instance = DeleteTimesheetAction._();
@@ -32,7 +32,7 @@ class DeleteTimesheetAction extends ContextAction<DeleteTimesheetIntent> with Tr
 
   @override
   bool isEnabled(DeleteTimesheetIntent intent) {
-    return isInvoiceOpened && !invoice.isSubmitted;
+    return isInvoiceOpened && !openedInvoice.isSubmitted;
   }
 
   @override
@@ -54,7 +54,7 @@ class DeleteTimesheetAction extends ContextAction<DeleteTimesheetIntent> with Tr
     );
 
     if (selectedOption == 0) {
-      invoice.timesheets.removeAt(intent.timesheet.index);
+      openedInvoice.timesheets.removeAt(intent.timesheet.index);
     }
   }
 }

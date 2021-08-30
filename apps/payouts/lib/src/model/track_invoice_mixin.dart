@@ -3,13 +3,12 @@ import 'package:flutter/foundation.dart';
 import 'invoice.dart';
 
 mixin TrackInvoiceMixin {
-  late InvoiceListener _listener;
-  Invoice? _invoice;
+  InvoiceListener? _listener;
 
   void _handleInvoiceChanged(Invoice? previousInvoice) {
-    _invoice = InvoiceBinding.instance!.invoice;
+    assert(isTrackingInvoiceActivity);
     onInvoiceChanged();
-    if (_invoice == null || previousInvoice == null) {
+    if (invoice == null || previousInvoice == null) {
       onInvoiceOpenedChanged();
     }
     if (isInvoiceDirty && (previousInvoice == null || !previousInvoice.isDirty)) {
@@ -24,47 +23,61 @@ mixin TrackInvoiceMixin {
     }
   }
 
+  /// True if this object is currently tracking invoice activity.
+  ///
+  /// See also:
+  ///  * [startTrackingInvoiceActivity]
+  ///  * [stopTrackingInvoiceActivity]
+  bool get isTrackingInvoiceActivity => _listener != null;
+
+  /// The currently opened invoice, or null if there is no open invoice.
+  Invoice? get invoice {
+    assert(isTrackingInvoiceActivity);
+    return InvoiceBinding.instance!.invoice;
+  }
+
   /// Whether the user currently has an invoice open.
-  @protected
-  bool get isInvoiceOpened => _invoice != null;
+  bool get isInvoiceOpened {
+    assert(isTrackingInvoiceActivity);
+    return invoice != null;
+  }
 
   /// The currently opened invoice. Only valid if [isInvoiceOpened] is true.
-  @protected
-  Invoice get invoice => _invoice!;
+  Invoice get openedInvoice => invoice!;
 
-  @protected
-  bool get isInvoiceDirty => isInvoiceOpened && invoice.isDirty;
+  /// True if an invoice is open and has unsaved changes.
+  bool get isInvoiceDirty => isInvoiceOpened && openedInvoice.isDirty;
 
-  @protected
-  bool get isInvoiceSubmitted => isInvoiceOpened && invoice.isSubmitted;
+  /// True if an invoice is open and submitted.
+  bool get isInvoiceSubmitted => isInvoiceOpened && openedInvoice.isSubmitted;
 
-  /// Initializes this instance.
+  /// Starts tracking invoice activity.
   ///
-  /// Concrete implementations should call this method in their constructor
-  /// body.
+  /// Attempts to call this method more than once (without first calling
+  /// [stopTrackingInvoiceActivity]) will fail.
   @protected
   @mustCallSuper
-  void initInstance() {
+  void startTrackingInvoiceActivity() {
+    assert(!isTrackingInvoiceActivity);
     _listener = InvoiceListener(
       onInvoiceOpened: _handleInvoiceChanged,
       onInvoiceClosed: _handleInvoiceChanged,
       onInvoiceDirtyChanged: onInvoiceDirtyChanged,
       onSubmitted: onInvoiceSubmittedChanged,
     );
-    InvoiceBinding.instance!.addListener(_listener);
-    _invoice = InvoiceBinding.instance!.invoice;
+    InvoiceBinding.instance!.addListener(_listener!);
   }
 
-  /// Releases any resources retained by this object.
-  ///
-  /// Subclasses should override this method to release any resources retained
-  /// by this object before calling `super.dispose()`.
+  /// Stops tracking invoice activity.
   ///
   /// Callers should call this method before they drop their reference to this
-  /// object.
+  /// object in order to not leak memory.
+  @protected
   @mustCallSuper
-  destroy() {
-    InvoiceBinding.instance!.removeListener(_listener);
+  stopTrackingInvoiceActivity() {
+    assert(isTrackingInvoiceActivity);
+    InvoiceBinding.instance!.removeListener(_listener!);
+    _listener = null;
   }
 
   /// Invoked when the currently open invoice (if any) changed.

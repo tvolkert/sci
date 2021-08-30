@@ -3,60 +3,72 @@ import 'package:flutter/foundation.dart';
 import 'invoice.dart';
 
 mixin TrackExpenseReportsMixin {
-  late InvoiceListener _listener;
-  Invoice? _invoice;
+  InvoiceListener? _listener;
 
   void _handleInvoiceChanged(Invoice? previousInvoice) {
-    _invoice = InvoiceBinding.instance!.invoice;
+    assert(isTrackingExpenseReports);
     onExpenseReportsChanged();
   }
 
   void _handleExpenseReportInserted(int expenseReportsIndex) {
+    assert(isTrackingExpenseReports);
     onExpenseReportInserted();
   }
 
   void _handleExpenseReportsRemoved(int expenseReportsIndex, Iterable<ExpenseReport> removed) {
+    assert(isTrackingExpenseReports);
     onExpenseReportsRemoved();
   }
 
+  /// The currently opened invoice, or null if there is no open invoice.
+  Invoice? get invoice {
+    assert(isTrackingExpenseReports);
+    return InvoiceBinding.instance!.invoice;
+  }
+
+  /// True if this object is currently tracking the list of expense reports.
+  ///
+  /// See also:
+  ///  * [startTrackingExpenseReports]
+  ///  * [stopTrackingExpenseReports]
+  bool get isTrackingExpenseReports => _listener != null;
+
   /// Whether there is at least one expense report associated with the current
   /// invoice.
-  @protected
-  bool get hasExpenseReports => _invoice != null && _invoice!.expenseReports.isNotEmpty;
+  bool get hasExpenseReports => invoice != null && invoice!.expenseReports.isNotEmpty;
 
   /// The list of expense reports.
   ///
   /// This will be non-null if and only if [hasExpenseReports] is true.
-  @protected
-  ExpenseReports? get expenseReports => hasExpenseReports ? _invoice!.expenseReports : null;
+  ExpenseReports? get expenseReports => hasExpenseReports ? invoice!.expenseReports : null;
 
-  /// Initializes this instance.
+  /// Starts tracking the list of expense reports.
   ///
-  /// Concrete implementations should call this method in their constructor
-  /// body.
+  /// Attempts to call this method more than once (without first calling
+  /// [stopTrackingExpenseReports]) will fail.
   @protected
   @mustCallSuper
-  void initInstance() {
+  void startTrackingExpenseReports() {
+    assert(!isTrackingExpenseReports);
     _listener = InvoiceListener(
       onExpenseReportInserted: _handleExpenseReportInserted,
       onExpenseReportsRemoved: _handleExpenseReportsRemoved,
       onInvoiceOpened: _handleInvoiceChanged,
       onInvoiceClosed: _handleInvoiceChanged,
     );
-    InvoiceBinding.instance!.addListener(_listener);
-    _invoice = InvoiceBinding.instance!.invoice;
+    InvoiceBinding.instance!.addListener(_listener!);
   }
 
-  /// Releases any resources retained by this object.
-  ///
-  /// Subclasses should override this method to release any resources retained
-  /// by this object before calling `super.dispose()`.
+  /// Stops tracking the list of expense reports.
   ///
   /// Callers should call this method before they drop their reference to this
-  /// object.
+  /// object in order to not leak memory.
+  @protected
   @mustCallSuper
-  destroy() {
-    InvoiceBinding.instance!.removeListener(_listener);
+  void stopTrackingExpenseReports() {
+    assert(isTrackingExpenseReports);
+    InvoiceBinding.instance!.removeListener(_listener!);
+    _listener = null;
   }
 
   /// Invoked when an expense report has been added to the list of reports

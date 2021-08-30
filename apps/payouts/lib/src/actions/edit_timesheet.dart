@@ -14,7 +14,7 @@ class EditTimesheetIntent extends Intent {
 
 class EditTimesheetAction extends ContextAction<EditTimesheetIntent> with TrackInvoiceMixin {
   EditTimesheetAction._() {
-    initInstance();
+    startTrackingInvoiceActivity();
   }
 
   static final EditTimesheetAction instance = EditTimesheetAction._();
@@ -33,7 +33,7 @@ class EditTimesheetAction extends ContextAction<EditTimesheetIntent> with TrackI
 
   @override
   bool isEnabled(EditTimesheetIntent intent) {
-    return isInvoiceOpened && !invoice.isSubmitted;
+    return isInvoiceOpened && !openedInvoice.isSubmitted;
   }
 
   @override

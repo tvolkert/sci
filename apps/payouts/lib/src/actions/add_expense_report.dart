@@ -17,7 +17,7 @@ class AddExpenseReportIntent extends Intent {
 
 class AddExpenseReportAction extends ContextAction<AddExpenseReportIntent> with TrackInvoiceMixin {
   AddExpenseReportAction._() {
-    initInstance();
+    startTrackingInvoiceActivity();
   }
 
   static final AddExpenseReportAction instance = AddExpenseReportAction._();
@@ -36,7 +36,7 @@ class AddExpenseReportAction extends ContextAction<AddExpenseReportIntent> with 
 
   @override
   bool isEnabled(AddExpenseReportIntent intent) {
-    return isInvoiceOpened && !invoice.isSubmitted;
+    return isInvoiceOpened && !openedInvoice.isSubmitted;
   }
 
   @override

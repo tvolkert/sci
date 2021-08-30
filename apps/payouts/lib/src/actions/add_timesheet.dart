@@ -17,7 +17,7 @@ class AddTimesheetIntent extends Intent {
 
 class AddTimesheetAction extends ContextAction<AddTimesheetIntent> with TrackInvoiceMixin {
   AddTimesheetAction._() {
-    initInstance();
+    startTrackingInvoiceActivity();
   }
 
   static final AddTimesheetAction instance = AddTimesheetAction._();
@@ -36,7 +36,7 @@ class AddTimesheetAction extends ContextAction<AddTimesheetIntent> with TrackInv
 
   @override
   bool isEnabled(AddTimesheetIntent intent) {
-    return isInvoiceOpened && !invoice.isSubmitted;
+    return isInvoiceOpened && !openedInvoice.isSubmitted;
   }
 
   @override
@@ -48,7 +48,7 @@ class AddTimesheetAction extends ContextAction<AddTimesheetIntent> with TrackInv
 
     final InvoiceEntryMetadata? metadata = await AddTimesheetSheet.open(context: context);
     if (metadata != null) {
-      invoice.timesheets.add(metadata);
+      openedInvoice.timesheets.add(metadata);
     }
   }
 }

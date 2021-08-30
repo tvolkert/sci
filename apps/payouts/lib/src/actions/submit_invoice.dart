@@ -15,7 +15,7 @@ class SubmitInvoiceIntent extends Intent {
 
 class SubmitInvoiceAction extends ContextAction<SubmitInvoiceIntent> with TrackInvoiceMixin {
   SubmitInvoiceAction._() {
-    initInstance();
+    startTrackingInvoiceActivity();
   }
 
   static final SubmitInvoiceAction instance = SubmitInvoiceAction._();
@@ -49,7 +49,7 @@ class SubmitInvoiceAction extends ContextAction<SubmitInvoiceIntent> with TrackI
 
   @override
   bool isEnabled(SubmitInvoiceIntent intent) {
-    return certified && isInvoiceOpened && !invoice.isSubmitted;
+    return certified && isInvoiceOpened && !openedInvoice.isSubmitted;
   }
 
   @override
@@ -73,11 +73,11 @@ class SubmitInvoiceAction extends ContextAction<SubmitInvoiceIntent> with TrackI
 
     if (selectedOption == 0) {
       await TaskMonitor.of(context).monitor<void>(
-        future: invoice.save(markAsSubmitted: true),
+        future: openedInvoice.save(markAsSubmitted: true),
         inProgressMessage: 'Submitting invoice...',
         completedMessage: 'Invoice Submitted',
       );
-      if (invoice.expenseReports.isNotEmpty) {
+      if (openedInvoice.expenseReports.isNotEmpty) {
         await Prompt.open(
           context: context,
           messageType: MessageType.info,

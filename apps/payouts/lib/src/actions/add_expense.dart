@@ -18,7 +18,7 @@ class AddExpenseIntent extends Intent {
 
 class AddExpenseAction extends ContextAction<AddExpenseIntent> with TrackInvoiceMixin {
   AddExpenseAction._() {
-    initInstance();
+    startTrackingInvoiceActivity();
   }
 
   static final AddExpenseAction instance = AddExpenseAction._();
@@ -32,7 +32,7 @@ class AddExpenseAction extends ContextAction<AddExpenseIntent> with TrackInvoice
   @override
   bool isEnabled(AddExpenseIntent intent) {
     assert(intent.expenseReport.invoice == invoice);
-    return !invoice.isSubmitted;
+    return !openedInvoice.isSubmitted;
   }
 
   @override

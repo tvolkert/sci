@@ -15,7 +15,7 @@ class AddAccomplishmentIntent extends Intent {
 
 class AddAccomplishmentAction extends ContextAction<AddAccomplishmentIntent> with TrackInvoiceMixin {
   AddAccomplishmentAction._() {
-    initInstance();
+    startTrackingInvoiceActivity();
   }
 
   static final AddAccomplishmentAction instance = AddAccomplishmentAction._();
@@ -34,7 +34,7 @@ class AddAccomplishmentAction extends ContextAction<AddAccomplishmentIntent> wit
 
   @override
   bool isEnabled(AddAccomplishmentIntent intent) {
-    return isInvoiceOpened && !invoice.isSubmitted;
+    return isInvoiceOpened && !openedInvoice.isSubmitted;
   }
 
   @override

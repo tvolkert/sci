@@ -87,7 +87,7 @@ class _RawExpenseReportsViewState extends State<_RawExpenseReportsView>
   @override
   void initState() {
     super.initState();
-    initInstance();
+    startTrackingExpenseReports();
     _selectionController = ListViewSelectionController();
     _expenseReports = this.expenseReports;
     _selectionController.selectedIndex = _expenseReports == null ? -1 : 0;
@@ -99,9 +99,9 @@ class _RawExpenseReportsViewState extends State<_RawExpenseReportsView>
 
   @override
   void dispose() {
+    stopTrackingExpenseReports();
     _selectionController.removeListener(_handleSelectedExpenseReportChanged);
     _selectionController.dispose();
-    destroy();
     super.dispose();
   }
 
@@ -310,7 +310,7 @@ class _ExpensesTableViewState extends State<ExpensesTableView> with TrackExpense
     bool isEditing,
     bool isRowDisabled,
   ) {
-    final DateTime date = widget.expenseReport.expenses[rowIndex].date;
+    final DateTime date = expenseReport.expenses[rowIndex].date;
     if (isEditing) {
       return _renderDateEditor(date);
     }
@@ -339,7 +339,7 @@ class _ExpensesTableViewState extends State<ExpensesTableView> with TrackExpense
     bool isEditing,
     bool isRowDisabled,
   ) {
-    final ExpenseType type = widget.expenseReport.expenses[rowIndex].type;
+    final ExpenseType type = expenseReport.expenses[rowIndex].type;
     if (isEditing) {
       return _renderTypeEditor(type);
     }
@@ -353,7 +353,7 @@ class _ExpensesTableViewState extends State<ExpensesTableView> with TrackExpense
 
   Widget _renderTypeEditor(ExpenseType type) {
     return ExpenseTypeListButton(
-      expenseReport: widget.expenseReport,
+      expenseReport: expenseReport,
       controller: _expenseTypeController,
     );
   }
@@ -367,7 +367,7 @@ class _ExpensesTableViewState extends State<ExpensesTableView> with TrackExpense
     bool isEditing,
     bool isRowDisabled,
   ) {
-    final double amount = widget.expenseReport.expenses[rowIndex].amount;
+    final double amount = expenseReport.expenses[rowIndex].amount;
     if (isEditing) {
       return _buildAmountEditor(amount);
     }
@@ -396,7 +396,7 @@ class _ExpensesTableViewState extends State<ExpensesTableView> with TrackExpense
     bool isEditing,
     bool isRowDisabled,
   ) {
-    final String description = widget.expenseReport.expenses[rowIndex].description;
+    final String description = expenseReport.expenses[rowIndex].description;
     if (isEditing) {
       return _buildDescriptionEditor(description);
     }
@@ -421,7 +421,7 @@ class _ExpensesTableViewState extends State<ExpensesTableView> with TrackExpense
     final SortDirection sortDirection = controller[columnName]!;
     setState(() {
       _selectionController.clearSelection();
-      widget.expenseReport.expenses.sort((Expense a, Expense b) {
+      expenseReport.expenses.sort((Expense a, Expense b) {
         Comparable<dynamic> fieldA, fieldB;
         switch (columnName) {
           case Keys.date:
@@ -458,7 +458,7 @@ class _ExpensesTableViewState extends State<ExpensesTableView> with TrackExpense
     final Iterable<int> rowsBeingEdited = controller.cellsBeingEdited.rows;
     assert(rowsBeingEdited.length == 1);
     final int rowIndex = rowsBeingEdited.single;
-    return widget.expenseReport.expenses[rowIndex];
+    return expenseReport.expenses[rowIndex];
   }
 
   void _handleEditStarted(TableViewEditorController controller) {
@@ -516,7 +516,7 @@ class _ExpensesTableViewState extends State<ExpensesTableView> with TrackExpense
   @override
   void initState() {
     super.initState();
-    initInstance(widget.expenseReport);
+    startTrackingExpenseReport(widget.expenseReport);
     _selectionController = TableViewSelectionController(selectMode: SelectMode.multi);
     _sortController = TableViewSortController(sortMode: TableViewSortMode.singleColumn);
     _editorController = TableViewEditorController();
@@ -536,19 +536,20 @@ class _ExpensesTableViewState extends State<ExpensesTableView> with TrackExpense
   void didUpdateWidget(ExpensesTableView oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (widget.expenseReport != oldWidget.expenseReport) {
-      updateExpenseReport(widget.expenseReport);
+      stopTrackingExpenseReport();
+      startTrackingExpenseReport(widget.expenseReport);
       _selectionController.selectedIndex = -1;
     }
   }
 
   @override
   void dispose() {
+    stopTrackingExpenseReport();
     _sortController.removeListener(_sortListener);
     _editorController.removeListener(_editorListener);
     _selectionController.dispose();
     _sortController.dispose();
     _editorController.dispose();
-    destroy();
     super.dispose();
   }
 
@@ -566,7 +567,7 @@ class _ExpensesTableViewState extends State<ExpensesTableView> with TrackExpense
       onKey: _handleKey,
       child: ScrollableTableView(
         rowHeight: 19,
-        length: widget.expenseReport.expenses.length,
+        length: expenseReport.expenses.length,
         selectionController: _selectionController,
         sortController: _sortController,
         editorController: _editorController,

@@ -3,63 +3,71 @@ import 'package:flutter/foundation.dart';
 import 'invoice.dart';
 
 mixin TrackExpenseReportMixin {
-  late InvoiceListener _listener;
-  late ExpenseReport _expenseReport;
+  InvoiceListener? _listener;
+  ExpenseReport? _expenseReport;
 
   bool _isTrackedExpenseReport(int index) {
-    return _expenseReport.index == index;
+    assert(isTrackingExpenseReport);
+    return _expenseReport!.index == index;
   }
 
   void _handleExpenseInserted(int index, int expensesIndex) {
+    assert(isTrackingExpenseReport);
     if (_isTrackedExpenseReport(index)) {
       onExpensesChanged();
     }
   }
 
   void _handleExpensesRemoved(int index, int expensesIndex, Iterable<Expense> removed) {
+    assert(isTrackingExpenseReport);
     if (_isTrackedExpenseReport(index)) {
       onExpensesChanged();
     }
   }
 
   void _handleExpenseUpdated(int index, int expensesIndex, String key, dynamic previousValue) {
+    assert(isTrackingExpenseReport);
     if (_isTrackedExpenseReport(index)) {
       onExpensesChanged();
     }
   }
 
-  /// Initializes this instance.
+  /// True if this object is currently tracking an expense report.
+  bool get isTrackingExpenseReport => _expenseReport != null;
+
+  /// The expense report currently being tracked
+  ExpenseReport get expenseReport {
+    assert(isTrackingExpenseReport);
+    return _expenseReport!;
+  }
+
+  /// Starts tracking the specified expense report.
   ///
-  /// Concrete implementations should call this method in their constructor
-  /// body.
+  /// Only one expense report may be tracked at a time.
   @protected
   @mustCallSuper
-  void initInstance(ExpenseReport expenseReport) {
+  void startTrackingExpenseReport(ExpenseReport expenseReport) {
+    assert(!isTrackingExpenseReport);
     _expenseReport = expenseReport;
     _listener = InvoiceListener(
       onExpenseInserted: _handleExpenseInserted,
       onExpensesRemoved: _handleExpensesRemoved,
       onExpenseUpdated: _handleExpenseUpdated,
     );
-    InvoiceBinding.instance!.addListener(_listener);
+    InvoiceBinding.instance!.addListener(_listener!);
   }
 
-  @protected
-  @mustCallSuper
-  void updateExpenseReport(ExpenseReport expenseReport) {
-    _expenseReport = expenseReport;
-  }
-
-  /// Releases any resources retained by this object.
-  ///
-  /// Subclasses should override this method to release any resources retained
-  /// by this object before calling `super.dispose()`.
+  /// Stops tracking [expenseReport].
   ///
   /// Callers should call this method before they drop their reference to this
-  /// object.
+  /// object in order to not leak memory.
+  @protected
   @mustCallSuper
-  destroy() {
-    InvoiceBinding.instance!.removeListener(_listener);
+  void stopTrackingExpenseReport() {
+    assert(isTrackingExpenseReport);
+    InvoiceBinding.instance!.removeListener(_listener!);
+    _listener = null;
+    _expenseReport = null;
   }
 
   /// Invoked when the metadata associated with an expense report changed.

@@ -27,7 +27,7 @@ class OpenInvoiceIntent extends Intent {
 class OpenInvoiceAction extends ContextAction<OpenInvoiceIntent>
     with TrackInvoiceMixin, WarnOnUnsavedChangesMixin {
   OpenInvoiceAction._() {
-    initInstance();
+    startTrackingInvoiceActivity();
   }
 
   static final OpenInvoiceAction instance = OpenInvoiceAction._();
