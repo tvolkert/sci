@@ -10,6 +10,7 @@ import 'package:payouts/src/model/constants.dart';
 import 'package:payouts/src/model/invoice.dart';
 import 'package:payouts/src/model/track_expense_report_mixin.dart';
 import 'package:payouts/src/model/track_expense_reports_mixin.dart';
+import 'package:payouts/src/model/track_invoice_mixin.dart';
 import 'package:payouts/src/widgets/expense_type_list_button.dart';
 import 'package:payouts/src/widgets/text_input_validators.dart';
 
@@ -276,10 +277,12 @@ class ExpensesTableView extends StatefulWidget {
   _ExpensesTableViewState createState() => _ExpensesTableViewState();
 }
 
-class _ExpensesTableViewState extends State<ExpensesTableView> with TrackExpenseReportMixin {
+class _ExpensesTableViewState extends State<ExpensesTableView>
+    with TrackExpenseReportMixin, TrackInvoiceMixin {
   late TableViewSelectionController _selectionController;
   late TableViewSortController _sortController;
   late TableViewEditorController _editorController;
+  late TableViewRowDisablerController _disabledController;
   late TableViewSortListener _sortListener;
   late TableViewEditorListener _editorListener;
   ExpenseTypeListButtonController? _expenseTypeController;
@@ -301,7 +304,7 @@ class _ExpensesTableViewState extends State<ExpensesTableView> with TrackExpense
     };
   }
 
-  Widget _renderDate(
+  Widget _buildDate(
     BuildContext context,
     int rowIndex,
     int columnIndex,
@@ -319,6 +322,7 @@ class _ExpensesTableViewState extends State<ExpensesTableView> with TrackExpense
       rowIndex: rowIndex,
       rowHighlighted: rowHighlighted,
       rowSelected: rowSelected,
+      isRowDisabled: isRowDisabled,
       content: formattedDate,
     );
   }
@@ -330,7 +334,7 @@ class _ExpensesTableViewState extends State<ExpensesTableView> with TrackExpense
     );
   }
 
-  Widget _renderType(
+  Widget _buildType(
     BuildContext context,
     int rowIndex,
     int columnIndex,
@@ -347,6 +351,7 @@ class _ExpensesTableViewState extends State<ExpensesTableView> with TrackExpense
       rowIndex: rowIndex,
       rowHighlighted: rowHighlighted,
       rowSelected: rowSelected,
+      isRowDisabled: isRowDisabled,
       content: type.name,
     );
   }
@@ -358,7 +363,7 @@ class _ExpensesTableViewState extends State<ExpensesTableView> with TrackExpense
     );
   }
 
-  Widget _renderAmount(
+  Widget _buildAmount(
     BuildContext context,
     int rowIndex,
     int columnIndex,
@@ -375,6 +380,7 @@ class _ExpensesTableViewState extends State<ExpensesTableView> with TrackExpense
       rowIndex: rowIndex,
       rowHighlighted: rowHighlighted,
       rowSelected: rowSelected,
+      isRowDisabled: isRowDisabled,
       content: NumberFormats.currency.format(amount),
     );
   }
@@ -387,7 +393,7 @@ class _ExpensesTableViewState extends State<ExpensesTableView> with TrackExpense
     );
   }
 
-  Widget _renderDescription(
+  Widget _buildDescription(
     BuildContext context,
     int rowIndex,
     int columnIndex,
@@ -404,6 +410,7 @@ class _ExpensesTableViewState extends State<ExpensesTableView> with TrackExpense
       rowIndex: rowIndex,
       rowHighlighted: rowHighlighted,
       rowSelected: rowSelected,
+      isRowDisabled: isRowDisabled,
       content: description,
     );
   }
@@ -459,6 +466,10 @@ class _ExpensesTableViewState extends State<ExpensesTableView> with TrackExpense
     assert(rowsBeingEdited.length == 1);
     final int rowIndex = rowsBeingEdited.single;
     return expenseReport.expenses[rowIndex];
+  }
+
+  void _updateDisabledController() {
+    _disabledController.filter = (int rowIndex) => openedInvoice.isSubmitted;
   }
 
   void _handleEditStarted(TableViewEditorController controller) {
@@ -517,9 +528,12 @@ class _ExpensesTableViewState extends State<ExpensesTableView> with TrackExpense
   void initState() {
     super.initState();
     startTrackingExpenseReport(widget.expenseReport);
+    startTrackingInvoiceActivity();
     _selectionController = TableViewSelectionController(selectMode: SelectMode.multi);
     _sortController = TableViewSortController(sortMode: TableViewSortMode.singleColumn);
     _editorController = TableViewEditorController();
+    _disabledController = TableViewRowDisablerController();
+    _updateDisabledController();
     _sortListener = TableViewSortListener(
       onChanged: _handleSortChanged,
     );
@@ -545,20 +559,26 @@ class _ExpensesTableViewState extends State<ExpensesTableView> with TrackExpense
   @override
   void dispose() {
     stopTrackingExpenseReport();
+    stopTrackingInvoiceActivity();
     _sortController.removeListener(_sortListener);
     _editorController.removeListener(_editorListener);
     _selectionController.dispose();
     _sortController.dispose();
     _editorController.dispose();
+    _disabledController.dispose();
     super.dispose();
   }
 
   @override
   void onExpensesChanged() {
     super.onExpensesChanged();
-    setState(() {
-      // State is held in the expense report itself.
-    });
+    setState(() {}); // State is held in the expense report itself.
+  }
+
+  @override
+  void onInvoiceSubmittedChanged() {
+    super.onInvoiceSubmittedChanged();
+    _updateDisabledController();
   }
 
   @override
@@ -571,30 +591,31 @@ class _ExpensesTableViewState extends State<ExpensesTableView> with TrackExpense
         selectionController: _selectionController,
         sortController: _sortController,
         editorController: _editorController,
+        rowDisabledController: _disabledController,
         roundColumnWidthsToWholePixel: false,
         columns: <TableColumn>[
           TableColumn(
             key: Keys.date,
             width: ConstrainedTableColumnWidth(width: 120, minWidth: 20),
-            cellBuilder: _renderDate,
+            cellBuilder: _buildDate,
             headerBuilder: _renderHeader('Date'),
           ),
           TableColumn(
             key: Keys.expenseType,
             width: ConstrainedTableColumnWidth(width: 120, minWidth: 20),
-            cellBuilder: _renderType,
+            cellBuilder: _buildType,
             headerBuilder: _renderHeader('Type'),
           ),
           TableColumn(
             key: Keys.amount,
             width: ConstrainedTableColumnWidth(width: 100, minWidth: 20),
-            cellBuilder: _renderAmount,
+            cellBuilder: _buildAmount,
             headerBuilder: _renderHeader('Amount'),
           ),
           TableColumn(
             key: Keys.description,
             width: FlexTableColumnWidth(),
-            cellBuilder: _renderDescription,
+            cellBuilder: _buildDescription,
             headerBuilder: _renderHeader('Description'),
           ),
         ],
@@ -609,12 +630,14 @@ class ExpenseCellWrapper extends StatelessWidget {
     this.rowIndex = 0,
     this.rowHighlighted = false,
     this.rowSelected = false,
+    this.isRowDisabled = false,
     required this.content,
   }) : super(key: key);
 
   final int rowIndex;
   final bool rowHighlighted;
   final bool rowSelected;
+  final bool isRowDisabled;
   final String content;
 
   static const List<Color> colors = <Color>[Color(0xffffffff), Color(0xfff7f5ee)];
@@ -624,6 +647,8 @@ class ExpenseCellWrapper extends StatelessWidget {
     TextStyle style = DefaultTextStyle.of(context).style;
     if (rowSelected) {
       style = style.copyWith(color: const Color(0xffffffff));
+    } else if (isRowDisabled) {
+      style = style.copyWith(color: const Color(0xff999999));
     }
     Widget result = Padding(
       padding: EdgeInsets.fromLTRB(2, 3, 2, 3),
