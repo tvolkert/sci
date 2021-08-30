@@ -21,6 +21,8 @@ class NumberFormats {
   static final intl.NumberFormat currency = intl.NumberFormat.currency(symbol: r'$');
   static final intl.NumberFormat decimal = intl.NumberFormat(r'#,##0.00');
   static final intl.NumberFormat maybeDecimal = intl.NumberFormat(r'#,###.##');
+  static final intl.NumberFormat noDecimal = intl.NumberFormat(r'#,###');
+  static final intl.NumberFormat compactHours = intl.NumberFormat('#.#');
 }
 
 class Strings {

@@ -145,6 +145,7 @@ class _RawReviewAndSubmitState extends State<_RawReviewAndSubmit> with TrackInvo
         isWeekend: isWeekend,
         isAggregate: isAggregate,
         isWeeklyTotal: isWeeklyTotal,
+        numberFormat: NumberFormats.compactHours,
         cautionIfExceeded: 12,
       );
     }
@@ -411,6 +412,7 @@ class _RawReviewAndSubmitState extends State<_RawReviewAndSubmit> with TrackInvo
                         return DailyTotal(
                           amount: amount,
                           isWeekend: isWeekend,
+                          numberFormat: NumberFormats.noDecimal,
                           cautionIfExceeded: cautionIfExceeded,
                         );
                       }),
@@ -618,7 +620,7 @@ class _CertifyAndSubmitState extends State<CertifyAndSubmit> {
           padding: EdgeInsets.fromLTRB(10, 0, 3, 0),
           child: BasicCheckbox(
             state: isSubmitted || isEnabled ? CheckboxState.checked : CheckboxState.unchecked,
-            onTap: isEnabled ? _handleTap : null,
+            onTap: isSubmitted ? null : _handleTap,
             trailing: Text(
               'I certify that I have worked the above hours as described.',
               maxLines: 1,
@@ -634,6 +636,7 @@ class _CertifyAndSubmitState extends State<CertifyAndSubmit> {
 class DailyTotal extends StatelessWidget {
   const DailyTotal({
     required this.amount,
+    this.numberFormat,
     this.isWeekend = false,
     this.isAggregate = false,
     this.isWeeklyTotal = false,
@@ -642,12 +645,11 @@ class DailyTotal extends StatelessWidget {
   }) : super(key: key);
 
   final double amount;
+  final intl.NumberFormat? numberFormat;
   final bool isWeekend;
   final bool isAggregate;
   final bool isWeeklyTotal;
   final double? cautionIfExceeded;
-
-  static final intl.NumberFormat numberFormat = intl.NumberFormat('#.#');
 
   @override
   Widget build(BuildContext context) {
@@ -662,10 +664,11 @@ class DailyTotal extends StatelessWidget {
       style = style.copyWith(color: const Color(0xffb71c28));
     }
 
-    final String value = amount > 0 ? numberFormat.format(amount) : '';
+    final intl.NumberFormat format = numberFormat ?? NumberFormats.maybeDecimal;
+    final String value = amount > 0 ? format.format(amount) : '';
     Widget result = Padding(
       padding: const EdgeInsets.fromLTRB(0, 4, 3, 0),
-      child: Text(value, style: style, textAlign: TextAlign.right),
+      child: Text(value, style: style, textAlign: TextAlign.right, maxLines: 1, softWrap: false),
     );
 
     if (isAggregate || isWeekend) {
