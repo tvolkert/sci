@@ -38,6 +38,7 @@ class _InvoiceViewState extends State<InvoiceView> {
     setState(() {
       _total = invoice.total;
       _isSubmitted = invoice.isSubmitted;
+      _updateWatermarkPainter();
     });
   }
 
@@ -92,64 +93,58 @@ class _InvoiceViewState extends State<InvoiceView> {
       builder: (BuildContext context, Invoice? invoice) {
         assert(invoice != null);
 
-        // TODO: Remove Ink when it's no longer needed.
-        Widget result = Ink(
-          decoration: const BoxDecoration(color: Color(0xffc8c8bb)),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Padding(
-                padding: const EdgeInsets.fromLTRB(5, 5, 5.5, 5),
-                child: SizedBox(
-                  height: 22,
-                  child: Row(
-                    children: [
-                      const InvoiceNumberEditor(),
-                      BillingPeriodView(invoice!.billingPeriod),
-                      const Spacer(),
-                      InvoiceTotalView(total: _total),
-                    ],
+        return CustomPaint(
+          foregroundPainter: _watermarkPainter,
+          // TODO: Remove Ink when it's no longer needed.
+          child: Ink(
+            decoration: const BoxDecoration(color: Color(0xffc8c8bb)),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(5, 5, 5.5, 5),
+                  child: SizedBox(
+                    height: 22,
+                    child: Row(
+                      children: [
+                        const InvoiceNumberEditor(),
+                        BillingPeriodView(invoice!.billingPeriod),
+                        const Spacer(),
+                        InvoiceTotalView(total: _total),
+                      ],
+                    ),
                   ),
                 ),
-              ),
-              const Expanded(
-                child: Padding(
-                  padding: EdgeInsets.fromLTRB(5, 0, 6, 4),
-                  child: chicago.TabPane(
-                    initialSelectedIndex: 0,
-                    tabs: <chicago.Tab>[
-                      chicago.Tab(
-                        label: 'Billable Hours',
-                        builder: _buildTimesheetsView,
-                      ),
-                      chicago.Tab(
-                        label: 'Expense Reports',
-                        builder: _buildExpenseReportsView,
-                      ),
-                      chicago.Tab(
-                        label: 'Accomplishments',
-                        builder: _buildAccomplishmentsView,
-                      ),
-                      chicago.Tab(
-                        label: 'Review & Submit',
-                        builder: _buildReviewAndSubmit,
-                      ),
-                    ],
+                const Expanded(
+                  child: Padding(
+                    padding: EdgeInsets.fromLTRB(5, 0, 6, 4),
+                    child: chicago.TabPane(
+                      initialSelectedIndex: 0,
+                      tabs: <chicago.Tab>[
+                        chicago.Tab(
+                          label: 'Billable Hours',
+                          builder: _buildTimesheetsView,
+                        ),
+                        chicago.Tab(
+                          label: 'Expense Reports',
+                          builder: _buildExpenseReportsView,
+                        ),
+                        chicago.Tab(
+                          label: 'Accomplishments',
+                          builder: _buildAccomplishmentsView,
+                        ),
+                        chicago.Tab(
+                          label: 'Review & Submit',
+                          builder: _buildReviewAndSubmit,
+                        ),
+                      ],
+                    ),
                   ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         );
-
-        if (_isSubmitted) {
-          result = CustomPaint(
-            foregroundPainter: _watermarkPainter,
-            child: result,
-          );
-        }
-
-        return result;
       },
     );
   }

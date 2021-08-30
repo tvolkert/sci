@@ -5,6 +5,7 @@ import 'package:flutter/material.dart' show Tooltip;
 import 'package:flutter/widgets.dart';
 import 'package:intl/intl.dart' as intl;
 
+import 'package:payouts/src/actions.dart';
 import 'package:payouts/src/model/constants.dart';
 import 'package:payouts/src/model/invoice.dart';
 import 'package:payouts/src/model/summary_data.dart';
@@ -52,14 +53,28 @@ class ExpenseReportName extends StatelessWidget {
   }
 }
 
-class ReviewAndSubmit extends StatefulWidget {
+class ReviewAndSubmit extends StatelessWidget {
   const ReviewAndSubmit({Key? key}) : super(key: key);
 
   @override
-  State<ReviewAndSubmit> createState() => _ReviewAndSubmitState();
+  Widget build(BuildContext context) {
+    return Actions(
+      actions: <Type, Action<Intent>>{
+        SubmitInvoiceIntent: SubmitInvoiceAction.instance,
+      },
+      child: const _RawReviewAndSubmit(),
+    );
+  }
 }
 
-class _ReviewAndSubmitState extends State<ReviewAndSubmit> with TrackInvoiceMixin {
+class _RawReviewAndSubmit extends StatefulWidget {
+  const _RawReviewAndSubmit({Key? key}) : super(key: key);
+
+  @override
+  State<_RawReviewAndSubmit> createState() => _RawReviewAndSubmitState();
+}
+
+class _RawReviewAndSubmitState extends State<_RawReviewAndSubmit> with TrackInvoiceMixin {
   List<Widget> _buildHeaderBlock() {
     final Invoice invoice = InvoiceBinding.instance!.invoice!;
     final String startDate = DateFormats.mdyyyy.format(invoice.billingPeriod.start);
@@ -575,32 +590,35 @@ class SummaryRowHeader extends StatelessWidget {
 
 class CertifyAndSubmit extends StatefulWidget {
   @override
-  _CertifyAndSubmitState createState() => _CertifyAndSubmitState();
+  State<CertifyAndSubmit> createState() => _CertifyAndSubmitState();
 }
 
 class _CertifyAndSubmitState extends State<CertifyAndSubmit> {
-  bool certified = false;
+  SubmitInvoiceAction get action => SubmitInvoiceAction.instance;
 
-  void _handleSubmit() {}
+  void _handleTap() {
+    setState(() {
+      action.certified = !action.certified;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
+    final SubmitInvoiceIntent intent = SubmitInvoiceIntent(context: context);
+    final bool isEnabled = action.isEnabled(intent);
+    final bool isSubmitted = InvoiceBinding.instance!.invoice!.isSubmitted;
     return Row(
       children: [
-        PushButton(
+        ActionPushButton(
           icon: 'assets/lock.png',
           label: 'Submit Invoice',
-          onPressed: certified ? _handleSubmit : null,
+          intent: intent,
         ),
         Padding(
           padding: EdgeInsets.fromLTRB(10, 0, 3, 0),
           child: BasicCheckbox(
-            state: certified ? CheckboxState.checked : CheckboxState.unchecked,
-            onTap: () {
-              setState(() {
-                certified = !certified;
-              });
-            },
+            state: isSubmitted || isEnabled ? CheckboxState.checked : CheckboxState.unchecked,
+            onTap: isEnabled ? _handleTap : null,
             trailing: Text(
               'I certify that I have worked the above hours as described.',
               maxLines: 1,
