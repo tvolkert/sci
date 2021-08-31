@@ -194,6 +194,7 @@ class AddExpenseSheetState extends State<AddExpenseSheet> {
   @override
   Widget build(BuildContext context) {
     final CalendarDate startDate = CalendarDate.fromDateTime(widget.expenseReport.period.start);
+    final CalendarDate today = CalendarDate.today();
     return ConstrainedBox(
       constraints: BoxConstraints(maxWidth: 370),
       child: Column(
@@ -223,7 +224,7 @@ class AddExpenseSheetState extends State<AddExpenseSheet> {
                       initialMonth: startDate.month,
                       initialYear: startDate.year,
                       width: CalendarButtonWidth.shrinkWrap,
-                      disabledDateFilter: (CalendarDate date) => false, // Change from original app
+                      disabledDateFilter: (CalendarDate date) => date > today,
                     ),
                   ),
                   FormPaneField(
