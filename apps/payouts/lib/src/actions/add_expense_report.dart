@@ -75,37 +75,13 @@ class AddExpenseReportSheetState extends InvoiceEntryEditorState<AddExpenseRepor
   late TextEditingController _travelPurposeController;
   late TextEditingController _travelDestinationController;
   late TextEditingController _travelPartiesController;
-  late chicago.CalendarSelectionController _fromDateController;
-  late chicago.CalendarSelectionController _toDateController;
-  late chicago.CalendarDate _lastAvailableDay;
-
-  void _handleFromDateChanged(chicago.CalendarDate? date) {
-    if (date! > _toDateController.value!) {
-      _toDateController.value = date;
-    }
-  }
-
-  void _handleToDateChanged(chicago.CalendarDate? date) {
-    if (date! < _fromDateController.value!) {
-      _fromDateController.value = date;
-    }
-  }
-
-  bool _isDisabled(chicago.CalendarDate date) => date > _lastAvailableDay;
 
   @override
   void initState() {
     super.initState();
-    final chicago.CalendarDate today = chicago.CalendarDate.fromDateTime(DateTime.now());
-    final DateRange billingPeriod = InvoiceBinding.instance!.invoice!.billingPeriod;
-    final chicago.CalendarDate billingStart = chicago.CalendarDate.fromDateTime(billingPeriod.start);
-    final chicago.CalendarDate billingEnd = chicago.CalendarDate.fromDateTime(billingPeriod.end);
-    _lastAvailableDay = billingEnd < today ? today : billingEnd;
     _travelPurposeController = TextEditingController();
     _travelDestinationController = TextEditingController();
     _travelPartiesController = TextEditingController();
-    _fromDateController = chicago.CalendarSelectionController(billingStart);
-    _toDateController = chicago.CalendarSelectionController(billingEnd);
   }
 
   @override
@@ -113,8 +89,6 @@ class AddExpenseReportSheetState extends InvoiceEntryEditorState<AddExpenseRepor
     _travelPurposeController.dispose();
     _travelDestinationController.dispose();
     _travelPartiesController.dispose();
-    _fromDateController.dispose();
-    _toDateController.dispose();
     super.dispose();
   }
 
@@ -125,24 +99,6 @@ class AddExpenseReportSheetState extends InvoiceEntryEditorState<AddExpenseRepor
       if (requiresChargeNumber) buildChargeNumberFormField(),
       if (requiresRequestor) buildRequestorFormField(),
       buildTaskFormField(),
-      chicago.FormPaneField(
-        label: 'Dates',
-        child: Row(
-          children: [
-            chicago.CalendarButton(
-              disabledDateFilter: _isDisabled,
-              selectionController: _fromDateController,
-              onDateChanged: _handleFromDateChanged,
-            ),
-            Padding(padding: EdgeInsets.symmetric(horizontal: 4), child: Text('to')),
-            chicago.CalendarButton(
-              disabledDateFilter: _isDisabled,
-              selectionController: _toDateController,
-              onDateChanged: _handleToDateChanged,
-            ),
-          ],
-        ),
-      ),
       chicago.FormPaneField(
         label: 'Purpose of travel',
         flag: _travelPurposeFlag,
@@ -174,14 +130,12 @@ class AddExpenseReportSheetState extends InvoiceEntryEditorState<AddExpenseRepor
   void handleOk() {
     bool isInputValid = true;
 
+    final Invoice invoice = InvoiceBinding.instance!.invoice!;
     final Program? selectedProgram = this.selectedProgram;
     final String chargeNumber = chargeNumberController.text.trim();
     final String requestor = requestorController.text.trim();
     final String task = taskController.text.trim();
-    final DateRange period = DateRange.fromStartEnd(
-      _fromDateController.value!.toDateTime(),
-      _toDateController.value!.toDateTime(),
-    );
+    final DateRange period = invoice.billingPeriod;
     final String travelPurpose = _travelPurposeController.text.trim();
     final String travelDestination = _travelDestinationController.text.trim();
     final String travelParties = _travelPartiesController.text.trim();
@@ -205,7 +159,7 @@ class AddExpenseReportSheetState extends InvoiceEntryEditorState<AddExpenseRepor
         travelParties: travelParties,
       );
 
-      if (InvoiceBinding.instance!.invoice!.expenseReports.indexOf(metadata) >= 0) {
+      if (invoice.expenseReports.indexOf(metadata) >= 0) {
         programFlag = flagFromMessage('An expense report already exists for this program');
         isInputValid = false;
       }

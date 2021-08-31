@@ -191,14 +191,6 @@ class ExpenseReportView extends StatelessWidget {
     );
   }
 
-  String _buildDateRangeDisplay(DateRange dateRange) {
-    StringBuffer buf = StringBuffer()
-      ..write(CalendarDateFormat.iso8601.formatDateTime(dateRange.start))
-      ..write(' to ')
-      ..write(CalendarDateFormat.iso8601.formatDateTime(dateRange.end));
-    return buf.toString();
-  }
-
   @override
   Widget build(BuildContext context) {
     return Column(
@@ -220,7 +212,6 @@ class ExpenseReportView extends StatelessWidget {
                 if (expenseReport.requestor.isNotEmpty)
                   _buildMetadataRow('Requestor', expenseReport.requestor),
                 if (expenseReport.task.isNotEmpty) _buildMetadataRow('Task', expenseReport.task),
-                _buildMetadataRow('Dates', _buildDateRangeDisplay(expenseReport.period)),
                 if (expenseReport.travelPurpose.isNotEmpty)
                   _buildMetadataRow('Purpose of travel', expenseReport.travelPurpose),
                 if (expenseReport.travelDestination.isNotEmpty)
