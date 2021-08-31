@@ -431,8 +431,7 @@ mixin InvoiceListenerNotifier on ListenerNotifier<InvoiceListener> {
 ///  * [InvoiceBinding.loadInvoice], which is used to load a new invoice from
 ///    the SCI server.
 class Invoice {
-  Invoice._(this._owner, this.id, this._data)
-      : assert(_data[Keys.invoiceId] == id);
+  Invoice._(this._owner, this.id, this._data) : assert(_data[Keys.invoiceId] == id);
 
   final InvoiceBinding _owner;
   bool _disposed = false;
@@ -1059,26 +1058,28 @@ class Hours with ForwardingIterable<double>, DisallowCollectionConversion<double
 /// list will notify registered [InvoiceListener] listeners.
 class ExpenseReports
     with ForwardingIterable<ExpenseReport>, DisallowCollectionConversion<ExpenseReport> {
-  const ExpenseReports._(this._owner, this._data);
+  const ExpenseReports._(this._owner, this._data, this._view);
 
   factory ExpenseReports._fromRawData(Invoice owner, Map<String, dynamic> invoiceData) {
     final List<dynamic> rawExpenseReports = invoiceData[Keys.expenseReports];
-    final List<ExpenseReport> expenseReports = rawExpenseReports
-        .cast<Map<String, dynamic>>()
+    final List<Map<String, dynamic>> expenseReports =
+        rawExpenseReports.cast<Map<String, dynamic>>();
+    final List<ExpenseReport> view = expenseReports
         .map<ExpenseReport>((Map<String, dynamic> data) => ExpenseReport._(owner, data))
         .toList();
-    return ExpenseReports._(owner, expenseReports);
+    return ExpenseReports._(owner, expenseReports, view);
   }
 
   final Invoice _owner;
-  final List<ExpenseReport> _data;
+  final List<Map<String, dynamic>> _data;
+  final List<ExpenseReport> _view;
 
   /// The invoice to which these expense reports belong.
   Invoice get invoice => _owner;
 
   @override
   @protected
-  Iterable<ExpenseReport> get delegate => _data;
+  Iterable<ExpenseReport> get delegate => _view;
 
   /// Computes the total dollar amount for this expense report.
   double computeTotal() {
@@ -1086,11 +1087,11 @@ class ExpenseReports
   }
 
   /// Gets the expense report at the specified index.
-  ExpenseReport operator [](int index) => _owner._checkDisposed(() => _data[index])!;
+  ExpenseReport operator [](int index) => _owner._checkDisposed(() => _view[index])!;
 
   int indexOf(ExpenseReportMetadata entry) {
     for (int i = 0; i < _data.length; i++) {
-      final ExpenseReport expenseReport = _data[i];
+      final ExpenseReport expenseReport = _view[i];
       if (expenseReport.program == entry.program &&
           expenseReport.chargeNumber == entry.chargeNumber &&
           expenseReport.task == entry.task) {
@@ -1120,7 +1121,8 @@ class ExpenseReports
       travelDestination: entry.travelDestination,
       travelParties: entry.travelParties,
     );
-    _data.insert(insertIndex, expenseReport);
+    _view.insert(insertIndex, expenseReport);
+    _data.insert(insertIndex, expenseReport.serialize());
     _owner._owner.onExpenseReportInserted(insertIndex);
     _owner._setIsDirty(true);
     return expenseReport;
@@ -1132,7 +1134,8 @@ class ExpenseReports
   /// be notified.
   ExpenseReport removeAt(int index) {
     _owner._checkDisposed();
-    final ExpenseReport removed = _data.removeAt(index);
+    final ExpenseReport removed = _view.removeAt(index);
+    _data.removeAt(index);
     _owner._owner.onExpenseReportsRemoved(index, <ExpenseReport>[removed]);
     _owner._setIsDirty(true);
     return removed;
@@ -1145,7 +1148,7 @@ class ExpenseReports
   void removeWhere(bool Function(ExpenseReport expenseReport) test) {
     _owner._checkDisposed();
     for (int i = length - 1; i >= 0; i--) {
-      if (test(_data[i])) {
+      if (test(_view[i])) {
         removeAt(i);
       }
     }
@@ -1223,7 +1226,7 @@ class ExpenseReport implements ExpenseReportMetadata {
   Invoice get invoice => _owner;
 
   /// The index of this expense report in the list of expense reports.
-  int get index => _owner.expenseReports._data.indexOf(this);
+  int get index => _owner.expenseReports._view.indexOf(this);
 
   double? _total;
   double get total {
@@ -1307,6 +1310,8 @@ class ExpenseReport implements ExpenseReportMetadata {
     _owner._checkDisposed();
     return _expenses ??= Expenses._fromData(_owner, this, _data);
   }
+
+  Map<String, dynamic> serialize() => _data;
 }
 
 class ExpenseMetadata {
@@ -1342,7 +1347,7 @@ class ExpenseMetadata {
 /// Mutations to the list of expenses or to any expense in the list will
 /// notify registered [InvoiceListener] listeners.
 class Expenses with ForwardingIterable<Expense>, DisallowCollectionConversion<Expense> {
-  const Expenses._(this._owner, this._parent, this._data);
+  const Expenses._(this._owner, this._parent, this._data, this._view);
 
   factory Expenses._fromData(
     Invoice owner,
@@ -1350,22 +1355,23 @@ class Expenses with ForwardingIterable<Expense>, DisallowCollectionConversion<Ex
     Map<String, dynamic> expenseReportData,
   ) {
     final List<dynamic> rawExpenses = expenseReportData[Keys.expenses];
-    final List<Expense> expenses = rawExpenses
-        .cast<Map<String, dynamic>>()
+    final List<Map<String, dynamic>> expenses = rawExpenses.cast<Map<String, dynamic>>();
+    final List<Expense> view = expenses
         .map<Expense>((Map<String, dynamic> expenseData) => Expense._(owner, parent, expenseData))
         .toList();
-    return Expenses._(owner, parent, expenses);
+    return Expenses._(owner, parent, expenses, view);
   }
 
   final Invoice _owner;
   final ExpenseReport _parent;
-  final List<Expense> _data;
+  final List<Map<String, dynamic>> _data;
+  final List<Expense> _view;
 
   @override
   @protected
-  Iterable<Expense> get delegate => _data;
+  Iterable<Expense> get delegate => _view;
 
-  Expense operator[](int index) => _data[index];
+  Expense operator [](int index) => _view[index];
 
   Expense add(ExpenseMetadata entry) {
     _owner._checkDisposed();
@@ -1382,7 +1388,8 @@ class Expenses with ForwardingIterable<Expense>, DisallowCollectionConversion<Ex
       amount: entry.amount,
       description: entry.description,
     );
-    _data.insert(insertIndex, expense);
+    _view.insert(insertIndex, expense);
+    _data.insert(insertIndex, expense.serialize());
     _owner._owner.onExpenseInserted(_parent.index, insertIndex);
     _owner._setIsDirty(true);
     _parent.total = previousTotal + entry.amount;
@@ -1394,7 +1401,8 @@ class Expenses with ForwardingIterable<Expense>, DisallowCollectionConversion<Ex
     // Order is important here; set this first to force the parent to run its
     // lazy total calculation before removing the expense from _data.
     final double previousTotal = _parent.total;
-    final Expense removed = _data.removeAt(index);
+    final Expense removed = _view.removeAt(index);
+    _data.removeAt(index);
     _owner._owner.onExpensesRemoved(_parent.index, index, <Expense>[removed]);
     _owner._setIsDirty(true);
     _parent.total = previousTotal - removed.amount;
@@ -1404,7 +1412,7 @@ class Expenses with ForwardingIterable<Expense>, DisallowCollectionConversion<Ex
   void removeWhere(bool Function(Expense expense) test) {
     _owner._checkDisposed();
     for (int i = length - 1; i >= 0; i--) {
-      if (test(_data[i])) {
+      if (test(_view[i])) {
         removeAt(i);
       }
     }
@@ -1412,7 +1420,8 @@ class Expenses with ForwardingIterable<Expense>, DisallowCollectionConversion<Ex
 
   void sort(int compare(Expense a, Expense b)) {
     _owner._checkDisposed();
-    _data.sort(compare);
+    _view.sort(compare);
+    // TODO!!: _data.sort()?  _data = <create>?
     // No need to notify listeners or mark dirty since nothing substantively
     // changed about the invoice (the caller is responsible for updating UI).
   }
@@ -1447,7 +1456,7 @@ class Expense implements ExpenseMetadata {
   final Map<String, dynamic> _data;
 
   /// The index of this expense in the list of expenses.
-  int get index => _parent.expenses._data.indexOf(this);
+  int get index => _parent.expenses._view.indexOf(this);
 
   DateTime? _date;
 
@@ -1552,6 +1561,8 @@ class Expense implements ExpenseMetadata {
       description: description ?? this.description,
     );
   }
+
+  Map<String, dynamic> serialize() => _data;
 }
 
 /// Class representing the type of an expense line item.
@@ -1619,23 +1630,25 @@ class ExpenseType implements Comparable<ExpenseType> {
 /// list will notify registered [InvoiceListener] listeners.
 class Accomplishments
     with ForwardingIterable<Accomplishment>, DisallowCollectionConversion<Accomplishment> {
-  const Accomplishments._(this._owner, this._data);
+  const Accomplishments._(this._owner, this._data, this._view);
 
   factory Accomplishments._fromRawData(Invoice owner, Map<String, dynamic> invoiceData) {
     final List<dynamic> rawAccomplishments = invoiceData[Keys.accomplishments];
-    final List<Accomplishment> accomplishments = rawAccomplishments
-        .cast<Map<String, dynamic>>()
+    final List<Map<String, dynamic>> accomplishments =
+        rawAccomplishments.cast<Map<String, dynamic>>();
+    final List<Accomplishment> view = accomplishments
         .map<Accomplishment>((Map<String, dynamic> data) => Accomplishment._(owner, data))
         .toList();
-    return Accomplishments._(owner, accomplishments);
+    return Accomplishments._(owner, accomplishments, view);
   }
 
   final Invoice _owner;
-  final List<Accomplishment> _data;
+  final List<Map<String, dynamic>> _data;
+  final List<Accomplishment> _view;
 
   @override
   @protected
-  Iterable<Accomplishment> get delegate => _data;
+  Iterable<Accomplishment> get delegate => _view;
 
   /// Adds an accomplishment to the list of this invoice's accomplishments.
   ///
@@ -1649,7 +1662,8 @@ class Accomplishments
       owner: _owner,
       program: program,
     );
-    _data.insert(insertIndex, accomplishment);
+    _view.insert(insertIndex, accomplishment);
+    _data.insert(insertIndex, accomplishment.serialize());
     _owner._owner.onAccomplishmentInserted(insertIndex);
     _owner._setIsDirty(true);
     return accomplishment;
@@ -1657,7 +1671,7 @@ class Accomplishments
 
   int indexOf(Program program) {
     for (int i = 0; i < _data.length; i++) {
-      final Accomplishment accomplishment = _data[i];
+      final Accomplishment accomplishment = _view[i];
       if (accomplishment.program == program) {
         return i;
       }
@@ -1690,7 +1704,7 @@ class Accomplishment {
   Invoice get invoice => _owner;
 
   /// The index of this accomplishment in the list of accomplishments.
-  int get index => _owner.accomplishments._data.indexOf(this);
+  int get index => _owner.accomplishments._view.indexOf(this);
 
   Program? _program;
 
@@ -1711,4 +1725,6 @@ class Accomplishment {
       _owner._setIsDirty(true);
     }
   }
+
+  Map<String, dynamic> serialize() => _data;
 }
