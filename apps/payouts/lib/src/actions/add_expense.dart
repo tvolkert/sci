@@ -96,10 +96,27 @@ class AddExpenseSheetState extends State<AddExpenseSheet> {
   late TextEditingController _amountController;
   late TextEditingController _descriptionController;
   late SpinnerController _copyController;
+  int _copyLength = 1;
   Flag? _expenseTypeFlag;
   Flag? _dateFlag;
   Flag? _amountFlag;
   bool _copyExpenses = false;
+
+  static const Duration _daylightSavingsBuffer = Duration(hours: 2);
+
+  int _calculateCopyLength() {
+    int length = 1;
+    if (_dateController.value != null) {
+      final int daysFromToday = CalendarDate.today()
+          .toDateTime()
+          .add(_daylightSavingsBuffer)
+          .difference(_dateController.value!.toDateTime())
+          .inDays;
+      length = daysFromToday + 1;
+    }
+    assert(length >= 1);
+    return length;
+  }
 
   bool _isDateOutOfRange(CalendarDate date) {
     final CalendarDate today = CalendarDate.today();
@@ -110,6 +127,12 @@ class AddExpenseSheetState extends State<AddExpenseSheet> {
   void _handleToggleCopyExpenses() {
     setState(() {
       _copyExpenses = !_copyExpenses;
+    });
+  }
+
+  void _handleDateChanged() {
+    setState(() {
+      _copyLength = _calculateCopyLength();
     });
   }
 
@@ -187,10 +210,12 @@ class AddExpenseSheetState extends State<AddExpenseSheet> {
     _amountController = TextEditingController();
     _descriptionController = TextEditingController();
     _copyController = SpinnerController()..selectedIndex = 0;
+    _dateController.addListener(_handleDateChanged);
   }
 
   @override
   void dispose() {
+    _dateController.removeListener(_handleDateChanged);
     _expenseTypeController.dispose();
     _dateController.dispose();
     _amountController.dispose();
@@ -282,7 +307,7 @@ class AddExpenseSheetState extends State<AddExpenseSheet> {
                 isEnabled: _copyExpenses,
                 controller: _copyController,
                 sizeToContent: true,
-                length: 14,
+                length: _copyLength,
                 itemBuilder: (BuildContext context, int index, bool isEnabled) {
                   Widget built = Spinner.defaultItemBuilder(context, '${index + 1}');
                   if (!isEnabled) {
