@@ -49,6 +49,7 @@ class AddExpenseAction extends ContextAction<AddExpenseIntent> with TrackInvoice
     if (metadata != null) {
       for (int i = 0; i < metadata.count; i++) {
         intent.expenseReport.expenses.add(metadata.expenseMetadata.copyWith(
+          ordinal: metadata.expenseMetadata.ordinal + i,
           date: metadata.expenseMetadata.date.add(Duration(days: i)),
         ));
       }
@@ -159,6 +160,7 @@ class AddExpenseSheetState extends State<AddExpenseSheet> {
 
     if (isInputValid) {
       final ExpenseMetadata metadata = ExpenseMetadata(
+        ordinal: widget.expenseReport.expenses.length,
         date: _dateController.value!.toDateTime(),
         type: _expenseTypeController.value!,
         amount: double.parse(_amountController.text),

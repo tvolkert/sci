@@ -419,7 +419,7 @@ class _ExpensesTableViewState extends State<ExpensesTableView>
     final SortDirection sortDirection = controller[columnName]!;
     setState(() {
       _selectionController.clearSelection();
-      expenseReport.expenses.sort((Expense a, Expense b) {
+      expenseReport.expenses.comparator = (Expense a, Expense b) {
         Comparable<dynamic> fieldA, fieldB;
         switch (columnName) {
           case Keys.date:
@@ -448,7 +448,7 @@ class _ExpensesTableViewState extends State<ExpensesTableView>
           case SortDirection.descending:
             return result * -1;
         }
-      });
+      };
     });
   }
 

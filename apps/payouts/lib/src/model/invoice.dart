@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'dart:io' show HttpHeaders, HttpStatus;
 
 import 'package:chicago/chicago.dart';
-import 'package:flutter/foundation.dart';
+import 'package:flutter/foundation.dart' hide binarySearch;
 import 'package:http/http.dart' as http;
 
 import 'binding.dart';
@@ -771,8 +771,9 @@ class Timesheets with ForwardingIterable<Timesheet>, DisallowCollectionConversio
   /// be notified.
   Timesheet add(InvoiceEntryMetadata entry) {
     _owner._checkDisposed();
-    // TODO: this list should probably be sorted.
-    final int insertIndex = _data.length;
+    final int index = binarySearch(_view, entry, compare: InvoiceEntryMetadata.compare);
+    assert(index < 0);
+    final int insertIndex = -(index + 1);
     final Timesheet timesheet = Timesheet._fromParts(
       owner: _owner,
       program: entry.program,
@@ -861,6 +862,23 @@ class InvoiceEntryMetadata {
   /// that allows the consultant to describe the entry to help them organize
   /// their invoice.
   final String? task;
+
+  static int compare(InvoiceEntryMetadata m1, InvoiceEntryMetadata m2) {
+    final int assignmentId1 = m1.program.assignmentId;
+    final int assignmentId2 = m2.program.assignmentId;
+    int result = assignmentId1 - assignmentId2;
+    if (result == 0) {
+      final String chargeNumber1 = m1.chargeNumber ?? '';
+      final String chargeNumber2 = m2.chargeNumber ?? '';
+      result = chargeNumber1.compareTo(chargeNumber2);
+      if (result == 0) {
+        final String task1 = m1.task ?? '';
+        final String task2 = m2.task ?? '';
+        result = task1.compareTo(task2);
+      }
+    }
+    return result;
+  }
 }
 
 /// Class that represents an individual timesheet within an invoice.
@@ -1108,8 +1126,9 @@ class ExpenseReports
   /// be notified.
   ExpenseReport add(ExpenseReportMetadata entry) {
     _owner._checkDisposed();
-    // TODO: this list should probably be sorted.
-    final int insertIndex = _data.length;
+    final int index = binarySearch(_view, entry, compare: InvoiceEntryMetadata.compare);
+    assert(index < 0);
+    final int insertIndex = -(index + 1);
     final ExpenseReport expenseReport = ExpenseReport._fromParts(
       owner: _owner,
       program: entry.program,
@@ -1316,24 +1335,28 @@ class ExpenseReport implements ExpenseReportMetadata {
 
 class ExpenseMetadata {
   const ExpenseMetadata({
+    required this.ordinal,
     required this.date,
     required this.type,
     required this.amount,
     required this.description,
   });
 
+  final int ordinal;
   final DateTime date;
   final ExpenseType type;
   final double amount;
   final String description;
 
   ExpenseMetadata copyWith({
+    required int ordinal,
     DateTime? date,
     ExpenseType? type,
     double? amount,
     String? description,
   }) {
     return ExpenseMetadata(
+      ordinal: ordinal,
       date: date ?? this.date,
       type: type ?? this.type,
       amount: amount ?? this.amount,
@@ -1347,7 +1370,7 @@ class ExpenseMetadata {
 /// Mutations to the list of expenses or to any expense in the list will
 /// notify registered [InvoiceListener] listeners.
 class Expenses with ForwardingIterable<Expense>, DisallowCollectionConversion<Expense> {
-  const Expenses._(this._owner, this._parent, this._data, this._view);
+  Expenses._(this._owner, this._parent, this._data, this._view);
 
   factory Expenses._fromData(
     Invoice owner,
@@ -1378,16 +1401,22 @@ class Expenses with ForwardingIterable<Expense>, DisallowCollectionConversion<Ex
     // Order is important here; set this first to force the parent to run its
     // lazy total calculation before adding the expense to _data.
     final double previousTotal = _parent.total;
-    // TODO: this list should probably be sorted.
-    final int insertIndex = _data.length;
     final Expense expense = Expense._fromParts(
       owner: _owner,
       parent: _parent,
+      ordinal: entry.ordinal,
       date: entry.date,
       type: entry.type,
       amount: entry.amount,
       description: entry.description,
     );
+    int insertIndex = _data.length;
+    if (_comparator != null) {
+      insertIndex = binarySearch(_view, expense, compare: _comparator!);
+      if (insertIndex < 0) {
+        insertIndex = -(insertIndex + 1);
+      }
+    }
     _view.insert(insertIndex, expense);
     _data.insert(insertIndex, expense.serialize());
     _owner._owner.onExpenseInserted(_parent.index, insertIndex);
@@ -1418,14 +1447,27 @@ class Expenses with ForwardingIterable<Expense>, DisallowCollectionConversion<Ex
     }
   }
 
-  void sort(int compare(Expense a, Expense b)) {
+  ExpenseComparator? _comparator;
+  ExpenseComparator? get comparator => _comparator;
+  set comparator(ExpenseComparator? value) {
     _owner._checkDisposed();
-    _view.sort(compare);
-    // TODO!!: _data.sort()?  _data = <create>?
+    _comparator = value;
+    if (_comparator != null) {
+      _view.sort(_comparator);
+      _data.sort((Map<String, dynamic> m1, Map<String, dynamic> m2) {
+        Expense e1 = Expense._(_owner, _parent, m1);
+        Expense e2 = Expense._(_owner, _parent, m2);
+        return _comparator!(e1, e2);
+      });
+    }
     // No need to notify listeners or mark dirty since nothing substantively
     // changed about the invoice (the caller is responsible for updating UI).
+    // Further, the user can sort the expenses after the invoice is submitted,
+    // which doesn't count as modifying the (read-only) invoice.
   }
 }
+
+typedef ExpenseComparator = int Function(Expense a, Expense b);
 
 /// Class that represents an individual expense in an expense report.
 ///
@@ -1437,17 +1479,18 @@ class Expense implements ExpenseMetadata {
   factory Expense._fromParts({
     required Invoice owner,
     required ExpenseReport parent,
+    required int ordinal,
     required DateTime date,
     required ExpenseType type,
     required double amount,
     required String description,
   }) {
     return Expense._(owner, parent, <String, dynamic>{
+      Keys.ordinal: ordinal,
       Keys.date: DateFormats.iso8601Short.format(date),
       Keys.expenseType: type._data,
       Keys.amount: amount,
       Keys.description: description,
-      Keys.ordinal: 0, // TODO: monotonically increasing value
     });
   }
 
@@ -1547,6 +1590,7 @@ class Expense implements ExpenseMetadata {
 
   @override
   ExpenseMetadata copyWith({
+    required int ordinal,
     DateTime? date,
     ExpenseType? type,
     double? amount,
@@ -1555,6 +1599,7 @@ class Expense implements ExpenseMetadata {
     return Expense._fromParts(
       owner: _owner,
       parent: _parent,
+      ordinal: ordinal,
       date: date ?? this.date,
       type: type ?? this.type,
       amount: amount ?? this.amount,
@@ -1656,12 +1701,13 @@ class Accomplishments
   /// notified.
   Accomplishment add({required Program program}) {
     _owner._checkDisposed();
-    // TODO: this list should probably be sorted.
-    final int insertIndex = _data.length;
     final Accomplishment accomplishment = Accomplishment._fromParts(
       owner: _owner,
       program: program,
     );
+    final int index = binarySearch(_view, accomplishment, compare: InvoiceEntryMetadata.compare);
+    assert(index < 0);
+    final int insertIndex = -(index + 1);
     _view.insert(insertIndex, accomplishment);
     _data.insert(insertIndex, accomplishment.serialize());
     _owner._owner.onAccomplishmentInserted(insertIndex);
@@ -1683,7 +1729,7 @@ class Accomplishments
 /// Class representing a single accomplishment in an invoice.
 ///
 /// Mutations on this class will notify registered [InvoiceListener] listeners.
-class Accomplishment {
+class Accomplishment implements InvoiceEntryMetadata {
   Accomplishment._(this._owner, this._data, [this._program]);
 
   factory Accomplishment._fromParts({
@@ -1714,6 +1760,15 @@ class Accomplishment {
     _owner._checkDisposed();
     return _program ??= Program._(_data[Keys.program]);
   }
+
+  @override
+  String? get chargeNumber => null;
+
+  @override
+  String? get requestor => null;
+
+  @override
+  String? get task => null;
 
   String get description => _owner._checkDisposed(() => _data[Keys.description])!;
   set description(String value) {
