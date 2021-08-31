@@ -454,6 +454,8 @@ class Invoice {
     return null;
   }
 
+  bool get isEmpty => timesheets.isEmpty && expenseReports.isEmpty && accomplishments.isEmpty;
+
   double? _total;
   double get total {
     _checkDisposed();

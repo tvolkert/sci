@@ -58,6 +58,21 @@ class ReviewAndSubmit extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    Invoice invoice = InvoiceBinding.instance!.invoice!;
+    if (invoice.isEmpty) {
+      return Padding(
+        padding: EdgeInsets.all(80),
+        child: Center(
+          child: Text(
+            'Your invoice is currently empty. Once you have added items to your invoice, '
+            'you will be able to submit it to Satellite Consulting. You may add billable hours, '
+            'report tasks that were accomplished, and add expense reports by clicking on the '
+            'corresponding tabs and clicking on the links therein.',
+            textAlign: TextAlign.center,
+          ),
+        ),
+      );
+    }
     return Actions(
       actions: <Type, Action<Intent>>{
         SubmitInvoiceIntent: SubmitInvoiceAction.instance,
@@ -197,6 +212,9 @@ class _RawReviewAndSubmitState extends State<_RawReviewAndSubmit> with TrackInvo
   List<Widget> _buildTimesheetBlock() {
     final Invoice invoice = InvoiceBinding.instance!.invoice!;
     final Timesheets timesheets = invoice.timesheets;
+    if (timesheets.isEmpty) {
+      return <Widget>[];
+    }
     final String total = NumberFormats.currency.format(timesheets.computeTotal());
     return <Widget>[
       Padding(
@@ -442,6 +460,9 @@ class _RawReviewAndSubmitState extends State<_RawReviewAndSubmit> with TrackInvo
 
   List<Widget> _buildExpenseReportsBlock() {
     final ExpenseReports expenseReports = InvoiceBinding.instance!.invoice!.expenseReports;
+    if (expenseReports.isEmpty) {
+      return <Widget>[];
+    }
     final ExpenseReportsSummaryData summaryData = ExpenseReportsSummaryData.build(expenseReports);
     final String total = NumberFormats.currency.format(expenseReports.computeTotal());
     return <Widget>[
@@ -484,6 +505,9 @@ class _RawReviewAndSubmitState extends State<_RawReviewAndSubmit> with TrackInvo
 
   List<Widget> _buildAccomplishmentsBlock() {
     final Accomplishments accomplishments = InvoiceBinding.instance!.invoice!.accomplishments;
+    if (accomplishments.isEmpty) {
+      return <Widget>[];
+    }
     return <Widget>[
       Padding(
         padding: EdgeInsets.only(top: 30),
