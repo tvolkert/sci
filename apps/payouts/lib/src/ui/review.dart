@@ -689,7 +689,7 @@ class DailyTotal extends StatelessWidget {
     }
 
     final intl.NumberFormat format = numberFormat ?? NumberFormats.maybeDecimal;
-    final String value = amount > 0 ? format.format(amount) : '';
+    final String value = isWeeklyTotal || amount > 0 ? format.format(amount) : '';
     Widget result = Padding(
       padding: const EdgeInsets.fromLTRB(0, 4, 3, 0),
       child: Text(value, style: style, textAlign: TextAlign.right, maxLines: 1, softWrap: false),
