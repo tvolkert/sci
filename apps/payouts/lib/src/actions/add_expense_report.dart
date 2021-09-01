@@ -1,8 +1,8 @@
 import 'dart:async';
 
-import 'package:chicago/chicago.dart' as chicago;
+import 'package:chicago/chicago.dart';
 import 'package:flutter/foundation.dart';
-import 'package:flutter/services.dart';
+import 'package:flutter/services.dart' hide TextInput;
 import 'package:flutter/widgets.dart';
 
 import 'package:payouts/src/model/invoice.dart';
@@ -60,7 +60,7 @@ class AddExpenseReportSheet extends InvoiceEntryEditor {
   InvoiceEntryEditorState<InvoiceEntryEditor> createState() => AddExpenseReportSheetState();
 
   static Future<ExpenseReportMetadata?> open({required BuildContext context}) {
-    return chicago.Sheet.open<ExpenseReportMetadata>(
+    return Sheet.open<ExpenseReportMetadata>(
       context: context,
       content: AddExpenseReportSheet(),
       barrierDismissible: true,
@@ -69,61 +69,46 @@ class AddExpenseReportSheet extends InvoiceEntryEditor {
 }
 
 class AddExpenseReportSheetState extends InvoiceEntryEditorState<AddExpenseReportSheet> {
-  chicago.Flag? _travelPurposeFlag;
-  chicago.Flag? _travelDestinationFlag;
-  chicago.Flag? _travelPartiesFlag;
-  late TextEditingController _travelPurposeController;
-  late TextEditingController _travelDestinationController;
-  late TextEditingController _travelPartiesController;
+  late InvoiceEntryTextField _purpose;
+  late InvoiceEntryTextField _destination;
+  late InvoiceEntryTextField _parties;
+  bool _programIsBillable = false;
 
   @override
   void initState() {
     super.initState();
-    _travelPurposeController = TextEditingController();
-    _travelDestinationController = TextEditingController();
-    _travelPartiesController = TextEditingController();
+    _purpose = InvoiceEntryTextField();
+    _destination = InvoiceEntryTextField();
+    _parties = InvoiceEntryTextField();
   }
 
   @override
   void dispose() {
-    _travelPurposeController.dispose();
-    _travelDestinationController.dispose();
-    _travelPartiesController.dispose();
+    _purpose.dispose();
+    _destination.dispose();
+    _parties.dispose();
     super.dispose();
   }
 
   @override
-  List<chicago.FormPaneField> buildFormFields() {
-    return <chicago.FormPaneField>[
+  List<FormPaneField> buildFormFields() {
+    return <FormPaneField>[
       buildProgramFormField(),
       if (requiresChargeNumber) buildChargeNumberFormField(),
       if (requiresRequestor) buildRequestorFormField(),
       buildTaskFormField(),
-      chicago.FormPaneField(
-        label: 'Purpose of travel',
-        flag: _travelPurposeFlag,
-        child: chicago.TextInput(
-          backgroundColor: const Color(0xfff7f5ee),
-          controller: _travelPurposeController,
-        ),
-      ),
-      chicago.FormPaneField(
-        label: 'Destination (city)',
-        flag: _travelDestinationFlag,
-        child: chicago.TextInput(
-          backgroundColor: const Color(0xfff7f5ee),
-          controller: _travelDestinationController,
-        ),
-      ),
-      chicago.FormPaneField(
-        label: 'Party or parties visited',
-        flag: _travelPartiesFlag,
-        child: chicago.TextInput(
-          backgroundColor: const Color(0xfff7f5ee),
-          controller: _travelPartiesController,
-        ),
-      ),
+      if (_programIsBillable) buildTextFormField(_purpose, 'Purpose of travel'),
+      if (_programIsBillable) buildTextFormField(_destination, 'Destination (city)'),
+      if (_programIsBillable) buildTextFormField(_parties, 'Party or parties visited'),
     ];
+  }
+
+  @override
+  handleProgramSelected() {
+    super.handleProgramSelected();
+    setState(() {
+      _programIsBillable = selectedProgram!.isBillable;
+    });
   }
 
   @override
@@ -132,13 +117,13 @@ class AddExpenseReportSheetState extends InvoiceEntryEditorState<AddExpenseRepor
 
     final Invoice invoice = InvoiceBinding.instance!.invoice!;
     final Program? selectedProgram = this.selectedProgram;
-    final String chargeNumber = chargeNumberController.text.trim();
-    final String requestor = requestorController.text.trim();
-    final String task = taskController.text.trim();
+    final String chargeNumberValue = chargeNumber.controller.text.trim();
+    final String requestorValue = requestor.controller.text.trim();
+    final String taskValue = task.controller.text.trim();
     final DateRange period = invoice.billingPeriod;
-    final String travelPurpose = _travelPurposeController.text.trim();
-    final String travelDestination = _travelDestinationController.text.trim();
-    final String travelParties = _travelPartiesController.text.trim();
+    final String travelPurpose = _purpose.controller.text.trim();
+    final String travelDestination = _destination.controller.text.trim();
+    final String travelParties = _parties.controller.text.trim();
 
     if (selectedProgram == null) {
       isInputValid = false;
@@ -148,38 +133,40 @@ class AddExpenseReportSheetState extends InvoiceEntryEditorState<AddExpenseRepor
     }
 
     if (isInputValid) {
-      final ExpenseReportMetadata metadata = ExpenseReportMetadata(
-        program: selectedProgram!,
-        chargeNumber: chargeNumber,
-        requestor: requestor,
-        task: task,
-        period: period,
-        travelPurpose: travelPurpose,
-        travelDestination: travelDestination,
-        travelParties: travelParties,
-      );
-
-      if (invoice.expenseReports.indexOf(metadata) >= 0) {
-        programFlag = flagFromMessage('An expense report already exists for this program');
-        isInputValid = false;
+      if (selectedProgram!.isBillable) {
+        isInputValid &= validateRequiredField(_parties);
+        isInputValid &= validateRequiredField(_destination);
+        isInputValid &= validateRequiredField(_purpose);
       }
 
-      if (metadata.program.requiresChargeNumber && metadata.chargeNumber!.isEmpty) {
-        chargeNumberFlag = flagFromMessage('TODO');
-        isInputValid = false;
-      } else {
-        chargeNumberFlag = null;
+      if (selectedProgram.requiresRequestor) {
+        isInputValid &= validateRequiredField(requestor);
       }
 
-      if (metadata.program.requiresRequestor && metadata.requestor!.isEmpty) {
-        requestorFlag = flagFromMessage('TODO');
-        isInputValid = false;
-      } else {
-        requestorFlag = null;
+      if (selectedProgram.requiresChargeNumber) {
+        isInputValid &= validateRequiredField(chargeNumber);
       }
 
       if (isInputValid) {
-        Navigator.of(context).pop<ExpenseReportMetadata>(metadata);
+        final ExpenseReportMetadata metadata = ExpenseReportMetadata(
+          program: selectedProgram,
+          chargeNumber: chargeNumberValue,
+          requestor: requestorValue,
+          task: taskValue,
+          period: period,
+          travelPurpose: travelPurpose,
+          travelDestination: travelDestination,
+          travelParties: travelParties,
+        );
+
+        if (invoice.expenseReports.indexOf(metadata) >= 0) {
+          programFlag = flagFromMessage('An expense report already exists for this program');
+          isInputValid = false;
+        }
+
+        if (isInputValid) {
+          Navigator.of(context).pop<ExpenseReportMetadata>(metadata);
+        }
       }
     }
 

@@ -1,8 +1,29 @@
-import 'package:chicago/chicago.dart' as chicago;
+import 'package:chicago/chicago.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 
 import 'package:payouts/src/model/invoice.dart';
+import 'package:payouts/src/model/localizations.dart';
+
+class InvoiceEntryTextField {
+  /// Creates a new [InvoiceEntryTextField].
+  ///
+  /// Instances must be disposed of by calling [dispose] before they are made
+  /// ready to be garbage collected.
+  InvoiceEntryTextField() {
+    this.controller = TextEditingController();
+    this.focusNode = FocusNode();
+  }
+
+  Flag? flag;
+  late TextEditingController controller;
+  late FocusNode focusNode;
+
+  void dispose() {
+    controller.dispose();
+    focusNode.dispose();
+  }
+}
 
 abstract class InvoiceEntryEditor extends StatefulWidget {
   const InvoiceEntryEditor({Key? key}) : super(key: key);
@@ -16,17 +37,15 @@ abstract class InvoiceEntryEditorState<T extends InvoiceEntryEditor> extends Sta
   late List<Program> _assignments;
   bool _requiresChargeNumber = false;
   bool _requiresRequestor = false;
-  chicago.Flag? _programFlag;
-  chicago.Flag? _chargeNumberFlag;
-  chicago.Flag? _requestorFlag;
-  late chicago.ListViewSelectionController _programSelectionController;
-  late TextEditingController _chargeNumberController;
-  late TextEditingController _requestorController;
-  late TextEditingController _taskController;
+  Flag? _programFlag;
+  late ListViewSelectionController _programSelectionController;
   bool _programIsReadOnly = false;
+  late InvoiceEntryTextField _chargeNumber;
+  late InvoiceEntryTextField _requestor;
+  late InvoiceEntryTextField _task;
 
   Widget _buildProgramButtonData(BuildContext context, Program? item, bool isForMeasurementOnly) {
-    return chicago.ListButton.defaultBuilder(
+    return ListButton.defaultBuilder(
       context,
       item == null ? '' : item.name,
       isForMeasurementOnly,
@@ -40,7 +59,7 @@ abstract class InvoiceEntryEditorState<T extends InvoiceEntryEditor> extends Sta
     bool isHighlighted,
     bool isDisabled,
   ) {
-    return chicago.ListButton.defaultItemBuilder(
+    return ListButton.defaultItemBuilder(
       context,
       item.name,
       isSelected,
@@ -55,21 +74,76 @@ abstract class InvoiceEntryEditorState<T extends InvoiceEntryEditor> extends Sta
       _requiresChargeNumber = selectedProgram.requiresChargeNumber;
       _requiresRequestor = selectedProgram.requiresRequestor;
     });
+    handleProgramSelected();
   }
+
+  @protected
+  @nonVirtual
+  FormPaneField buildTextFormField(
+    InvoiceEntryTextField field,
+    String label, {
+    bool isOptional = false,
+  }) {
+    Widget child = TextInput(
+      backgroundColor: const Color(0xfff7f5ee),
+      controller: field.controller,
+      focusNode: field.focusNode,
+    );
+    if (isOptional) {
+      child = Row(
+        children: [
+          Expanded(child: child),
+          SizedBox(width: 4),
+          Text('(optional)'),
+        ],
+      );
+    }
+    return FormPaneField(
+      label: label,
+      flag: field.flag,
+      child: child,
+    );
+  }
+
+  @protected
+  @nonVirtual
+  bool validateRequiredField(InvoiceEntryTextField field) {
+    if (field.controller.text.trim().isEmpty) {
+      final String errorMessage = PayoutsLocalizations.of(context).requiredField;
+      setState(() {
+        field.flag = flagFromMessage(errorMessage);
+      });
+      field.focusNode.requestFocus();
+      return false;
+    } else {
+      if (field.flag != null) {
+        setState(() {
+          field.flag = null;
+        });
+      }
+      return true;
+    }
+  }
+
+  @protected
+  @mustCallSuper
+  void handleProgramSelected() {}
 
   @protected
   void handleOk();
 
   @protected
-  List<chicago.FormPaneField> buildFormFields();
+  List<FormPaneField> buildFormFields();
 
   @protected
   @nonVirtual
-  chicago.Flag? flagFromMessage(String? message) {
-    return message == null ? null : chicago.Flag(
-      messageType: chicago.MessageType.error,
-      message: message,
-    );
+  Flag? flagFromMessage(String? message) {
+    return message == null
+        ? null
+        : Flag(
+            messageType: MessageType.error,
+            message: message,
+          );
   }
 
   @protected
@@ -92,7 +166,7 @@ abstract class InvoiceEntryEditorState<T extends InvoiceEntryEditor> extends Sta
 
   @protected
   @nonVirtual
-  chicago.ListViewSelectionController get programSelectionController => _programSelectionController;
+  ListViewSelectionController get programSelectionController => _programSelectionController;
 
   @protected
   @nonVirtual
@@ -104,11 +178,11 @@ abstract class InvoiceEntryEditorState<T extends InvoiceEntryEditor> extends Sta
 
   @protected
   @nonVirtual
-  chicago.Flag? get programFlag => _programFlag;
+  Flag? get programFlag => _programFlag;
 
   @protected
   @nonVirtual
-  set programFlag(chicago.Flag? flag) {
+  set programFlag(Flag? flag) {
     if (flag != _programFlag) {
       setState(() {
         _programFlag = flag;
@@ -122,18 +196,14 @@ abstract class InvoiceEntryEditorState<T extends InvoiceEntryEditor> extends Sta
 
   @protected
   @nonVirtual
-  TextEditingController get chargeNumberController => _chargeNumberController;
+  InvoiceEntryTextField get chargeNumber => _chargeNumber;
 
   @protected
   @nonVirtual
-  chicago.Flag? get chargeNumberFlag => _chargeNumberFlag;
-
-  @protected
-  @nonVirtual
-  set chargeNumberFlag(chicago.Flag? flag) {
-    if (flag != _chargeNumberFlag) {
+  set chargeNumberFlag(Flag? flag) {
+    if (flag != _chargeNumber.flag) {
       setState(() {
-        _chargeNumberFlag = flag;
+        _chargeNumber.flag = flag;
       });
     }
   }
@@ -144,34 +214,30 @@ abstract class InvoiceEntryEditorState<T extends InvoiceEntryEditor> extends Sta
 
   @protected
   @nonVirtual
-  TextEditingController get requestorController => _requestorController;
+  InvoiceEntryTextField get requestor => _requestor;
 
   @protected
   @nonVirtual
-  chicago.Flag? get requestorFlag => _requestorFlag;
-
-  @protected
-  @nonVirtual
-  set requestorFlag(chicago.Flag? flag) {
-    if (flag != _requestorFlag) {
+  set requestorFlag(Flag? flag) {
+    if (flag != _requestor.flag) {
       setState(() {
-        _requestorFlag = flag;
+        _requestor.flag = flag;
       });
     }
   }
 
   @protected
   @nonVirtual
-  TextEditingController get taskController => _taskController;
+  InvoiceEntryTextField get task => _task;
 
   @protected
   @nonVirtual
-  chicago.FormPaneField buildProgramFormField() {
-    return chicago.FormPaneField(
+  FormPaneField buildProgramFormField() {
+    return FormPaneField(
       label: 'Program',
       flag: _programFlag,
-      child: chicago.ListButton<Program>(
-        width: chicago.ListButtonWidth.shrinkWrapAllItems,
+      child: ListButton<Program>(
+        width: ListButtonWidth.shrinkWrapAllItems,
         items: _assignments,
         selectionController: _programSelectionController,
         builder: _buildProgramButtonData,
@@ -183,60 +249,26 @@ abstract class InvoiceEntryEditorState<T extends InvoiceEntryEditor> extends Sta
 
   @protected
   @nonVirtual
-  chicago.FormPaneField buildChargeNumberFormField() {
-    return chicago.FormPaneField(
-      label: 'Charge Number',
-      flag: _chargeNumberFlag,
-      child: chicago.TextInput(
-        backgroundColor: const Color(0xfff7f5ee),
-        controller: _chargeNumberController,
-      ),
-    );
-  }
+  FormPaneField buildChargeNumberFormField() => buildTextFormField(_chargeNumber, 'Charge Number');
 
   @protected
   @nonVirtual
-  chicago.FormPaneField buildRequestorFormField() {
-    return chicago.FormPaneField(
-      label: 'Requestor (Client)',
-      flag: _requestorFlag,
-      child: chicago.TextInput(
-        backgroundColor: const Color(0xfff7f5ee),
-        controller: _requestorController,
-      ),
-    );
-  }
+  FormPaneField buildRequestorFormField() => buildTextFormField(_requestor, 'Requestor (Client)');
 
   @protected
   @nonVirtual
-  chicago.FormPaneField buildTaskFormField() {
-    return chicago.FormPaneField(
-      label: 'Task',
-      child: Row(
-        children: [
-          Expanded(
-            child: chicago.TextInput(
-              backgroundColor: const Color(0xfff7f5ee),
-              controller: _taskController,
-            ),
-          ),
-          SizedBox(width: 4),
-          Text('(optional)'),
-        ],
-      ),
-    );
-  }
+  FormPaneField buildTaskFormField() => buildTextFormField(_task, 'Task', isOptional: true);
 
   @override
   @protected
   void initState() {
     super.initState();
     _assignments = AssignmentsBinding.instance!.assignments!;
-    _programSelectionController = chicago.ListViewSelectionController();
+    _programSelectionController = ListViewSelectionController();
     _programSelectionController.addListener(_handleProgramSelected);
-    _chargeNumberController = TextEditingController();
-    _requestorController = TextEditingController();
-    _taskController = TextEditingController();
+    _chargeNumber = InvoiceEntryTextField();
+    _requestor = InvoiceEntryTextField();
+    _task = InvoiceEntryTextField();
   }
 
   @override
@@ -244,9 +276,9 @@ abstract class InvoiceEntryEditorState<T extends InvoiceEntryEditor> extends Sta
   void dispose() {
     _programSelectionController.removeListener(_handleProgramSelected);
     _programSelectionController.dispose();
-    _chargeNumberController.dispose();
-    _requestorController.dispose();
-    _taskController.dispose();
+    _chargeNumber.dispose();
+    _requestor.dispose();
+    _task.dispose();
     super.dispose();
   }
 
@@ -260,24 +292,24 @@ abstract class InvoiceEntryEditorState<T extends InvoiceEntryEditor> extends Sta
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          chicago.BorderPane(
+          BorderPane(
             backgroundColor: const Color(0xffffffff),
             borderColor: const Color(0xff999999),
             child: Padding(
               padding: EdgeInsets.all(8),
-              child: chicago.FormPane(children: buildFormFields()),
+              child: FormPane(children: buildFormFields()),
             ),
           ),
           SizedBox(height: 8),
           Row(
             mainAxisAlignment: MainAxisAlignment.end,
             children: [
-              chicago.CommandPushButton(
+              CommandPushButton(
                 label: 'OK',
                 onPressed: handleOk,
               ),
               SizedBox(width: 6),
-              chicago.CommandPushButton(
+              CommandPushButton(
                 label: 'Cancel',
                 onPressed: () => Navigator.of(context).pop(),
               ),

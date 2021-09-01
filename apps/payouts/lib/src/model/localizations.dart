@@ -16,6 +16,9 @@ abstract class PayoutsLocalizations {
   /// The mileage reimbursement rate.
   String get mileageRate => string(Strings.mileageRate);
 
+  /// Error message specifying that a user input field is required.
+  String get requiredField => string(Strings.requiredField);
+
   /// The `PayoutsLocalizations` from the closest [Localizations] instance
   /// that encloses the given context.
   ///
@@ -39,6 +42,7 @@ class DefaultPayoutsLocalizations extends PayoutsLocalizations {
 
   Map<String, String> get strings => const <String, String>{
     Strings.mileageRate: '(\$0.50/mile)',
+    Strings.requiredField: 'This field is required.',
   };
 
   /// Creates an object that provides US English resource values for the

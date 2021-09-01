@@ -28,6 +28,7 @@ class NumberFormats {
 class Strings {
   const Strings._();
   static const String mileageRate = 'mileageRate';
+  static const String requiredField = 'requiredField';
 }
 
 class Keys {

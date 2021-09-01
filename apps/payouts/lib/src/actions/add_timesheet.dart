@@ -84,9 +84,9 @@ abstract class TimesheetEditorState<T extends TimesheetEditor> extends InvoiceEn
     bool isInputValid = true;
 
     final Program? selectedProgram = this.selectedProgram;
-    final String chargeNumber = chargeNumberController.text.trim();
-    final String requestor = requestorController.text.trim();
-    final String task = taskController.text.trim();
+    final String chargeNumberValue = chargeNumber.controller.text.trim();
+    final String requestorValue = requestor.controller.text.trim();
+    final String taskValue = task.controller.text.trim();
 
     if (selectedProgram == null) {
       isInputValid = false;
@@ -98,9 +98,9 @@ abstract class TimesheetEditorState<T extends TimesheetEditor> extends InvoiceEn
     if (isInputValid) {
       final InvoiceEntryMetadata metadata = InvoiceEntryMetadata(
         program: selectedProgram!,
-        chargeNumber: chargeNumber,
-        requestor: requestor,
-        task: task,
+        chargeNumber: chargeNumberValue,
+        requestor: requestorValue,
+        task: taskValue,
       );
 
       isInputValid = validateMetadata(metadata);

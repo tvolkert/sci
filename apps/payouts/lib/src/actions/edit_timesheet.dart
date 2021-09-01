@@ -88,9 +88,9 @@ class _EditTimesheetSheetState extends TimesheetEditorState<EditTimesheetSheet> 
     final Program program = widget.timesheet.program;
     final int selectedIndex = assignments.indexOf(program);
     programSelectionController.selectedIndex = selectedIndex;
-    chargeNumberController.text = widget.timesheet.chargeNumber;
-    requestorController.text = widget.timesheet.requestor;
-    taskController.text = widget.timesheet.task;
+    chargeNumber.controller.text = widget.timesheet.chargeNumber;
+    requestor.controller.text = widget.timesheet.requestor;
+    task.controller.text = widget.timesheet.task;
     programIsReadOnly = true;
   }
 
