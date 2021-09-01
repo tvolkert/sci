@@ -43,12 +43,11 @@ class _RawExpenseReportsViewState extends State<_RawExpenseReportsView>
   ExpenseReport? _selectedExpenseReport;
 
   void _handleExpenseReportAdded(Object? value) async {
-    if (value != null) {
-      final Future<ExpenseReport?> future = value as Future<ExpenseReport?>;
-      ExpenseReport? expenseReport = await future;
-      if (expenseReport != null) {
-        _selectionController.selectedIndex = expenseReport.index;
-      }
+    assert(value != null);
+    final Future<ExpenseReport?> future = value as Future<ExpenseReport?>;
+    ExpenseReport? expenseReport = await future;
+    if (expenseReport != null) {
+      _selectionController.selectedIndex = expenseReport.index;
     }
   }
 
