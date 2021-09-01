@@ -6,6 +6,7 @@ import 'package:flutter/services.dart' hide TextInput;
 import 'package:flutter/widgets.dart';
 
 import 'package:payouts/src/model/invoice.dart';
+import 'package:payouts/src/model/localizations.dart';
 import 'package:payouts/src/model/track_invoice_mixin.dart';
 import 'package:payouts/src/ui/invoice_entry_editor.dart';
 
@@ -77,9 +78,9 @@ class AddExpenseReportSheetState extends InvoiceEntryEditorState<AddExpenseRepor
   @override
   void initState() {
     super.initState();
-    _purpose = InvoiceEntryTextField();
-    _destination = InvoiceEntryTextField();
-    _parties = InvoiceEntryTextField();
+    _purpose = InvoiceEntryTextField(setState);
+    _destination = InvoiceEntryTextField(setState);
+    _parties = InvoiceEntryTextField(setState);
   }
 
   @override
@@ -107,7 +108,10 @@ class AddExpenseReportSheetState extends InvoiceEntryEditorState<AddExpenseRepor
   handleProgramSelected() {
     super.handleProgramSelected();
     setState(() {
-      _programIsBillable = selectedProgram!.isBillable;
+      _programIsBillable = program.selectedValue!.isBillable;
+      _purpose.flag = null;
+      _destination.flag = null;
+      _parties.flag = null;
     });
   }
 
@@ -116,7 +120,7 @@ class AddExpenseReportSheetState extends InvoiceEntryEditorState<AddExpenseRepor
     bool isInputValid = true;
 
     final Invoice invoice = InvoiceBinding.instance!.invoice!;
-    final Program? selectedProgram = this.selectedProgram;
+    final Program? selectedProgram = program.selectedValue;
     final String chargeNumberValue = chargeNumber.controller.text.trim();
     final String requestorValue = requestor.controller.text.trim();
     final String taskValue = task.controller.text.trim();
@@ -127,9 +131,10 @@ class AddExpenseReportSheetState extends InvoiceEntryEditorState<AddExpenseRepor
 
     if (selectedProgram == null) {
       isInputValid = false;
-      programFlag = flagFromMessage('TODO');
+      final String errorMessage = PayoutsLocalizations.of(context).requiredField;
+      program.flag = flagFromMessage(errorMessage);
     } else {
-      programFlag = null;
+      program.flag = null;
     }
 
     if (isInputValid) {
@@ -160,7 +165,7 @@ class AddExpenseReportSheetState extends InvoiceEntryEditorState<AddExpenseRepor
         );
 
         if (invoice.expenseReports.indexOf(metadata) >= 0) {
-          programFlag = flagFromMessage('An expense report already exists for this program');
+          program.flag = flagFromMessage('An expense report already exists for this program');
           isInputValid = false;
         }
 

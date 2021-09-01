@@ -85,13 +85,13 @@ class _EditTimesheetSheetState extends TimesheetEditorState<EditTimesheetSheet> 
   @protected
   void initState() {
     super.initState();
-    final Program program = widget.timesheet.program;
-    final int selectedIndex = assignments.indexOf(program);
-    programSelectionController.selectedIndex = selectedIndex;
+    final Program timesheetProgram = widget.timesheet.program;
+    final int selectedIndex = program.data.indexOf(timesheetProgram);
+    program.controller.selectedIndex = selectedIndex;
     chargeNumber.controller.text = widget.timesheet.chargeNumber;
     requestor.controller.text = widget.timesheet.requestor;
     task.controller.text = widget.timesheet.task;
-    programIsReadOnly = true;
+    program.isReadOnly = true;
   }
 
   @override
@@ -99,18 +99,12 @@ class _EditTimesheetSheetState extends TimesheetEditorState<EditTimesheetSheet> 
   bool validateMetadata(InvoiceEntryMetadata metadata) {
     bool isInputValid = true;
 
-    if (metadata.program.requiresChargeNumber && metadata.chargeNumber!.isEmpty) {
-      chargeNumberFlag = flagFromMessage('TODO');
-      isInputValid = false;
-    } else {
-      chargeNumberFlag = null;
+    if (metadata.program.requiresChargeNumber) {
+      isInputValid &= validateRequiredField(chargeNumber);
     }
 
-    if (metadata.program.requiresRequestor && metadata.requestor!.isEmpty) {
-      requestorFlag = flagFromMessage('TODO');
-      isInputValid = false;
-    } else {
-      requestorFlag = null;
+    if (metadata.program.requiresRequestor) {
+      isInputValid &= validateRequiredField(requestor);
     }
 
     return isInputValid;

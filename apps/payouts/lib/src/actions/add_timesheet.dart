@@ -83,16 +83,16 @@ abstract class TimesheetEditorState<T extends TimesheetEditor> extends InvoiceEn
   void handleOk() {
     bool isInputValid = true;
 
-    final Program? selectedProgram = this.selectedProgram;
+    final Program? selectedProgram = program.selectedValue;
     final String chargeNumberValue = chargeNumber.controller.text.trim();
     final String requestorValue = requestor.controller.text.trim();
     final String taskValue = task.controller.text.trim();
 
     if (selectedProgram == null) {
       isInputValid = false;
-      programFlag = flagFromMessage('TODO');
+      program.flag = flagFromMessage('TODO');
     } else {
-      programFlag = null;
+      program.flag = null;
     }
 
     if (isInputValid) {
@@ -137,22 +137,16 @@ class _AddTimesheetSheetState extends TimesheetEditorState<AddTimesheetSheet> {
     bool isInputValid = true;
 
     if (InvoiceBinding.instance!.invoice!.timesheets.indexOf(metadata) >= 0) {
-      programFlag = flagFromMessage('A timesheet already exists for this program');
+      program.flag = flagFromMessage('A timesheet already exists for this program');
       isInputValid = false;
     }
 
-    if (metadata.program.requiresChargeNumber && metadata.chargeNumber!.isEmpty) {
-      chargeNumberFlag = flagFromMessage('TODO');
-      isInputValid = false;
-    } else {
-      chargeNumberFlag = null;
+    if (metadata.program.requiresChargeNumber) {
+      isInputValid &= validateRequiredField(chargeNumber);
     }
 
-    if (metadata.program.requiresRequestor && metadata.requestor!.isEmpty) {
-      requestorFlag = flagFromMessage('TODO');
-      isInputValid = false;
-    } else {
-      requestorFlag = null;
+    if (metadata.program.requiresRequestor) {
+      isInputValid &= validateRequiredField(requestor);
     }
 
     return isInputValid;

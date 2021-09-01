@@ -5,23 +5,77 @@ import 'package:flutter/widgets.dart';
 import 'package:payouts/src/model/invoice.dart';
 import 'package:payouts/src/model/localizations.dart';
 
+typedef SetStateCallback = void Function(VoidCallback callback);
+
 class InvoiceEntryTextField {
   /// Creates a new [InvoiceEntryTextField].
   ///
   /// Instances must be disposed of by calling [dispose] before they are made
   /// ready to be garbage collected.
-  InvoiceEntryTextField() {
-    this.controller = TextEditingController();
-    this.focusNode = FocusNode();
+  InvoiceEntryTextField(this.setState) {
+    controller = TextEditingController();
+    focusNode = FocusNode();
   }
 
-  Flag? flag;
-  late TextEditingController controller;
-  late FocusNode focusNode;
+  final SetStateCallback setState;
+  late final TextEditingController controller;
+  late final FocusNode focusNode;
+
+  Flag? _flag;
+  Flag? get flag => _flag;
+  set flag(Flag? value) {
+    if (value != _flag) {
+      setState(() {
+        _flag = value;
+      });
+    }
+  }
 
   void dispose() {
     controller.dispose();
     focusNode.dispose();
+  }
+}
+
+class InvoiceEntryListButtonField<T> {
+  /// Creates a new [InvoiceEntryListButtonField].
+  ///
+  /// Instances must be disposed of by calling [dispose] before they are made
+  /// ready to be garbage collected.
+  InvoiceEntryListButtonField(this.setState, this.data) {
+    controller = ListViewSelectionController();
+  }
+
+  final SetStateCallback setState;
+  final List<T> data;
+  late final ListViewSelectionController controller;
+
+  Flag? _flag;
+  Flag? get flag => _flag;
+  set flag(Flag? value) {
+    if (value != _flag) {
+      setState(() {
+        _flag = value;
+      });
+    }
+  }
+
+  bool _isReadOnly = false;
+  bool get isReadOnly => _isReadOnly;
+  set isReadOnly(bool value) {
+    if (value != _isReadOnly) {
+      setState(() {
+        _isReadOnly = value;
+      });
+    }
+  }
+
+  T? get selectedValue {
+    return controller.selectedIndex >= 0 ? data[controller.selectedIndex] : null;
+  }
+
+  dispose() {
+    controller.dispose();
   }
 }
 
@@ -34,12 +88,9 @@ abstract class InvoiceEntryEditor extends StatefulWidget {
 }
 
 abstract class InvoiceEntryEditorState<T extends InvoiceEntryEditor> extends State<T> {
-  late List<Program> _assignments;
   bool _requiresChargeNumber = false;
   bool _requiresRequestor = false;
-  Flag? _programFlag;
-  late ListViewSelectionController _programSelectionController;
-  bool _programIsReadOnly = false;
+  late InvoiceEntryListButtonField<Program> _program;
   late InvoiceEntryTextField _chargeNumber;
   late InvoiceEntryTextField _requestor;
   late InvoiceEntryTextField _task;
@@ -66,15 +117,6 @@ abstract class InvoiceEntryEditorState<T extends InvoiceEntryEditor> extends Sta
       isHighlighted,
       isDisabled,
     );
-  }
-
-  void _handleProgramSelected() {
-    final Program selectedProgram = this.selectedProgram!;
-    setState(() {
-      _requiresChargeNumber = selectedProgram.requiresChargeNumber;
-      _requiresRequestor = selectedProgram.requiresRequestor;
-    });
-    handleProgramSelected();
   }
 
   @protected
@@ -127,7 +169,15 @@ abstract class InvoiceEntryEditorState<T extends InvoiceEntryEditor> extends Sta
 
   @protected
   @mustCallSuper
-  void handleProgramSelected() {}
+  void handleProgramSelected() {
+    final Program selectedProgram = program.selectedValue!;
+    setState(() {
+      _requiresChargeNumber = selectedProgram.requiresChargeNumber;
+      _requiresRequestor = selectedProgram.requiresRequestor;
+      chargeNumber.flag = null;
+      requestor.flag = null;
+    });
+  }
 
   @protected
   void handleOk();
@@ -138,57 +188,12 @@ abstract class InvoiceEntryEditorState<T extends InvoiceEntryEditor> extends Sta
   @protected
   @nonVirtual
   Flag? flagFromMessage(String? message) {
-    return message == null
-        ? null
-        : Flag(
-            messageType: MessageType.error,
-            message: message,
-          );
+    return message == null ? null : Flag(messageType: MessageType.error, message: message);
   }
 
   @protected
   @nonVirtual
-  List<Program> get assignments => _assignments;
-
-  @protected
-  @nonVirtual
-  bool get programIsReadOnly => _programIsReadOnly;
-
-  @protected
-  @nonVirtual
-  set programIsReadOnly(bool value) {
-    if (value != _programIsReadOnly) {
-      setState(() {
-        _programIsReadOnly = value;
-      });
-    }
-  }
-
-  @protected
-  @nonVirtual
-  ListViewSelectionController get programSelectionController => _programSelectionController;
-
-  @protected
-  @nonVirtual
-  Program? get selectedProgram {
-    return _programSelectionController.selectedIndex >= 0
-        ? _assignments[_programSelectionController.selectedIndex]
-        : null;
-  }
-
-  @protected
-  @nonVirtual
-  Flag? get programFlag => _programFlag;
-
-  @protected
-  @nonVirtual
-  set programFlag(Flag? flag) {
-    if (flag != _programFlag) {
-      setState(() {
-        _programFlag = flag;
-      });
-    }
-  }
+  InvoiceEntryListButtonField get program => _program;
 
   @protected
   @nonVirtual
@@ -200,31 +205,11 @@ abstract class InvoiceEntryEditorState<T extends InvoiceEntryEditor> extends Sta
 
   @protected
   @nonVirtual
-  set chargeNumberFlag(Flag? flag) {
-    if (flag != _chargeNumber.flag) {
-      setState(() {
-        _chargeNumber.flag = flag;
-      });
-    }
-  }
-
-  @protected
-  @nonVirtual
   bool get requiresRequestor => _requiresRequestor;
 
   @protected
   @nonVirtual
   InvoiceEntryTextField get requestor => _requestor;
-
-  @protected
-  @nonVirtual
-  set requestorFlag(Flag? flag) {
-    if (flag != _requestor.flag) {
-      setState(() {
-        _requestor.flag = flag;
-      });
-    }
-  }
 
   @protected
   @nonVirtual
@@ -235,14 +220,14 @@ abstract class InvoiceEntryEditorState<T extends InvoiceEntryEditor> extends Sta
   FormPaneField buildProgramFormField() {
     return FormPaneField(
       label: 'Program',
-      flag: _programFlag,
+      flag: _program.flag,
       child: ListButton<Program>(
         width: ListButtonWidth.shrinkWrapAllItems,
-        items: _assignments,
-        selectionController: _programSelectionController,
+        items: _program.data,
+        selectionController: _program.controller,
         builder: _buildProgramButtonData,
         itemBuilder: _buildProgramListItem,
-        isEnabled: !_programIsReadOnly,
+        isEnabled: !_program.isReadOnly,
       ),
     );
   }
@@ -263,19 +248,19 @@ abstract class InvoiceEntryEditorState<T extends InvoiceEntryEditor> extends Sta
   @protected
   void initState() {
     super.initState();
-    _assignments = AssignmentsBinding.instance!.assignments!;
-    _programSelectionController = ListViewSelectionController();
-    _programSelectionController.addListener(_handleProgramSelected);
-    _chargeNumber = InvoiceEntryTextField();
-    _requestor = InvoiceEntryTextField();
-    _task = InvoiceEntryTextField();
+    final List<Program> assignments = AssignmentsBinding.instance!.assignments!;
+    _program = InvoiceEntryListButtonField<Program>(setState, assignments);
+    _program.controller.addListener(handleProgramSelected);
+    _chargeNumber = InvoiceEntryTextField(setState);
+    _requestor = InvoiceEntryTextField(setState);
+    _task = InvoiceEntryTextField(setState);
   }
 
   @override
   @protected
   void dispose() {
-    _programSelectionController.removeListener(_handleProgramSelected);
-    _programSelectionController.dispose();
+    _program.controller.removeListener(handleProgramSelected);
+    _program.dispose();
     _chargeNumber.dispose();
     _requestor.dispose();
     _task.dispose();
