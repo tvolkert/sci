@@ -42,6 +42,16 @@ class _RawExpenseReportsViewState extends State<_RawExpenseReportsView>
   ExpenseReports? _expenseReports;
   ExpenseReport? _selectedExpenseReport;
 
+  void _handleExpenseReportAdded(Object? value) async {
+    if (value != null) {
+      final Future<ExpenseReport?> future = value as Future<ExpenseReport?>;
+      ExpenseReport? expenseReport = await future;
+      if (expenseReport != null) {
+        _selectionController.selectedIndex = expenseReport.index;
+      }
+    }
+  }
+
   void _handleSelectedExpenseReportChanged() {
     final int selectedIndex = _selectionController.selectedIndex;
     setState(() {
@@ -117,6 +127,7 @@ class _RawExpenseReportsViewState extends State<_RawExpenseReportsView>
             image: AssetImage('assets/money_add.png'),
             text: 'Add expense report',
             intent: AddExpenseReportIntent(context: context),
+            onActionInvoked: _handleExpenseReportAdded,
           ),
           const SizedBox(height: 10),
           Expanded(

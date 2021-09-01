@@ -41,7 +41,7 @@ class AddExpenseReportAction extends ContextAction<AddExpenseReportIntent> with 
   }
 
   @override
-  Future<void> invoke(AddExpenseReportIntent intent, [BuildContext? context]) async {
+  Future<ExpenseReport?> invoke(AddExpenseReportIntent intent, [BuildContext? context]) async {
     context ??= intent.context ?? primaryFocus!.context;
     if (context == null) {
       throw StateError('No context in which to invoke $runtimeType');
@@ -49,7 +49,7 @@ class AddExpenseReportAction extends ContextAction<AddExpenseReportIntent> with 
 
     final ExpenseReportMetadata? metadata = await AddExpenseReportSheet.open(context: context);
     if (metadata != null) {
-      InvoiceBinding.instance!.invoice!.expenseReports.add(metadata);
+      return InvoiceBinding.instance!.invoice!.expenseReports.add(metadata);
     }
   }
 }
