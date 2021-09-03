@@ -65,7 +65,7 @@ flutter:
   fonts:
     - family: AF Battersea
       fonts:
-        - asset: assets/afbam.ttf
+        - asset: assets/AFBAM.ttf
   #       - asset: fonts/Schyler-Italic.ttf
   #         style: italic
   #   - family: Trajan Pro
