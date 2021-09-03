@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:chicago/chicago.dart' as chicago;
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
+import 'package:http/http.dart' as http;
 
 import 'package:payouts/src/model/constants.dart';
 import 'package:payouts/src/model/http.dart';
@@ -71,7 +72,9 @@ enum _LoginPhase {
   changingPassword,
 }
 
+
 class _LoginSheetState extends State<LoginSheet> {
+  static const String _serverHostToken = '%SERVER_HOST%';
   static const Map<int, String> _loginSpecificHttpStatusErrorMessages = <int, String>{
     HttpStatus.movedTemporarily: 'It appears that your Internet connection requires activation. '
         'Please open an Internet browser and follow the instructions to activate your connection.',
@@ -80,7 +83,7 @@ class _LoginSheetState extends State<LoginSheet> {
     HttpStatus.serviceUnavailable: 'The Satellite Consulting server is not accepting network '
         'connections. Please try again later, and if the problem persists, report the problem to '
         'Keith Volkert (keith@satelliteconsulting.com).',
-    HttpStatus.requestTimeout: 'We were unable to locate ${Server.host}. Please check that you '
+    HttpStatus.requestTimeout: 'We were unable to locate $_serverHostToken. Please check that you '
         'are connected to the Internet, and try again.',
     HttpStatus.forbidden: 'Invalid ID or password.',
   };
@@ -88,6 +91,8 @@ class _LoginSheetState extends State<LoginSheet> {
   static const String _defaultHttpStatusErrorMessage = 'The Satellite Consulting server has '
       'encountered an error. Please report this problem to Keith Volkert '
       '(keith@satelliteconsulting.com).';
+  static const String _httpClientErrorMessage = 'The Payouts client has encountered an error. '
+      'Please report this problem to Keith Volkert (keith@satelliteconsulting.com).';
 
   String? _errorText;
   String? get errorText => _errorText;
@@ -142,10 +147,13 @@ class _LoginSheetState extends State<LoginSheet> {
     } on InvalidCredentials {
       errorText = _loginSpecificHttpStatusErrorMessages[HttpStatus.forbidden];
     } on TimeoutException {
-      errorText = _loginSpecificHttpStatusErrorMessages[HttpStatus.requestTimeout];
+      errorText = _loginSpecificHttpStatusErrorMessages[HttpStatus.requestTimeout]!
+          .replaceAll(_serverHostToken, Server.host);
     } on HttpStatusException catch (error) {
       errorText = _loginSpecificHttpStatusErrorMessages[error.statusCode];
       errorText ??= _defaultHttpStatusErrorMessage;
+    } on http.ClientException {
+      errorText = _httpClientErrorMessage;
     }
     phase = _LoginPhase.idle;
   }

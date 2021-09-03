@@ -1,6 +1,7 @@
 import 'dart:io' show HttpStatus;
 
 import 'package:intl/intl.dart' as intl;
+export '_constants/server_io.dart' if (dart.library.html) '_constants/server_web.dart';
 
 class Dates {
   const Dates._();
@@ -101,28 +102,6 @@ class Keys {
   static const String count = 'count';
   static const String notToExceedHours = 'not_to_exceed_hours';
   static const String notToExceedDollars = 'not_to_exceed_dollars';
-}
-
-class Server {
-  const Server._();
-  static const String scheme = 'https';
-  static const String host = 'www.satelliteconsulting.com';
-
-  static const String loginUrl = 'payoutsLogin';
-  static const String invoiceUrl = 'invoice';
-  static const String fooUrl = 'clientLog';
-  static const String billPdfUrl = 'billPDF';
-  static const String passwordUrl = 'password';
-  static const String invoicePdfUrl = 'invoicePDF';
-  static const String feedbackUrl = 'feedback';
-  static const String expenseTypesUrl = 'expenseTypes';
-  static const String userAssignmentsUrl = 'userAssignments';
-  static const String invoicesUrl = 'invoices';
-  static const String newInvoiceParametersUrl = 'newInvoiceParameters';
-
-  static Uri uri(String path, {Map<String, String>? query}) {
-    return Uri(scheme: scheme, host: host, path: path, queryParameters: query);
-  }
 }
 
 class QueryParameters {

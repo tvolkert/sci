@@ -86,26 +86,33 @@ mixin UserBinding on AppBindingBase {
     String password, {
     Duration timeout = httpTimeout,
   }) async {
-    final Uri uri = Server.uri(Server.loginUrl);
-    final http.Response response = await HttpBinding.instance!.client
-        .get(uri, headers: _authHeaders(username, password))
-        .timeout(timeout);
-    if (response.statusCode == HttpStatus.ok) {
-      Map<String, dynamic> loginData = json.decode(response.body).cast<String, dynamic>();
-      int? lastInvoiceId = loginData[Keys.lastInvoiceId];
-      bool passwordRequiresReset = loginData[Keys.passwordRequiresReset];
-      final User user = User._(username, password, lastInvoiceId, passwordRequiresReset);
-      _user = user;
-      if (user.isPostLogin) {
-        await _runPostLoginCallbacks();
+    final Uri uri = Server.uri(Server.loginUrl, query: <String, String>{
+      Keys.username: username,
+    });
+    try {
+      final http.Response response = await HttpBinding.instance!.client
+          .get(uri, headers: _authHeaders(username, password))
+          .timeout(timeout);
+      if (response.statusCode == HttpStatus.ok) {
+        Map<String, dynamic> loginData = json.decode(response.body).cast<String, dynamic>();
+        int? lastInvoiceId = loginData[Keys.lastInvoiceId];
+        bool passwordRequiresReset = loginData[Keys.passwordRequiresReset];
+        final User user = User._(username, password, lastInvoiceId, passwordRequiresReset);
+        _user = user;
+        if (user.isPostLogin) {
+          await _runPostLoginCallbacks();
+        }
+        return user;
+      } else if (response.statusCode == HttpStatus.forbidden) {
+        throw const InvalidCredentials();
+      } else {
+        throw HttpStatusException(response.statusCode, response.body);
       }
-      return user;
-    } else if (response.statusCode == HttpStatus.forbidden) {
-      throw const InvalidCredentials();
-    } else {
-      throw HttpStatusException(response.statusCode, response.body);
+    } on http.ClientException catch (error, stackTrace) {
+      // Unexpected error, so ensure it gets logged to the console.
+      print('$error\n$stackTrace');
+      rethrow;
     }
-    // TODO: handle no route to host, unknown host, socket exception, conection exception
   }
 
   /// Logs the current user out.
