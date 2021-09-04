@@ -10,5 +10,6 @@ export 'actions/edit_timesheet.dart';
 export 'actions/export_invoice.dart';
 export 'actions/login.dart';
 export 'actions/open_invoice.dart';
+export 'actions/provide_feedback.dart';
 export 'actions/save_invoice.dart';
 export 'actions/submit_invoice.dart';

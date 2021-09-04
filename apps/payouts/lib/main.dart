@@ -35,6 +35,7 @@ class PayoutsApp extends StatelessWidget {
     ExportInvoiceIntent: ExportInvoiceAction.instance,
     LoginIntent: LoginAction.instance,
     OpenInvoiceIntent: OpenInvoiceAction.instance,
+    ProvideFeedbackIntent: ProvideFeedbackAction.instance,
     SaveInvoiceIntent: SaveInvoiceAction.instance,
   };
 

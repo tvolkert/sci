@@ -12,6 +12,9 @@ class Toolbar extends StatelessWidget {
       case 'about':
         Actions.invoke(context, AboutIntent(context: context));
         break;
+      case 'feedback':
+        Actions.invoke(context, ProvideFeedbackIntent(context: context));
+        break;
     }
   }
 

@@ -27,6 +27,7 @@ dependencies:
   numberpicker: '>=2.0.0'
   path_provider: '>=2.0.0'
   shared_preferences: '>=2.0.7'
+  url_launcher: '>=6.0.10'
 
 dev_dependencies:
   flutter_test:
