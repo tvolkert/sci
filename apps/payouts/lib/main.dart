@@ -1,7 +1,5 @@
-import 'package:chicago/chicago.dart' as chicago;
-import 'package:flutter/material.dart';
-import 'package:flutter/painting.dart';
-import 'package:flutter/rendering.dart';
+import 'package:chicago/chicago.dart';
+import 'package:flutter/material.dart' show Material, MaterialApp, MaterialType, TextTheme, ThemeData, VisualDensity;
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 
@@ -23,7 +21,7 @@ void main() {
   };
 
   runApp(
-    chicago.NavigatorListener(
+    NavigatorListener(
       child: PayoutsApp(),
     ),
   );
@@ -78,7 +76,7 @@ class PayoutsApp extends StatelessWidget {
         ...defaultShortcuts,
       },
       navigatorObservers: <NavigatorObserver>[
-        chicago.NavigatorListener.of(context).observer,
+        NavigatorListener.of(context).observer,
       ],
       home: const AssetImagePrecache(
         child: PayoutsScaffold(),

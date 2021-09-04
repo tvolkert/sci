@@ -1,8 +1,12 @@
 import 'dart:developer' as developer;
 
 import 'package:flutter/foundation.dart';
+import 'package:flutter/scheduler.dart';
+import 'package:flutter/widgets.dart';
 
-abstract class AppBindingBase {
+import 'first_frame_mixin.dart';
+
+abstract class AppBindingBase with FirstFrameMixin {
   /// Default abstract constructor for application bindings.
   ///
   /// First calls [initInstances] to have bindings initialize their
@@ -35,6 +39,10 @@ abstract class AppBindingBase {
       _debugInitialized = true;
       return true;
     }());
+    WidgetsFlutterBinding.ensureInitialized();
+    SchedulerBinding.instance!.scheduleFrameCallback((Duration timeStamp) {
+      handleFirstFrame(timeStamp);
+    });
   }
 
   @override
