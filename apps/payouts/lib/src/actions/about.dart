@@ -89,7 +89,7 @@ class AboutSheet extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  Text('\u00A9 2001-2020 Satellite Consulting, Inc. All Rights Reserved. SCI Payouts '
+                  Text('\u00A9 2001-2021 Satellite Consulting, Inc. All Rights Reserved. SCI Payouts '
                       'and the Satellite Consulting, Inc. logo are trademarks of Satellite Consulting, '
                       'Inc. All rights reserved.'),
                   SizedBox(height: 16),
