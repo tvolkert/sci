@@ -1,4 +1,4 @@
-import 'package:chicago/chicago.dart' as chicago;
+import 'package:chicago/chicago.dart';
 import 'package:flutter/material.dart' show Theme;
 import 'package:flutter/widgets.dart';
 
@@ -42,9 +42,9 @@ class DeleteInvoiceAction extends ContextAction<DeleteInvoiceIntent> with TrackI
       throw StateError('No context in which to invoke $runtimeType');
     }
 
-    int selectedOption = await chicago.Prompt.open(
+    int selectedOption = await Prompt.open(
       context: context,
-      messageType: chicago.MessageType.warning,
+      messageType: MessageType.warning,
       message: 'Permanently Delete Invoice?',
       body: Text(
         'Are you sure you want to delete this invoice? Invoices cannot be recovered after they are deleted.',

@@ -1,4 +1,4 @@
-import 'package:chicago/chicago.dart' as chicago;
+import 'package:chicago/chicago.dart';
 import 'package:flutter/widgets.dart';
 
 import 'package:payouts/src/model/invoice.dart';
@@ -72,7 +72,7 @@ class EditTimesheetSheet extends TimesheetEditor {
     required BuildContext context,
     required Timesheet timesheet,
   }) {
-    return chicago.Sheet.open<InvoiceEntryMetadata>(
+    return Sheet.open<InvoiceEntryMetadata>(
       context: context,
       content: EditTimesheetSheet(timesheet: timesheet),
       barrierDismissible: true,

@@ -1,4 +1,4 @@
-import 'package:chicago/chicago.dart' as chicago;
+import 'package:chicago/chicago.dart';
 import 'package:flutter/material.dart' show Theme;
 import 'package:flutter/widgets.dart';
 
@@ -26,9 +26,9 @@ mixin WarnOnUnsavedChangesMixin on TrackInvoiceMixin {
       return true;
     }
 
-    int selectedOption = await chicago.Prompt.open(
+    int selectedOption = await Prompt.open(
       context: context,
-      messageType: chicago.MessageType.warning,
+      messageType: MessageType.warning,
       message: 'Save Changes?',
       body: Text(
         'This invoice has been modified.  Do you want to save your changes?',

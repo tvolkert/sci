@@ -1,4 +1,4 @@
-import 'package:chicago/chicago.dart' as chicago;
+import 'package:chicago/chicago.dart';
 import 'package:flutter/material.dart' show Theme;
 import 'package:flutter/widgets.dart';
 
@@ -42,9 +42,9 @@ class DeleteTimesheetAction extends ContextAction<DeleteTimesheetIntent> with Tr
       throw StateError('No context in which to invoke $runtimeType');
     }
 
-    int selectedOption = await chicago.Prompt.open(
+    int selectedOption = await Prompt.open(
       context: context,
-      messageType: chicago.MessageType.question,
+      messageType: MessageType.question,
       message: 'Remove Line Item?',
       body: Text(
         'Are you sure you want to remove the specified hours line item?',

@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 
-import 'package:chicago/chicago.dart' as chicago;
+import 'package:chicago/chicago.dart';
 import 'package:flutter/material.dart' show Colors, InputBorder, InputDecoration, showLicensePage, TextField, Theme;
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
@@ -95,12 +95,12 @@ class AboutSheet extends StatelessWidget {
                   SizedBox(height: 16),
                   FlutterVersion(data: flutterVersionData),
                   SizedBox(height: 16),
-                  chicago.LinkButton(text: 'View licenses', onPressed: () => showLicensePage(context: context)),
+                  LinkButton(text: 'View licenses', onPressed: () => showLicensePage(context: context)),
                   SizedBox(height: 16),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.end,
                     children: [
-                      chicago.CommandPushButton(
+                      CommandPushButton(
                         label: 'OK',
                         onPressed: () => Navigator.of(context).pop(),
                       ),
@@ -123,7 +123,7 @@ class AboutSheet extends StatelessWidget {
         return decoded.cast<String, String>();
       },
     );
-    return chicago.Sheet.open<void>(
+    return Sheet.open<void>(
       context: context,
       padding: EdgeInsets.zero,
       content: AboutSheet(

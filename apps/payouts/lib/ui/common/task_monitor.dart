@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'package:chicago/chicago.dart' as chicago;
+import 'package:chicago/chicago.dart';
 import 'package:flutter/material.dart' show Theme, ThemeData;
 import 'package:flutter/widgets.dart';
 
@@ -282,7 +282,7 @@ class _TaskStatusState<T> extends State<TaskStatus<T>> with TickerProviderStateM
   Widget _graphicForStatus() {
     switch (_status) {
       case _Status.inProgress:
-        return chicago.ActivityIndicator(
+        return ActivityIndicator(
           color: const Color(0xffffffff),
         );
       case _Status.success:

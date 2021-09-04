@@ -1,6 +1,4 @@
-import 'dart:async';
-
-import 'package:chicago/chicago.dart' as chicago;
+import 'package:chicago/chicago.dart';
 import 'package:flutter/widgets.dart';
 
 class ExportInvoiceIntent extends Intent {
@@ -37,7 +35,7 @@ class ExportInvoiceSheet extends StatefulWidget {
   _ExportInvoiceSheetState createState() => _ExportInvoiceSheetState();
 
   static Future<void> open({required BuildContext context}) {
-    return chicago.Sheet.open<void>(
+    return Sheet.open<void>(
       context: context,
       content: ExportInvoiceSheet(),
     );
@@ -62,12 +60,12 @@ class _ExportInvoiceSheetState extends State<ExportInvoiceSheet> {
           Row(
             mainAxisAlignment: MainAxisAlignment.end,
             children: [
-              chicago.CommandPushButton(
+              CommandPushButton(
                 label: 'OK',
                 onPressed: () => Navigator.of(context).pop(),
               ),
               SizedBox(width: 4),
-              chicago.CommandPushButton(
+              CommandPushButton(
                 label: 'Cancel',
                 onPressed: () => Navigator.of(context).pop(),
               ),

@@ -1,10 +1,10 @@
 import 'dart:math' as math;
 
-import 'package:chicago/chicago.dart' as chicago;
+import 'package:chicago/chicago.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart' show Divider;
-import 'package:flutter/services.dart';
-import 'package:flutter/widgets.dart';
+import 'package:flutter/services.dart' hide TextInput;
+import 'package:flutter/widgets.dart' hide TableCell, TableRow;
 
 import 'package:payouts/src/actions.dart';
 import 'package:payouts/src/model/constants.dart';
@@ -120,15 +120,15 @@ class _RawTimesheetsViewState extends State<_RawTimesheetsView> {
         children: <Widget>[
           Padding(
             padding: EdgeInsets.only(bottom: 7),
-            child: chicago.ActionLinkButton(
+            child: ActionLinkButton(
               image: AssetImage('assets/table_add.png'),
               text: 'Add hours line item',
               intent: AddTimesheetIntent(context: context),
             ),
           ),
           if (_timesheetRows.isNotEmpty) Expanded(
-            child: chicago.ScrollPane(
-              horizontalScrollBarPolicy: chicago.ScrollBarPolicy.expand,
+            child: ScrollPane(
+              horizontalScrollBarPolicy: ScrollBarPolicy.expand,
               view: Padding(
                 padding: const EdgeInsets.only(left: 20, right: 25),
                 child: RawKeyboardListener(
@@ -136,29 +136,29 @@ class _RawTimesheetsViewState extends State<_RawTimesheetsView> {
                   onKey: _handleRawKeyEvent,
                   child: FocusTraversalGroup(
                     policy: _TimesheetTraversalPolicy(key: _key),
-                    child: chicago.TablePane(
+                    child: TablePane(
                       key: _key,
                       horizontalIntrinsicSize: MainAxisSize.min,
                       horizontalSpacing: 1,
                       verticalSpacing: 1,
-                      columns: const <chicago.TablePaneColumn>[
-                        chicago.TablePaneColumn(width: chicago.IntrinsicTablePaneColumnWidth()),
-                        chicago.TablePaneColumn(width: chicago.FixedTablePaneColumnWidth(32)),
-                        chicago.TablePaneColumn(width: chicago.FixedTablePaneColumnWidth(32)),
-                        chicago.TablePaneColumn(width: chicago.FixedTablePaneColumnWidth(32)),
-                        chicago.TablePaneColumn(width: chicago.FixedTablePaneColumnWidth(32)),
-                        chicago.TablePaneColumn(width: chicago.FixedTablePaneColumnWidth(32)),
-                        chicago.TablePaneColumn(width: chicago.FixedTablePaneColumnWidth(32)),
-                        chicago.TablePaneColumn(width: chicago.FixedTablePaneColumnWidth(32)),
-                        chicago.TablePaneColumn(width: chicago.FixedTablePaneColumnWidth(32)),
-                        chicago.TablePaneColumn(width: chicago.FixedTablePaneColumnWidth(32)),
-                        chicago.TablePaneColumn(width: chicago.FixedTablePaneColumnWidth(32)),
-                        chicago.TablePaneColumn(width: chicago.FixedTablePaneColumnWidth(32)),
-                        chicago.TablePaneColumn(width: chicago.FixedTablePaneColumnWidth(32)),
-                        chicago.TablePaneColumn(width: chicago.FixedTablePaneColumnWidth(32)),
-                        chicago.TablePaneColumn(width: chicago.FixedTablePaneColumnWidth(32)),
-                        chicago.TablePaneColumn(width: chicago.IntrinsicTablePaneColumnWidth()),
-                        chicago.TablePaneColumn(width: chicago.RelativeTablePaneColumnWidth()),
+                      columns: const <TablePaneColumn>[
+                        TablePaneColumn(width: IntrinsicTablePaneColumnWidth()),
+                        TablePaneColumn(width: FixedTablePaneColumnWidth(32)),
+                        TablePaneColumn(width: FixedTablePaneColumnWidth(32)),
+                        TablePaneColumn(width: FixedTablePaneColumnWidth(32)),
+                        TablePaneColumn(width: FixedTablePaneColumnWidth(32)),
+                        TablePaneColumn(width: FixedTablePaneColumnWidth(32)),
+                        TablePaneColumn(width: FixedTablePaneColumnWidth(32)),
+                        TablePaneColumn(width: FixedTablePaneColumnWidth(32)),
+                        TablePaneColumn(width: FixedTablePaneColumnWidth(32)),
+                        TablePaneColumn(width: FixedTablePaneColumnWidth(32)),
+                        TablePaneColumn(width: FixedTablePaneColumnWidth(32)),
+                        TablePaneColumn(width: FixedTablePaneColumnWidth(32)),
+                        TablePaneColumn(width: FixedTablePaneColumnWidth(32)),
+                        TablePaneColumn(width: FixedTablePaneColumnWidth(32)),
+                        TablePaneColumn(width: FixedTablePaneColumnWidth(32)),
+                        TablePaneColumn(width: IntrinsicTablePaneColumnWidth()),
+                        TablePaneColumn(width: RelativeTablePaneColumnWidth()),
                       ],
                       children: <Widget>[
                         const _HeaderRow(),
@@ -210,10 +210,10 @@ class _TimesheetTraversalPolicy extends FocusTraversalPolicy {
         hoursIndex >= invoice.timesheets[timesheetIndex].hours.length) {
       return null;
     }
-    final chicago.TablePaneElement tablePaneElement = chicago.TablePane.of(key.currentContext!)!;
+    final TablePaneElement tablePaneElement = TablePane.of(key.currentContext!)!;
     final _TimesheetRowElement timesheetRowElement = _childAt(tablePaneElement, timesheetIndex + rowOffset) as _TimesheetRowElement;
     final _TimesheetScopeElement timesheetScopeElement = timesheetRowElement._child as _TimesheetScopeElement;
-    final chicago.TableRowElement tableRowElement = timesheetScopeElement._child as chicago.TableRowElement;
+    final TableRowElement tableRowElement = timesheetScopeElement._child as TableRowElement;
     final StatefulElement hoursElement = _childAt(tableRowElement, hoursIndex + columnOffset) as StatefulElement;
     final _HoursInputState hoursState = hoursElement.state as _HoursInputState;
     return hoursState._focusNode;
@@ -289,12 +289,12 @@ class _HeaderRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return chicago.TableRow(
+    return TableRow(
       children: <Widget>[
-        const chicago.EmptyTableCell(),
+        const EmptyTableCell(),
         ..._buildDateHeadings(),
-        const chicago.EmptyTableCell(),
-        const chicago.EmptyTableCell(),
+        const EmptyTableCell(),
+        const EmptyTableCell(),
       ],
     );
   }
@@ -382,7 +382,7 @@ class _HoursInputState extends State<_HoursInput> {
     return _HoursInputScope(
       state: this,
       updateCount: 0, // TODO
-      child: chicago.TextInput(
+      child: TextInput(
         controller: _controller,
         focusNode: _focusNode,
         onTextUpdated: _handleEdit,
@@ -466,8 +466,8 @@ class _TimesheetRowState extends State<_TimesheetRow> {
   Widget _buildTableRow() {
     return _tableRow ??= () {
       final bool isSubmitted = InvoiceBinding.instance!.invoice!.isSubmitted;
-      return chicago.TableRow(
-        height: chicago.IntrinsicTablePaneRowHeight(),
+      return TableRow(
+        height: IntrinsicTablePaneRowHeight(),
         children: <Widget>[
           const _TimesheetHeader(),
           ...List<Widget>.generate(widget.timesheet.hours.length, (int index) {
@@ -479,7 +479,7 @@ class _TimesheetRowState extends State<_TimesheetRow> {
             );
           }),
           const _TimesheetFooter(),
-          const chicago.EmptyTableCell(),
+          const EmptyTableCell(),
         ],
       );
     }();
@@ -584,7 +584,7 @@ class _TimesheetHeader extends StatelessWidget {
           height: 22,
           child: Opacity(
             opacity: hover ? 1 : 0,
-            child: chicago.ActionPushButton(
+            child: ActionPushButton(
               intent: EditTimesheetIntent(timesheet),
               padding: const EdgeInsets.fromLTRB(4, 3, 0, 3),
               icon: 'assets/pencil.png',
@@ -599,7 +599,7 @@ class _TimesheetHeader extends StatelessWidget {
           height: 22,
           child: Opacity(
             opacity: hover ? 1 : 0,
-            child: chicago.ActionPushButton(
+            child: ActionPushButton(
               intent: DeleteTimesheetIntent(timesheet),
               padding: const EdgeInsets.fromLTRB(4, 3, 0, 3),
               icon: 'assets/cross.png',
@@ -616,7 +616,7 @@ class _TimesheetHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const chicago.HoverBuilder(
+    return const HoverBuilder(
       builder: _buildHeader,
     );
   }
@@ -647,32 +647,32 @@ class _DividerRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return chicago.TableRow(
-      height: const chicago.FixedTablePaneRowHeight(9),
+    return TableRow(
+      height: const FixedTablePaneRowHeight(9),
       children: const <Widget>[
-        chicago.TableCell(
+        TableCell(
           columnSpan: 128,
           child: Divider(
             thickness: 1,
             color: Color(0xff999999),
           ),
         ),
-        chicago.EmptyTableCell(),
-        chicago.EmptyTableCell(),
-        chicago.EmptyTableCell(),
-        chicago.EmptyTableCell(),
-        chicago.EmptyTableCell(),
-        chicago.EmptyTableCell(),
-        chicago.EmptyTableCell(),
-        chicago.EmptyTableCell(),
-        chicago.EmptyTableCell(),
-        chicago.EmptyTableCell(),
-        chicago.EmptyTableCell(),
-        chicago.EmptyTableCell(),
-        chicago.EmptyTableCell(),
-        chicago.EmptyTableCell(),
-        chicago.EmptyTableCell(),
-        chicago.EmptyTableCell(),
+        EmptyTableCell(),
+        EmptyTableCell(),
+        EmptyTableCell(),
+        EmptyTableCell(),
+        EmptyTableCell(),
+        EmptyTableCell(),
+        EmptyTableCell(),
+        EmptyTableCell(),
+        EmptyTableCell(),
+        EmptyTableCell(),
+        EmptyTableCell(),
+        EmptyTableCell(),
+        EmptyTableCell(),
+        EmptyTableCell(),
+        EmptyTableCell(),
+        EmptyTableCell(),
       ],
     );
   }
@@ -738,12 +738,12 @@ class _FooterRowState extends State<_FooterRow> {
 
   @override
   Widget build(BuildContext context) {
-    return _row ??= chicago.TableRow(
+    return _row ??= TableRow(
       children: [
         const Text('Daily Totals', maxLines: 1, style: TextStyle(fontStyle: FontStyle.italic)),
         ...List<Widget>.generate(InvoiceBinding.instance!.invoice!.billingPeriod.length, _toHours),
-        const chicago.EmptyTableCell(),
-        const chicago.EmptyTableCell(),
+        const EmptyTableCell(),
+        const EmptyTableCell(),
       ],
     );
   }

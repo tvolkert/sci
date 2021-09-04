@@ -1,13 +1,13 @@
 import 'dart:math' as math;
 import 'dart:ui' as ui;
 
-import 'package:chicago/chicago.dart' as chicago;
+import 'package:chicago/chicago.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart' show Ink, Theme;
 import 'package:flutter/painting.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/scheduler.dart';
-import 'package:flutter/services.dart';
+import 'package:flutter/services.dart' hide TextInput;
 import 'package:flutter/widgets.dart';
 import 'package:payouts/src/model/constants.dart';
 import 'package:payouts/src/model/invoice.dart';
@@ -118,22 +118,22 @@ class _InvoiceViewState extends State<InvoiceView> {
                 const Expanded(
                   child: Padding(
                     padding: EdgeInsets.fromLTRB(5, 0, 6, 4),
-                    child: chicago.TabPane(
+                    child: TabPane(
                       initialSelectedIndex: 0,
-                      tabs: <chicago.Tab>[
-                        chicago.Tab(
+                      tabs: <Tab>[
+                        Tab(
                           label: 'Billable Hours',
                           builder: _buildTimesheetsView,
                         ),
-                        chicago.Tab(
+                        Tab(
                           label: 'Expense Reports',
                           builder: _buildExpenseReportsView,
                         ),
-                        chicago.Tab(
+                        Tab(
                           label: 'Accomplishments',
                           builder: _buildAccomplishmentsView,
                         ),
-                        chicago.Tab(
+                        Tab(
                           label: 'Review & Submit',
                           builder: _buildReviewAndSubmit,
                         ),
@@ -344,7 +344,7 @@ class _InvoiceNumberEditorState extends State<InvoiceNumberEditor> {
           ),
           secondChild: SizedBox(
             width: 100,
-            child: chicago.TextInput(
+            child: TextInput(
               controller: _invoiceNumberEditor,
               focusNode: _focusNode,
               autofocus: true,
@@ -355,7 +355,7 @@ class _InvoiceNumberEditorState extends State<InvoiceNumberEditor> {
         SizedBox(
           height: 22,
           width: 23,
-          child: chicago.PushButton(
+          child: PushButton(
             padding: const EdgeInsets.fromLTRB(3, 0, 0, 0),
             icon: 'assets/pencil.png',
             showTooltip: false,

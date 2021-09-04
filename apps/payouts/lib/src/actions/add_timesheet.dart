@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'package:chicago/chicago.dart' as chicago;
+import 'package:chicago/chicago.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
@@ -68,8 +68,8 @@ abstract class TimesheetEditorState<T extends TimesheetEditor> extends InvoiceEn
   @override
   @protected
   @nonVirtual
-  List<chicago.FormPaneField> buildFormFields() {
-    return <chicago.FormPaneField>[
+  List<FormPaneField> buildFormFields() {
+    return <FormPaneField>[
       buildProgramFormField(),
       if (requiresChargeNumber) buildChargeNumberFormField(),
       if (requiresRequestor) buildRequestorFormField(),
@@ -122,7 +122,7 @@ class AddTimesheetSheet extends TimesheetEditor {
   _AddTimesheetSheetState createState() => _AddTimesheetSheetState();
 
   static Future<InvoiceEntryMetadata?> open({required BuildContext context}) {
-    return chicago.Sheet.open<InvoiceEntryMetadata>(
+    return Sheet.open<InvoiceEntryMetadata>(
       context: context,
       content: AddTimesheetSheet(),
       barrierDismissible: true,

@@ -1,4 +1,4 @@
-import 'package:chicago/chicago.dart' as chicago;
+import 'package:chicago/chicago.dart';
 
 import 'constants.dart';
 
@@ -61,16 +61,16 @@ const Map<String, _EntryComparator> _entryComparators = <String, _EntryComparato
 class EntryComparator {
   const EntryComparator({
     required this.key,
-    this.direction = chicago.SortDirection.ascending,
+    this.direction = SortDirection.ascending,
   });
 
   final String key;
-  final chicago.SortDirection direction;
+  final SortDirection direction;
 
   int compare(Map<String, dynamic> a, Map<String, dynamic> b) {
     final _EntryComparator basicComparator = _entryComparators[key]!;
     int result = basicComparator(a, b);
-    if (direction == chicago.SortDirection.descending) {
+    if (direction == SortDirection.descending) {
       result *= -1;
     }
     return result;
