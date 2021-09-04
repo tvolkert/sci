@@ -1,19 +1,29 @@
-import 'package:chicago/chicago.dart' as chicago;
+import 'package:chicago/chicago.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter/material.dart' show PopupMenuEntry, PopupMenuItem;
 
 import 'package:payouts/src/actions.dart';
+
+const String _feedbackUrl = 'mailto:keith@satelliteconsulting.com';
+const String _gettingStartedUrl = 'https://satelliteconsulting.com/payouts/getting-started.html';
+
+const String _aboutMenuItem = 'about';
+const String _getStartedMenuItem = 'get-started';
+const String _feedbackMenuItem = 'feedback';
 
 class Toolbar extends StatelessWidget {
   const Toolbar({Key? key}) : super(key: key);
 
   static void _onMenuItemSelected(BuildContext context, String? value) {
     switch (value) {
-      case 'about':
+      case _aboutMenuItem:
         Actions.invoke(context, AboutIntent(context: context));
         break;
-      case 'feedback':
-        Actions.invoke(context, ProvideFeedbackIntent(context: context));
+      case _getStartedMenuItem:
+        Actions.invoke(context, LaunchUrlIntent(_gettingStartedUrl));
+        break;
+      case _feedbackMenuItem:
+        Actions.invoke(context, LaunchUrlIntent(_feedbackUrl));
         break;
     }
   }
@@ -34,7 +44,7 @@ class Toolbar extends StatelessWidget {
           height: 57,
           child: Row(
             children: <Widget>[
-              chicago.ActionPushButton<CreateInvoiceIntent>(
+              ActionPushButton<CreateInvoiceIntent>(
                 icon: 'assets/document-new.png',
                 label: 'New Invoice',
                 axis: Axis.vertical,
@@ -42,7 +52,7 @@ class Toolbar extends StatelessWidget {
                 intent: CreateInvoiceIntent(context: context),
               ),
               const SizedBox(width: 5),
-              chicago.ActionPushButton<OpenInvoiceIntent>(
+              ActionPushButton<OpenInvoiceIntent>(
                 icon: 'assets/document-open.png',
                 label: 'Open Invoice',
                 axis: Axis.vertical,
@@ -50,7 +60,7 @@ class Toolbar extends StatelessWidget {
                 intent: OpenInvoiceIntent(context: context),
               ),
               const SizedBox(width: 5),
-              chicago.ActionPushButton<SaveInvoiceIntent>(
+              ActionPushButton<SaveInvoiceIntent>(
                 icon: 'assets/media-floppy.png',
                 label: 'Save to Server',
                 axis: Axis.vertical,
@@ -58,7 +68,7 @@ class Toolbar extends StatelessWidget {
                 intent: SaveInvoiceIntent(context: context),
               ),
               const SizedBox(width: 5),
-              chicago.ActionPushButton<DeleteInvoiceIntent>(
+              ActionPushButton<DeleteInvoiceIntent>(
                 icon: 'assets/dialog-cancel.png',
                 label: 'Delete Invoice',
                 axis: Axis.vertical,
@@ -66,7 +76,7 @@ class Toolbar extends StatelessWidget {
                 intent: DeleteInvoiceIntent(context: context),
               ),
               const SizedBox(width: 5),
-              chicago.ActionPushButton<ExportInvoiceIntent>(
+              ActionPushButton<ExportInvoiceIntent>(
                 icon: 'assets/x-office-presentation.png',
                 label: 'Export to PDF',
                 axis: Axis.vertical,
@@ -76,7 +86,7 @@ class Toolbar extends StatelessWidget {
               const Spacer(),
               SizedBox(
                 width: 64,
-                child: chicago.PushButton<String>(
+                child: PushButton<String>(
                   onPressed: () {},
                   icon: 'assets/help-browser.png',
                   label: 'Help',
@@ -84,12 +94,17 @@ class Toolbar extends StatelessWidget {
                   isToolbar: true,
                   menuItems: const <PopupMenuEntry<String>>[
                     PopupMenuItem<String>(
-                      value: 'about',
+                      value: _aboutMenuItem,
                       height: 22,
                       child: Text('About'),
                     ),
                     PopupMenuItem<String>(
-                      value: 'feedback',
+                      value: _getStartedMenuItem,
+                      height: 22,
+                      child: Text('Getting started'),
+                    ),
+                    PopupMenuItem<String>(
+                      value: _feedbackMenuItem,
                       height: 22,
                       child: Text('Provide feedback'),
                     ),
