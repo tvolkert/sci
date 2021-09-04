@@ -1,5 +1,5 @@
 import 'package:chicago/chicago.dart' as chicago;
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' show Theme;
 import 'package:flutter/widgets.dart';
 
 import 'package:payouts/src/model/invoice.dart';

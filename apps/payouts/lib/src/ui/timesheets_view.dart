@@ -2,8 +2,9 @@ import 'dart:math' as math;
 
 import 'package:chicago/chicago.dart' as chicago;
 import 'package:flutter/gestures.dart';
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' show Divider;
 import 'package:flutter/services.dart';
+import 'package:flutter/widgets.dart';
 
 import 'package:payouts/src/actions.dart';
 import 'package:payouts/src/model/constants.dart';

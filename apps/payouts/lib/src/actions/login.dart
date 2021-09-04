@@ -2,8 +2,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:chicago/chicago.dart' hide TableCell, TableColumnWidth, TableRow;
-import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
+import 'package:flutter/widgets.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 

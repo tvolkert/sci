@@ -2,9 +2,9 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:chicago/chicago.dart' as chicago;
-import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
+import 'package:flutter/material.dart' show Colors, InputBorder, InputDecoration, showLicensePage, TextField, Theme;
 import 'package:flutter/services.dart';
+import 'package:flutter/widgets.dart';
 
 class AboutIntent extends Intent {
   const AboutIntent({this.context});
