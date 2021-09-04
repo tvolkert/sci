@@ -58,21 +58,6 @@ class ReviewAndSubmit extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    Invoice invoice = InvoiceBinding.instance!.invoice!;
-    if (invoice.isEmpty) {
-      return Padding(
-        padding: EdgeInsets.all(80),
-        child: Center(
-          child: Text(
-            'Your invoice is currently empty. Once you have added items to your invoice, '
-            'you will be able to submit it to Satellite Consulting. You may add billable hours, '
-            'report tasks that were accomplished, and add expense reports by clicking on the '
-            'corresponding tabs and clicking on the links therein.',
-            textAlign: TextAlign.center,
-          ),
-        ),
-      );
-    }
     return Actions(
       actions: <Type, Action<Intent>>{
         SubmitInvoiceIntent: SubmitInvoiceAction.instance,
@@ -544,29 +529,44 @@ class _RawReviewAndSubmitState extends State<_RawReviewAndSubmit> with TrackInvo
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: EdgeInsets.all(6),
-      child: ScrollPane(
-        horizontalScrollBarPolicy: ScrollBarPolicy.stretch,
-        view: Padding(
-          padding: EdgeInsets.all(20),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.start,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: <Widget>[
-              ..._buildHeaderBlock(),
-              ..._buildTimesheetBlock(),
-              ..._buildExpenseReportsBlock(),
-              ..._buildAccomplishmentsBlock(),
-              Padding(
-                padding: EdgeInsets.only(top: 22),
-                child: CertifyAndSubmit(),
-              ),
-            ],
+    if (invoice!.isEmpty) {
+      return Padding(
+        padding: EdgeInsets.all(80),
+        child: Center(
+          child: Text(
+            'Your invoice is currently empty. Once you have added items to your invoice, '
+            'you will be able to submit it to Satellite Consulting. You may add billable hours, '
+            'report tasks that were accomplished, and add expense reports by clicking on the '
+            'corresponding tabs and clicking on the links therein.',
+            textAlign: TextAlign.center,
           ),
         ),
-      ),
-    );
+      );
+    } else {
+      return Padding(
+        padding: EdgeInsets.all(6),
+        child: ScrollPane(
+          horizontalScrollBarPolicy: ScrollBarPolicy.stretch,
+          view: Padding(
+            padding: EdgeInsets.all(20),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: <Widget>[
+                ..._buildHeaderBlock(),
+                ..._buildTimesheetBlock(),
+                ..._buildExpenseReportsBlock(),
+                ..._buildAccomplishmentsBlock(),
+                Padding(
+                  padding: EdgeInsets.only(top: 22),
+                  child: CertifyAndSubmit(),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
   }
 }
 
