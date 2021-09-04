@@ -1,10 +1,11 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'package:chicago/chicago.dart' as chicago;
+import 'package:chicago/chicago.dart' hide TableCell, TableColumnWidth, TableRow;
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:payouts/src/model/constants.dart';
 import 'package:payouts/src/model/http.dart';
@@ -13,7 +14,7 @@ import 'package:payouts/src/model/user.dart';
 
 typedef LoginCallback = void Function(String username, String password, bool setCookie);
 
-typedef ChangePasswordCallback = void Function(String password);
+typedef ChangePasswordCallback = void Function(String password, bool setCookie);
 
 class LoginIntent extends Intent {
   const LoginIntent({this.context});
@@ -33,9 +34,9 @@ class LoginAction extends ContextAction<LoginIntent> {
       throw StateError('No context in which to invoke $runtimeType');
     }
 
-    // TODO: really fetch saved username and password
-    String savedUsername = 'tvolkert';
-    String savedPassword = '12345'; // you thought I'd really think I'd check my password into Git?
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? savedUsername = prefs.getString(Keys.username);
+    String? savedPassword = prefs.getString(Keys.password);
     await LoginSheet.open(context: context, username: savedUsername, password: savedPassword);
   }
 }
@@ -57,7 +58,7 @@ class LoginSheet extends StatefulWidget {
   _LoginSheetState createState() => _LoginSheetState();
 
   static Future<void> open({required BuildContext context, String? username, String? password}) {
-    return chicago.Sheet.open<void>(
+    return Sheet.open<void>(
       context: context,
       barrierColor: const Color(0x00000000),
       content: LoginSheet(username: username, password: password),
@@ -124,6 +125,8 @@ class _LoginSheetState extends State<LoginSheet> {
     }
   }
 
+  late bool _setCookie;
+
   Future<void> _initialize() async {
     phase = _LoginPhase.initializing;
     final int? invoiceId = UserBinding.instance!.user!.lastInvoiceId;
@@ -138,14 +141,28 @@ class _LoginSheetState extends State<LoginSheet> {
 
   Future<void> _handleAttemptLogin(String username, String password, bool setCookie) async {
     phase = _LoginPhase.authenticating;
+    _setCookie = setCookie;
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    if (setCookie) {
+      await prefs.setString(Keys.username, username);
+    } else {
+      await prefs.remove(Keys.username);
+      await prefs.remove(Keys.password);
+    }
     try {
       final User user = await UserBinding.instance!.login(username, password);
       passwordNeedsReset = user.passwordRequiresReset;
+      if (setCookie) {
+        await prefs.setString(Keys.password, password);
+      }
       if (user.isPostLogin) {
         _close();
       }
     } on InvalidCredentials {
       errorText = _loginSpecificHttpStatusErrorMessages[HttpStatus.forbidden];
+      if (setCookie) {
+        await prefs.remove(Keys.password);
+      }
     } on TimeoutException {
       errorText = _loginSpecificHttpStatusErrorMessages[HttpStatus.requestTimeout]!
           .replaceAll(_serverHostToken, Server.host);
@@ -158,10 +175,14 @@ class _LoginSheetState extends State<LoginSheet> {
     phase = _LoginPhase.idle;
   }
 
-  Future<void> _handleAttemptChangePassword(String password) async {
+  Future<void> _handleAttemptChangePassword(String password, bool setCookie) async {
     assert(UserBinding.instance!.user != null);
     phase = _LoginPhase.changingPassword;
     final User user = await UserBinding.instance!.user!.updatePassword(password);
+    if (setCookie) {
+      final SharedPreferences prefs = await SharedPreferences.getInstance();
+      await prefs.setString(Keys.password, password);
+    }
     if (user.isPostLogin) {
       _close();
     }
@@ -184,6 +205,7 @@ class _LoginSheetState extends State<LoginSheet> {
   void initState() {
     super.initState();
     _passwordNeedsReset = UserBinding.instance!.user?.passwordRequiresReset ?? false;
+    _setCookie = widget.username != null;
     UserBinding.instance!.addPostLoginCallback(_initialize);
   }
 
@@ -195,21 +217,23 @@ class _LoginSheetState extends State<LoginSheet> {
 
   @override
   Widget build(BuildContext context) {
-    if (passwordNeedsReset) {
-      return _ResetPasswordPane(
-        activityStatusText: _statusTextFor(phase),
-        onAttemptChangePassword: _handleAttemptChangePassword,
-      );
-    } else {
-      return _LoginPane(
+    return AnimatedCrossFade(
+      firstChild: _LoginPane(
         username: widget.username,
         password: widget.password,
-        setCookie: widget.username != null,
+        setCookie: _setCookie,
         activityStatusText: _statusTextFor(phase),
         errorText: errorText,
         onAttemptLogin: _handleAttemptLogin,
-      );
-    }
+      ),
+      secondChild: _ResetPasswordPane(
+        activityStatusText: _statusTextFor(phase),
+        onAttemptChangePassword: _handleAttemptChangePassword,
+        setCookie: _setCookie,
+      ),
+      crossFadeState: passwordNeedsReset ? CrossFadeState.showSecond : CrossFadeState.showFirst,
+      duration: const Duration(milliseconds: 400),
+    );
   }
 }
 
@@ -257,6 +281,12 @@ class _LoginPaneState extends State<_LoginPane> {
 
   void _handleAttemptLogin() {
     widget.onAttemptLogin(_usernameController.text, _passwordController.text, _setCookie);
+  }
+
+  void _handleToggleCheckbox() {
+    setState(() {
+      _setCookie = !_setCookie;
+    });
   }
 
   @override
@@ -312,8 +342,8 @@ class _LoginPaneState extends State<_LoginPane> {
                       padding: EdgeInsets.only(bottom: 12),
                       child: ConstrainedBox(
                         constraints: BoxConstraints(maxHeight: 200),
-                        child: chicago.ScrollPane(
-                          horizontalScrollBarPolicy: chicago.ScrollBarPolicy.stretch,
+                        child: ScrollPane(
+                          horizontalScrollBarPolicy: ScrollBarPolicy.stretch,
                           view: Text(
                             widget.errorText!,
                             style: defaultStyle.copyWith(color: const Color(0xffb71624)),
@@ -336,7 +366,7 @@ class _LoginPaneState extends State<_LoginPane> {
                               child: Text('Username:'),
                             ),
                           ),
-                          chicago.TextInput(
+                          TextInput(
                             controller: _usernameController,
                             backgroundColor: const Color(0xfff7f5ee),
                           ),
@@ -357,7 +387,7 @@ class _LoginPaneState extends State<_LoginPane> {
                               child: Text('Password:'),
                             ),
                           ),
-                          chicago.TextInput(
+                          TextInput(
                             controller: _passwordController,
                             backgroundColor: const Color(0xfff7f5ee),
                             obscureText: true,
@@ -373,9 +403,11 @@ class _LoginPaneState extends State<_LoginPane> {
                       TableRow(
                         children: <Widget>[
                           Container(),
-                          chicago.BasicCheckbox(
+                          BasicCheckbox(
                             spacing: 6,
                             trailing: Text('Remember my username and password'),
+                            state: _setCookie ? CheckboxState.checked : CheckboxState.unchecked,
+                            onTap: _handleToggleCheckbox,
                           ),
                         ],
                       ),
@@ -396,14 +428,14 @@ class _LoginPaneState extends State<_LoginPane> {
                       SizedBox(
                         width: 20,
                         height: 20,
-                        child: chicago.ActivityIndicator(),
+                        child: ActivityIndicator(),
                       ),
                       SizedBox(width: 4),
                       Text(widget.activityStatusText!),
                     ],
                   ),
                 ),
-              chicago.CommandPushButton(
+              CommandPushButton(
                 label: 'Log In',
                 onPressed: widget.activityStatusText == null ? _handleAttemptLogin : null,
               ),
@@ -420,6 +452,7 @@ class _ResetPasswordPane extends StatefulWidget {
     Key? key,
     required this.activityStatusText,
     required this.onAttemptChangePassword,
+    required this.setCookie,
   }) : super(key: key);
 
   /// An optional message to display to the user indicating that an
@@ -431,6 +464,10 @@ class _ResetPasswordPane extends StatefulWidget {
 
   /// Callback to invoke when the user attempts to change their password.
   final ChangePasswordCallback onAttemptChangePassword;
+
+  /// Whether to update the saved password with the new password upon
+  /// successfully updating the user's password.
+  final bool setCookie;
 
   @override
   _ResetPasswordPaneState createState() => _ResetPasswordPaneState();
@@ -456,7 +493,7 @@ class _ResetPasswordPaneState extends State<_ResetPasswordPane> {
     } else if (_passwordController.text != _confirmPasswordController.text) {
       errorText = 'Your new password entries do not match.';
     } else {
-      widget.onAttemptChangePassword(_passwordController.text);
+      widget.onAttemptChangePassword(_passwordController.text, widget.setCookie);
     }
   }
 
@@ -498,8 +535,8 @@ class _ResetPasswordPaneState extends State<_ResetPasswordPane> {
                           padding: EdgeInsets.only(bottom: 12),
                           child: ConstrainedBox(
                             constraints: BoxConstraints(maxHeight: 200),
-                            child: chicago.ScrollPane(
-                              horizontalScrollBarPolicy: chicago.ScrollBarPolicy.stretch,
+                            child: ScrollPane(
+                              horizontalScrollBarPolicy: ScrollBarPolicy.stretch,
                               view: Text(
                                 errorText!,
                                 style: defaultStyle.copyWith(color: const Color(0xffb71624)),
@@ -527,7 +564,7 @@ class _ResetPasswordPaneState extends State<_ResetPasswordPane> {
                               child: Text('New password:'),
                             ),
                           ),
-                          chicago.TextInput(
+                          TextInput(
                             controller: _passwordController,
                             backgroundColor: const Color(0xfff7f5ee),
                             obscureText: true,
@@ -549,7 +586,7 @@ class _ResetPasswordPaneState extends State<_ResetPasswordPane> {
                               child: Text('Confirm new password:'),
                             ),
                           ),
-                          chicago.TextInput(
+                          TextInput(
                             controller: _confirmPasswordController,
                             backgroundColor: const Color(0xfff7f5ee),
                             obscureText: true,
@@ -573,14 +610,14 @@ class _ResetPasswordPaneState extends State<_ResetPasswordPane> {
                       SizedBox(
                         width: 20,
                         height: 20,
-                        child: chicago.ActivityIndicator(),
+                        child: ActivityIndicator(),
                       ),
                       SizedBox(width: 4),
                       Text(widget.activityStatusText!),
                     ],
                   ),
                 ),
-              chicago.CommandPushButton(
+              CommandPushButton(
                 label: 'OK',
                 onPressed: widget.activityStatusText == null ? _handleResetPassword : null,
               ),
