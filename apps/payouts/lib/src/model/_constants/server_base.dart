@@ -3,6 +3,7 @@ mixin ServerBase {
   String get host => 'www.satelliteconsulting.com';
 
   String get loginUrl => 'payoutsLogin';
+  String get tokenUrl => 'token';
   String get invoiceUrl => 'invoice';
   String get fooUrl => 'clientLog';
   String get billPdfUrl => 'billPDF';

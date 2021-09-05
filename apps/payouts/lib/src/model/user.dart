@@ -4,6 +4,7 @@ import 'dart:ui';
 
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
+import 'package:url_launcher/url_launcher.dart' as url;
 
 import 'binding.dart';
 import 'constants.dart';
@@ -153,6 +154,23 @@ class User {
 
   http.BaseClient authenticate() {
     return authenticateClient(HttpBinding.instance!.client);
+  }
+
+  Future<bool> launchAuthenticatedUri(Uri uri, {Duration timeout = httpTimeout}) async {
+    assert(uri.scheme == 'https');
+    final Uri tokenUrl = Server.uri(Server.tokenUrl);
+    final http.Response tokenResponse = await authenticate().get(tokenUrl).timeout(timeout);
+    if (tokenResponse.statusCode == HttpStatus.ok) {
+      // Token is valid for 5 minutes.
+      final String token = tokenResponse.body;
+      uri = uri.replace(queryParameters: <String, String>{
+        ...uri.queryParameters,
+        QueryParameters.token: token,
+      });
+      return url.launch(uri.toString());
+    } else {
+      throw HttpStatusException(tokenResponse.statusCode, tokenResponse.body);
+    }
   }
 
   @visibleForTesting

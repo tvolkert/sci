@@ -107,6 +107,7 @@ class Keys {
 class QueryParameters {
   const QueryParameters._();
   static const String invoiceId = 'invoiceId';
+  static const String token = 'token';
 }
 
 const Duration httpTimeout = Duration(seconds: 20);

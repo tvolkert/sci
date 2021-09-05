@@ -1,5 +1,8 @@
-import 'package:chicago/chicago.dart';
 import 'package:flutter/widgets.dart';
+
+import 'package:payouts/src/model/constants.dart';
+import 'package:payouts/src/model/track_invoice_mixin.dart';
+import 'package:payouts/src/model/user.dart';
 
 class ExportInvoiceIntent extends Intent {
   const ExportInvoiceIntent({this.context});
@@ -7,72 +10,39 @@ class ExportInvoiceIntent extends Intent {
   final BuildContext? context;
 }
 
-class ExportInvoiceAction extends ContextAction<ExportInvoiceIntent> {
-  ExportInvoiceAction._();
+class ExportInvoiceAction extends ContextAction<ExportInvoiceIntent> with TrackInvoiceMixin {
+  ExportInvoiceAction._() {
+    startTrackingInvoiceActivity();
+  }
 
   static final ExportInvoiceAction instance = ExportInvoiceAction._();
 
-  // TODO: enable this once file browsing and PDF generating are on the docket
   @override
-  bool isEnabled(ExportInvoiceIntent intent) => false;
+  @protected
+  void onInvoiceOpenedChanged() {
+    super.onInvoiceOpenedChanged();
+    notifyActionListeners();
+  }
+
+  @override
+  @protected
+  void onInvoiceDirtyChanged() {
+    super.onInvoiceDirtyChanged();
+    notifyActionListeners();
+  }
+
+  @override
+  bool isEnabled(ExportInvoiceIntent intent) {
+    // TODO: uncomment when server can handle token-based auth
+    return false;
+    // return isInvoiceOpened && !isInvoiceDirty;
+  }
 
   @override
   Future<void> invoke(ExportInvoiceIntent intent, [BuildContext? context]) async {
-    context ??= intent.context ?? primaryFocus!.context;
-    if (context == null) {
-      throw StateError('No context in which to invoke $runtimeType');
-    }
-
-    await ExportInvoiceSheet.open(context: context);
-    print('TODO: export invoice');
-  }
-}
-
-class ExportInvoiceSheet extends StatefulWidget {
-  const ExportInvoiceSheet({Key? key}) : super(key: key);
-
-  @override
-  _ExportInvoiceSheetState createState() => _ExportInvoiceSheetState();
-
-  static Future<void> open({required BuildContext context}) {
-    return Sheet.open<void>(
-      context: context,
-      content: ExportInvoiceSheet(),
-    );
-  }
-}
-
-class _ExportInvoiceSheetState extends State<ExportInvoiceSheet> {
-  @override
-  void initState() {
-    super.initState();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      width: 400,
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          SizedBox(height: 8),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.end,
-            children: [
-              CommandPushButton(
-                label: 'OK',
-                onPressed: () => Navigator.of(context).pop(),
-              ),
-              SizedBox(width: 4),
-              CommandPushButton(
-                label: 'Cancel',
-                onPressed: () => Navigator.of(context).pop(),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
+    final Uri url = Server.uri(Server.invoicePdfUrl, query: <String, String>{
+      QueryParameters.invoiceId: openedInvoice.id.toString(),
+    });
+    await UserBinding.instance!.user!.launchAuthenticatedUri(url);
   }
 }
