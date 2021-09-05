@@ -1,6 +1,7 @@
 import 'package:chicago/chicago.dart';
 
 import 'binding.dart';
+import 'confirm_exit_mixin.dart';
 import 'http.dart';
 import 'invoice.dart';
 import 'user.dart';
@@ -13,7 +14,8 @@ class PayoutsBinding extends AppBindingBase
         UserBinding,
         InvoiceBinding,
         AssignmentsBinding,
-        ExpenseTypesBinding {
+        ExpenseTypesBinding,
+        ConfirmExitMixin {
   /// Creates and initializes the application binding if necessary.
   ///
   /// Applications should call this method before calling [runApp].

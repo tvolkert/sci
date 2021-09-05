@@ -15,6 +15,8 @@ import 'user.dart';
 
 mixin InvoiceBinding on AppBindingBase, ListenerNotifier<InvoiceListener>, InvoiceListenerNotifier {
   @override
+  @protected
+  @mustCallSuper
   void initInstances() {
     super.initInstances();
     _instance = this;
@@ -262,6 +264,7 @@ class InvoiceListener {
 
 mixin InvoiceListenerNotifier on ListenerNotifier<InvoiceListener> {
   @protected
+  @mustCallSuper
   void onInvoiceOpened(Invoice? oldInvoice) {
     notifyListeners((InvoiceListener listener) {
       if (listener.onInvoiceOpened != null) {
@@ -271,6 +274,7 @@ mixin InvoiceListenerNotifier on ListenerNotifier<InvoiceListener> {
   }
 
   @protected
+  @mustCallSuper
   void onInvoiceClosed(Invoice? oldInvoice) {
     notifyListeners((InvoiceListener listener) {
       if (listener.onInvoiceClosed != null) {
@@ -280,6 +284,7 @@ mixin InvoiceListenerNotifier on ListenerNotifier<InvoiceListener> {
   }
 
   @protected
+  @mustCallSuper
   void onInvoiceNumberChanged(String previousInvoiceNumber) {
     notifyListeners((InvoiceListener listener) {
       if (listener.onInvoiceNumberChanged != null) {
@@ -289,6 +294,7 @@ mixin InvoiceListenerNotifier on ListenerNotifier<InvoiceListener> {
   }
 
   @protected
+  @mustCallSuper
   void onInvoiceTotalChanged(double previousTotal) {
     notifyListeners((InvoiceListener listener) {
       if (listener.onInvoiceTotalChanged != null) {
@@ -298,6 +304,7 @@ mixin InvoiceListenerNotifier on ListenerNotifier<InvoiceListener> {
   }
 
   @protected
+  @mustCallSuper
   void onSubmitted() {
     notifyListeners((InvoiceListener listener) {
       if (listener.onSubmitted != null) {
@@ -307,6 +314,7 @@ mixin InvoiceListenerNotifier on ListenerNotifier<InvoiceListener> {
   }
 
   @protected
+  @mustCallSuper
   void onInvoiceDirtyChanged() {
     notifyListeners((InvoiceListener listener) {
       if (listener.onInvoiceDirtyChanged != null) {
@@ -316,6 +324,7 @@ mixin InvoiceListenerNotifier on ListenerNotifier<InvoiceListener> {
   }
 
   @protected
+  @mustCallSuper
   void onTimesheetInserted(int timesheetsIndex) {
     notifyListeners((InvoiceListener listener) {
       if (listener.onTimesheetInserted != null) {
@@ -325,6 +334,7 @@ mixin InvoiceListenerNotifier on ListenerNotifier<InvoiceListener> {
   }
 
   @protected
+  @mustCallSuper
   void onTimesheetsRemoved(int timesheetsIndex, Iterable<Timesheet> removed) {
     notifyListeners((InvoiceListener listener) {
       if (listener.onTimesheetsRemoved != null) {
@@ -334,6 +344,7 @@ mixin InvoiceListenerNotifier on ListenerNotifier<InvoiceListener> {
   }
 
   @protected
+  @mustCallSuper
   void onTimesheetUpdated(int timesheetsIndex, String key, dynamic previousValue) {
     notifyListeners((InvoiceListener listener) {
       if (listener.onTimesheetUpdated != null) {
@@ -343,6 +354,7 @@ mixin InvoiceListenerNotifier on ListenerNotifier<InvoiceListener> {
   }
 
   @protected
+  @mustCallSuper
   void onTimesheetHoursUpdated(int timesheetsIndex, int dayIndex, double previousHours) {
     notifyListeners((InvoiceListener listener) {
       if (listener.onTimesheetHoursUpdated != null) {
@@ -352,6 +364,7 @@ mixin InvoiceListenerNotifier on ListenerNotifier<InvoiceListener> {
   }
 
   @protected
+  @mustCallSuper
   void onAccomplishmentInserted(int accomplishmentsIndex) {
     notifyListeners((InvoiceListener listener) {
       if (listener.onAccomplishmentInserted != null) {
@@ -361,6 +374,7 @@ mixin InvoiceListenerNotifier on ListenerNotifier<InvoiceListener> {
   }
 
   @protected
+  @mustCallSuper
   void onAccomplishmentTextUpdated(int accomplishmentsIndex, String previousDescription) {
     notifyListeners((InvoiceListener listener) {
       if (listener.onAccomplishmentTextUpdated != null) {
@@ -370,6 +384,7 @@ mixin InvoiceListenerNotifier on ListenerNotifier<InvoiceListener> {
   }
 
   @protected
+  @mustCallSuper
   void onExpenseReportInserted(int expenseReportsIndex) {
     notifyListeners((InvoiceListener listener) {
       if (listener.onExpenseReportInserted != null) {
@@ -379,6 +394,7 @@ mixin InvoiceListenerNotifier on ListenerNotifier<InvoiceListener> {
   }
 
   @protected
+  @mustCallSuper
   void onExpenseReportsRemoved(int expenseReportsIndex, Iterable<ExpenseReport> removed) {
     notifyListeners((InvoiceListener listener) {
       if (listener.onExpenseReportsRemoved != null) {
@@ -388,6 +404,7 @@ mixin InvoiceListenerNotifier on ListenerNotifier<InvoiceListener> {
   }
 
   @protected
+  @mustCallSuper
   void onExpenseInserted(int expenseReportsIndex, int expensesIndex) {
     notifyListeners((InvoiceListener listener) {
       if (listener.onExpenseInserted != null) {
@@ -397,6 +414,7 @@ mixin InvoiceListenerNotifier on ListenerNotifier<InvoiceListener> {
   }
 
   @protected
+  @mustCallSuper
   void onExpenseUpdated(
     int expenseReportsIndex,
     int expensesIndex,
@@ -411,6 +429,7 @@ mixin InvoiceListenerNotifier on ListenerNotifier<InvoiceListener> {
   }
 
   @protected
+  @mustCallSuper
   void onExpensesRemoved(int expenseReportsIndex, int expensesIndex, Iterable<Expense> removed) {
     notifyListeners((InvoiceListener listener) {
       if (listener.onExpensesRemoved != null) {
