@@ -186,6 +186,7 @@ class _CreateInvoiceSheetState extends State<CreateInvoiceSheet> {
     BuildContext context,
     int rowIndex,
     int columnIndex,
+    bool hasFocus,
     bool isRowSelected,
     bool isRowHighlighted,
     bool isEditing,
@@ -233,7 +234,7 @@ class _CreateInvoiceSheetState extends State<CreateInvoiceSheet> {
         style: style.copyWith(color: const Color(0xff999999)),
         child: result,
       );
-    } else if (isRowSelected) {
+    } else if (hasFocus && isRowSelected) {
       final TextStyle style = DefaultTextStyle.of(context).style;
       result = DefaultTextStyle(
         style: style.copyWith(color: const Color(0xffffffff)),

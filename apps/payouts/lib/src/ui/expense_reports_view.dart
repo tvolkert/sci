@@ -309,6 +309,7 @@ class _ExpensesTableViewState extends State<ExpensesTableView>
     BuildContext context,
     int rowIndex,
     int columnIndex,
+    bool hasFocus,
     bool rowSelected,
     bool rowHighlighted,
     bool isEditing,
@@ -321,6 +322,7 @@ class _ExpensesTableViewState extends State<ExpensesTableView>
     final String formattedDate = DateFormats.iso8601Short.format(date);
     return ExpenseCellWrapper(
       rowIndex: rowIndex,
+      hasFocus: hasFocus,
       rowHighlighted: rowHighlighted,
       rowSelected: rowSelected,
       isRowDisabled: isRowDisabled,
@@ -339,6 +341,7 @@ class _ExpensesTableViewState extends State<ExpensesTableView>
     BuildContext context,
     int rowIndex,
     int columnIndex,
+    bool hasFocus,
     bool rowSelected,
     bool rowHighlighted,
     bool isEditing,
@@ -350,6 +353,7 @@ class _ExpensesTableViewState extends State<ExpensesTableView>
     }
     return ExpenseCellWrapper(
       rowIndex: rowIndex,
+      hasFocus: hasFocus,
       rowHighlighted: rowHighlighted,
       rowSelected: rowSelected,
       isRowDisabled: isRowDisabled,
@@ -368,6 +372,7 @@ class _ExpensesTableViewState extends State<ExpensesTableView>
     BuildContext context,
     int rowIndex,
     int columnIndex,
+    bool hasFocus,
     bool rowSelected,
     bool rowHighlighted,
     bool isEditing,
@@ -379,6 +384,7 @@ class _ExpensesTableViewState extends State<ExpensesTableView>
     }
     return ExpenseCellWrapper(
       rowIndex: rowIndex,
+      hasFocus: hasFocus,
       rowHighlighted: rowHighlighted,
       rowSelected: rowSelected,
       isRowDisabled: isRowDisabled,
@@ -398,6 +404,7 @@ class _ExpensesTableViewState extends State<ExpensesTableView>
     BuildContext context,
     int rowIndex,
     int columnIndex,
+    bool hasFocus,
     bool rowSelected,
     bool rowHighlighted,
     bool isEditing,
@@ -409,6 +416,7 @@ class _ExpensesTableViewState extends State<ExpensesTableView>
     }
     return ExpenseCellWrapper(
       rowIndex: rowIndex,
+      hasFocus: hasFocus,
       rowHighlighted: rowHighlighted,
       rowSelected: rowSelected,
       isRowDisabled: isRowDisabled,
@@ -629,6 +637,7 @@ class ExpenseCellWrapper extends StatelessWidget {
   const ExpenseCellWrapper({
     Key? key,
     this.rowIndex = 0,
+    this.hasFocus = false,
     this.rowHighlighted = false,
     this.rowSelected = false,
     this.isRowDisabled = false,
@@ -636,6 +645,7 @@ class ExpenseCellWrapper extends StatelessWidget {
   }) : super(key: key);
 
   final int rowIndex;
+  final bool hasFocus;
   final bool rowHighlighted;
   final bool rowSelected;
   final bool isRowDisabled;
@@ -646,7 +656,7 @@ class ExpenseCellWrapper extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     TextStyle style = DefaultTextStyle.of(context).style;
-    if (rowSelected) {
+    if (hasFocus && rowSelected) {
       style = style.copyWith(color: const Color(0xffffffff));
     } else if (isRowDisabled) {
       style = style.copyWith(color: const Color(0xff999999));

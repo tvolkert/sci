@@ -354,12 +354,14 @@ class _InvoicesTableState extends State<InvoicesTable> {
     BuildContext context,
     int rowIndex,
     int columnIndex,
+    bool hasFocus,
     bool isRowSelected,
     bool isRowHighlighted,
     bool isEditing,
     bool isRowDisabled,
   ) {
     return CellWrapper(
+      hasFocus: hasFocus,
       selected: isRowSelected,
       child: BillingPeriodCell(invoice: widget.invoices[rowIndex]),
     );
@@ -376,12 +378,14 @@ class _InvoicesTableState extends State<InvoicesTable> {
     BuildContext context,
     int rowIndex,
     int columnIndex,
+    bool hasFocus,
     bool isRowSelected,
     bool isRowHighlighted,
     bool isEditing,
     bool isRowDisabled,
   ) {
     return CellWrapper(
+      hasFocus: hasFocus,
       selected: isRowSelected,
       child: InvoiceNumberCell(invoice: widget.invoices[rowIndex]),
     );
@@ -398,12 +402,14 @@ class _InvoicesTableState extends State<InvoicesTable> {
     BuildContext context,
     int rowIndex,
     int columnIndex,
+    bool hasFocus,
     bool isRowSelected,
     bool isRowHighlighted,
     bool isEditing,
     bool isRowDisabled,
   ) {
     return CellWrapper(
+      hasFocus: hasFocus,
       selected: isRowSelected,
       child: SubmittedCell(invoice: widget.invoices[rowIndex]),
     );
@@ -420,12 +426,14 @@ class _InvoicesTableState extends State<InvoicesTable> {
     BuildContext context,
     int rowIndex,
     int columnIndex,
+    bool hasFocus,
     bool isRowSelected,
     bool isRowHighlighted,
     bool isEditing,
     bool isRowDisabled,
   ) {
     return CellWrapper(
+      hasFocus: hasFocus,
       selected: isRowSelected,
       child: ResubmitCell(invoice: widget.invoices[rowIndex]),
     );
@@ -498,10 +506,12 @@ class _InvoicesTableState extends State<InvoicesTable> {
 class CellWrapper extends StatelessWidget {
   const CellWrapper({
     Key? key,
+    required this.hasFocus,
     required this.selected,
     required this.child,
   }) : super(key: key);
 
+  final bool hasFocus;
   final bool selected;
   final Widget child;
 
@@ -520,7 +530,7 @@ class CellWrapper extends StatelessWidget {
       ),
     );
 
-    if (selected) {
+    if (hasFocus && selected) {
       final TextStyle style = DefaultTextStyle.of(context).style;
       result = DefaultTextStyle(
         style: style.copyWith(color: const Color(0xffffffff)),
