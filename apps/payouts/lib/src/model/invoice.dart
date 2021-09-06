@@ -1446,26 +1446,24 @@ class Expenses with ForwardingIterable<Expense>, DisallowCollectionConversion<Ex
     return expense;
   }
 
-  Expense removeAt(int index) {
+  void remove(Iterable<Span> ranges) {
     _owner._checkDisposed();
     // Order is important here; set this first to force the parent to run its
     // lazy total calculation before removing the expense from _data.
     final double previousTotal = _parent.total;
-    final Expense removed = _view.removeAt(index);
-    _data.removeAt(index);
-    _owner._owner.onExpensesRemoved(_parent.index, index, <Expense>[removed]);
-    _owner._setIsDirty(true);
-    _parent.total = previousTotal - removed.amount;
-    return removed;
-  }
-
-  void removeWhere(bool Function(Expense expense) test) {
-    _owner._checkDisposed();
-    for (int i = length - 1; i >= 0; i--) {
-      if (test(_view[i])) {
-        removeAt(i);
-      }
+    double totalRemoved = 0;
+    for (Span span in ranges.toList().reversed) {
+      assert(span.isNormalized);
+      final List<Expense> removed = _view.sublist(span.start, span.end + 1);
+      _view.removeRange(span.start, span.end + 1);
+      _data.removeRange(span.start, span.end + 1);
+      _owner._owner.onExpensesRemoved(_parent.index, span.start, removed);
+      totalRemoved += removed
+          .map<double>((Expense e) => e.amount)
+          .reduce((double total, double amount) => total + amount);
     }
+    _parent.total = previousTotal - totalRemoved;
+    _owner._setIsDirty(true);
   }
 
   ExpenseComparator? _comparator;

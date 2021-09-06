@@ -21,6 +21,7 @@ mixin TrackExpenseReportMixin {
   void _handleExpensesRemoved(int index, int expensesIndex, Iterable<Expense> removed) {
     assert(isTrackingExpenseReport);
     if (_isTrackedExpenseReport(index)) {
+      onExpensesRemoved();
       onExpensesChanged();
     }
   }
@@ -83,4 +84,12 @@ mixin TrackExpenseReportMixin {
   @protected
   @mustCallSuper
   void onExpensesChanged() {}
+
+  /// Invoked when expenses have been removed from the expense report.
+  ///
+  /// When this is invoked, [onExpensesChanged] will also be removed
+  /// immediately after.
+  @protected
+  @mustCallSuper
+  void onExpensesRemoved() {}
 }

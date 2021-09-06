@@ -23,6 +23,7 @@ class ExpenseReportsView extends StatelessWidget {
       actions: <Type, Action<Intent>>{
         AddExpenseIntent: AddExpenseAction.instance,
         AddExpenseReportIntent: AddExpenseReportAction.instance,
+        DeleteExpensesIntent: DeleteExpensesAction.instance,
       },
       child: const _RawExpenseReportsView(),
     );
@@ -585,6 +586,13 @@ class _ExpensesTableViewState extends State<ExpensesTableView>
   }
 
   @override
+  void onExpensesRemoved() {
+    super.onExpensesRemoved();
+    _selectionController.clearSelection();
+    setState(() {}); // State is held in the expense report itself.
+  }
+
+  @override
   void onInvoiceSubmittedChanged() {
     super.onInvoiceSubmittedChanged();
     _updateDisabledController();
@@ -592,42 +600,53 @@ class _ExpensesTableViewState extends State<ExpensesTableView>
 
   @override
   Widget build(BuildContext context) {
-    return Focus(
-      onKey: _handleKey,
-      child: ScrollableTableView(
-        rowHeight: 19,
-        length: expenseReport.expenses.length,
-        selectionController: _selectionController,
-        sortController: _sortController,
-        editorController: _editorController,
-        rowDisabledController: _disabledController,
-        roundColumnWidthsToWholePixel: false,
-        columns: <TableColumn>[
-          TableColumn(
-            key: Keys.date,
-            width: ConstrainedTableColumnWidth(width: 120, minWidth: 20),
-            cellBuilder: _buildDate,
-            headerBuilder: _renderHeader('Date'),
-          ),
-          TableColumn(
-            key: Keys.expenseType,
-            width: ConstrainedTableColumnWidth(width: 120, minWidth: 20),
-            cellBuilder: _buildType,
-            headerBuilder: _renderHeader('Type'),
-          ),
-          TableColumn(
-            key: Keys.amount,
-            width: ConstrainedTableColumnWidth(width: 100, minWidth: 20),
-            cellBuilder: _buildAmount,
-            headerBuilder: _renderHeader('Amount'),
-          ),
-          TableColumn(
-            key: Keys.description,
-            width: FlexTableColumnWidth(),
-            cellBuilder: _buildDescription,
-            headerBuilder: _renderHeader('Description'),
-          ),
-        ],
+    final Intent deleteExpensesIntent = DeleteExpensesIntent(
+      context: context,
+      expenseReport: widget.expenseReport,
+      deleteRangeProvider: () => _selectionController.selectedRanges,
+    );
+    return Shortcuts(
+      shortcuts: <ShortcutActivator, Intent>{
+        SingleActivator(LogicalKeyboardKey.delete): deleteExpensesIntent,
+        SingleActivator(LogicalKeyboardKey.backspace): deleteExpensesIntent,
+      },
+      child: Focus(
+        onKey: _handleKey,
+        child: ScrollableTableView(
+          rowHeight: 19,
+          length: expenseReport.expenses.length,
+          selectionController: _selectionController,
+          sortController: _sortController,
+          editorController: _editorController,
+          rowDisabledController: _disabledController,
+          roundColumnWidthsToWholePixel: false,
+          columns: <TableColumn>[
+            TableColumn(
+              key: Keys.date,
+              width: ConstrainedTableColumnWidth(width: 120, minWidth: 20),
+              cellBuilder: _buildDate,
+              headerBuilder: _renderHeader('Date'),
+            ),
+            TableColumn(
+              key: Keys.expenseType,
+              width: ConstrainedTableColumnWidth(width: 120, minWidth: 20),
+              cellBuilder: _buildType,
+              headerBuilder: _renderHeader('Type'),
+            ),
+            TableColumn(
+              key: Keys.amount,
+              width: ConstrainedTableColumnWidth(width: 100, minWidth: 20),
+              cellBuilder: _buildAmount,
+              headerBuilder: _renderHeader('Amount'),
+            ),
+            TableColumn(
+              key: Keys.description,
+              width: FlexTableColumnWidth(),
+              cellBuilder: _buildDescription,
+              headerBuilder: _renderHeader('Description'),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -701,15 +720,23 @@ class _ExpenseReportsListViewState extends State<ExpenseReportsListView> {
   late InvoiceListener _invoiceListener;
 
   void _handleExpenseReportInserted(int expenseReportsIndex) {
-    setState(() {
-      // _expenseReports reference stays the same
-    });
+    setState(() {}); // _expenseReports reference stays the same
   }
 
   void _handleExpenseReportsRemoved(int expenseReportsIndex, Iterable<ExpenseReport> removed) {
-    setState(() {
-      // _expenseReports reference stays the same
-    });
+    setState(() {}); // _expenseReports reference stays the same
+  }
+
+  void _handleExpenseInserted(int index, int expensesIndex) {
+    setState(() {}); // The list item for this expense report contains the total amount.
+  }
+
+  void _handleExpensesRemoved(int index, int expensesIndex, Iterable<Expense> removed) {
+    setState(() {}); // The list item for this expense report contains the total amount.
+  }
+
+  void _handleExpenseUpdated(int index, int expensesIndex, String key, dynamic previousValue) {
+    setState(() {}); // The list item for this expense report contains the total amount.
   }
 
   Widget _buildItem(
@@ -769,6 +796,9 @@ class _ExpenseReportsListViewState extends State<ExpenseReportsListView> {
     _invoiceListener = InvoiceListener(
       onExpenseReportInserted: _handleExpenseReportInserted,
       onExpenseReportsRemoved: _handleExpenseReportsRemoved,
+      onExpenseInserted: _handleExpenseInserted,
+      onExpensesRemoved: _handleExpensesRemoved,
+      onExpenseUpdated: _handleExpenseUpdated,
     );
     InvoiceBinding.instance!.addListener(_invoiceListener);
   }
