@@ -33,9 +33,7 @@ class ExportInvoiceAction extends ContextAction<ExportInvoiceIntent> with TrackI
 
   @override
   bool isEnabled(ExportInvoiceIntent intent) {
-    // TODO: uncomment when server can handle token-based auth
-    return false;
-    // return isInvoiceOpened && !isInvoiceDirty;
+    return isInvoiceOpened && !isInvoiceDirty;
   }
 
   @override

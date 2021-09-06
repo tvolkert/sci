@@ -158,11 +158,13 @@ class User {
 
   Future<bool> launchAuthenticatedUri(Uri uri, {Duration timeout = httpTimeout}) async {
     assert(uri.scheme == 'https');
-    final Uri tokenUrl = Server.uri(Server.tokenUrl);
+    final Uri tokenUrl = Server.uri(Server.tokenUrl, query: <String, String>{
+      Keys.username: username,
+    });
     final http.Response tokenResponse = await authenticate().get(tokenUrl).timeout(timeout);
     if (tokenResponse.statusCode == HttpStatus.ok) {
       // Token is valid for 5 minutes.
-      final String token = tokenResponse.body;
+      final String token = json.decode(tokenResponse.body);
       uri = uri.replace(queryParameters: <String, String>{
         ...uri.queryParameters,
         QueryParameters.token: token,
