@@ -214,21 +214,13 @@ class _OpenInvoiceSheetState extends State<OpenInvoiceSheet>
               padding: const EdgeInsets.fromLTRB(9, 13, 9, 9),
               child: SizedBox(
                 height: 200,
-                child: DecoratedBox(
-                  decoration: const BoxDecoration(
-                    border: Border.fromBorderSide(BorderSide(color: Color(0xff999999))),
-                  ),
-                  child: Padding(
-                    padding: const EdgeInsets.all(1),
-                    child: InvoicesView(
-                      invoices: _invoices,
-                      metricsController: _metricsController,
-                      selectionController: _selectionController,
-                      sortController: _sortController,
-                      scrollController: _scrollController,
-                      onInvoiceChosen: _handleInvoiceChosen,
-                    ),
-                  ),
+                child: InvoicesView(
+                  invoices: _invoices,
+                  metricsController: _metricsController,
+                  selectionController: _selectionController,
+                  sortController: _sortController,
+                  scrollController: _scrollController,
+                  onInvoiceChosen: _handleInvoiceChosen,
                 ),
               ),
             ),
@@ -289,16 +281,32 @@ class InvoicesView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (invoices != null && invoices!.isEmpty) {
-      // TODO: what should this be?
-      return Text('TODO');
+      return Center(
+        child: Padding(
+          padding: EdgeInsets.all(20),
+          child: Text(
+            'You have not yet created any invoices. Once you have created invoices, '
+            'you will see them listed here.',
+            textAlign: TextAlign.center,
+          ),
+        ),
+      );
     } else {
-      return InvoicesTable(
-        invoices: invoices ?? <Map<String, dynamic>>[],
-        metricsController: metricsController,
-        selectionController: selectionController,
-        sortController: sortController,
-        scrollController: scrollController,
-        onInvoiceChosen: onInvoiceChosen,
+      return DecoratedBox(
+        decoration: const BoxDecoration(
+          border: Border.fromBorderSide(BorderSide(color: Color(0xff999999))),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(1),
+          child: InvoicesTable(
+            invoices: invoices ?? <Map<String, dynamic>>[],
+            metricsController: metricsController,
+            selectionController: selectionController,
+            sortController: sortController,
+            scrollController: scrollController,
+            onInvoiceChosen: onInvoiceChosen,
+          ),
+        ),
       );
     }
   }
