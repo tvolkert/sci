@@ -3,6 +3,7 @@ import 'package:flutter/material.dart' show Theme;
 import 'package:flutter/widgets.dart';
 
 import 'package:payouts/src/model/track_invoice_mixin.dart';
+import 'package:payouts/src/model/track_user_auth_mixin.dart';
 import 'package:payouts/ui/common/task_monitor.dart';
 
 class DeleteInvoiceIntent extends Intent {
@@ -11,12 +12,20 @@ class DeleteInvoiceIntent extends Intent {
   final BuildContext? context;
 }
 
-class DeleteInvoiceAction extends ContextAction<DeleteInvoiceIntent> with TrackInvoiceMixin {
+class DeleteInvoiceAction extends ContextAction<DeleteInvoiceIntent>
+    with TrackInvoiceMixin, TrackUserAuthMixin {
   DeleteInvoiceAction._() {
     startTrackingInvoiceActivity();
+    startTrackingAuth();
   }
 
   static final DeleteInvoiceAction instance = DeleteInvoiceAction._();
+
+  @override
+  void onUserAuthenticated() {
+    super.onUserAuthenticated();
+    notifyActionListeners();
+  }
 
   @override
   void onInvoiceOpenedChanged() {
@@ -32,7 +41,7 @@ class DeleteInvoiceAction extends ContextAction<DeleteInvoiceIntent> with TrackI
 
   @override
   bool isEnabled(DeleteInvoiceIntent intent) {
-    return isInvoiceOpened && !openedInvoice.isSubmitted;
+    return isUserAuthenticated && isInvoiceOpened && !openedInvoice.isSubmitted;
   }
 
   @override

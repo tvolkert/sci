@@ -127,6 +127,7 @@ class _LoginSheetState extends State<LoginSheet> {
   late bool _setCookie;
 
   Future<void> _initialize() async {
+    UserBinding.instance!.removePostLoginCallback(_initialize);
     phase = _LoginPhase.initializing;
     final int? invoiceId = UserBinding.instance!.user!.lastInvoiceId;
     if (invoiceId != null) {

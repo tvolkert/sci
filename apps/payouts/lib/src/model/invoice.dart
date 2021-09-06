@@ -93,6 +93,7 @@ mixin AssignmentsBinding on AppBindingBase, UserBinding {
   List<Program>? get assignments => _assignments;
 
   Future<void> _loadAssignments() async {
+    removePostLoginCallback(_loadAssignments);
     final Uri url = Server.uri(Server.userAssignmentsUrl);
     final http.Response response =
         await UserBinding.instance!.user!.authenticate().get(url).timeout(httpTimeout);
@@ -126,6 +127,7 @@ mixin ExpenseTypesBinding on AppBindingBase, UserBinding {
   List<ExpenseType>? get expenseTypes => _expenseTypes;
 
   Future<void> _loadExpenseTypes() async {
+    removePostLoginCallback(_loadExpenseTypes);
     final Uri url = Server.uri(Server.expenseTypesUrl);
     final http.Response response =
         await UserBinding.instance!.user!.authenticate().get(url).timeout(httpTimeout);

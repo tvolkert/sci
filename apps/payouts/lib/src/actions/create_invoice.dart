@@ -12,9 +12,10 @@ import 'package:intl/intl.dart' as intl;
 import 'package:payouts/src/model/constants.dart';
 import 'package:payouts/src/model/entry_comparator.dart';
 import 'package:payouts/src/model/invoice.dart';
-import 'package:payouts/src/model/user.dart';
-import 'package:payouts/src/model/track_invoice_mixin.dart';
 import 'package:payouts/ui/common/task_monitor.dart';
+import 'package:payouts/src/model/track_invoice_mixin.dart';
+import 'package:payouts/src/model/track_user_auth_mixin.dart';
+import 'package:payouts/src/model/user.dart';
 
 import 'warn_on_unsaved_changes_mixin.dart';
 
@@ -25,12 +26,24 @@ class CreateInvoiceIntent extends Intent {
 }
 
 class CreateInvoiceAction extends ContextAction<CreateInvoiceIntent>
-    with TrackInvoiceMixin, WarnOnUnsavedChangesMixin {
+    with TrackInvoiceMixin, TrackUserAuthMixin, WarnOnUnsavedChangesMixin {
   CreateInvoiceAction._() {
     startTrackingInvoiceActivity();
+    startTrackingAuth();
   }
 
   static final CreateInvoiceAction instance = CreateInvoiceAction._();
+
+  @override
+  void onUserAuthenticated() {
+    super.onUserAuthenticated();
+    notifyActionListeners();
+  }
+
+  @override
+  bool isEnabled(covariant CreateInvoiceIntent intent) {
+    return isUserAuthenticated;
+  }
 
   @override
   Future<void> invoke(CreateInvoiceIntent intent, [BuildContext? context]) async {

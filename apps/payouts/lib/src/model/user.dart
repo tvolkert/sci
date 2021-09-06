@@ -25,6 +25,9 @@ mixin UserBinding on AppBindingBase {
   User? _user;
   User? get user => _user;
 
+  /// Whether the user is signed in.
+  bool get isUserAuthenticated => user != null;
+
   List<AsyncCallback> _postLoginCallbacks = <AsyncCallback>[];
 
   /// Registers the specified async callback to be run after the user logs in.
@@ -57,7 +60,7 @@ mixin UserBinding on AppBindingBase {
 
   Future<void> _runPostLoginCallbacks() async {
     List<Future<void>> postLoginFutures = <Future<void>>[];
-    for (AsyncCallback callback in _postLoginCallbacks) {
+    for (AsyncCallback callback in List<AsyncCallback>.of(_postLoginCallbacks)) {
       postLoginFutures.add(callback());
     }
     await Future.wait(postLoginFutures);
