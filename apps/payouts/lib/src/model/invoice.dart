@@ -452,7 +452,9 @@ mixin InvoiceListenerNotifier on ListenerNotifier<InvoiceListener> {
 ///  * [InvoiceBinding.loadInvoice], which is used to load a new invoice from
 ///    the SCI server.
 class Invoice {
-  Invoice._(this._owner, this.id, this._data) : assert(_data[Keys.invoiceId] == id);
+  Invoice._(this._owner, this.id, this._data) : assert(_data[Keys.invoiceId] == id) {
+    _data.putIfAbsent(Keys.submitted, () => false);
+  }
 
   final InvoiceBinding _owner;
   bool _disposed = false;
@@ -533,7 +535,7 @@ class Invoice {
   ///
   /// When this is changed, [InvoiceListener.onSubmitted] listeners will
   /// be notified.
-  bool get isSubmitted => _checkDisposed(() => _data[Keys.submitted] ?? false);
+  bool get isSubmitted => _checkDisposed(() => _data[Keys.submitted]);
 
   /// The billing period for the invoice.
   DateRange? _billingPeriod;
@@ -747,7 +749,7 @@ class Timesheets with ForwardingIterable<Timesheet>, DisallowCollectionConversio
   const Timesheets._(this._owner, this._data, this._view);
 
   factory Timesheets._fromRawData(Invoice owner, Map<String, dynamic> invoiceData) {
-    final List<dynamic> rawTimesheets = invoiceData[Keys.timesheets];
+    final List<dynamic> rawTimesheets = invoiceData.putIfAbsent(Keys.timesheets, () => []);
     final List<Map<String, dynamic>> timesheets = rawTimesheets.cast<Map<String, dynamic>>();
     final List<Timesheet> view =
         timesheets.map<Timesheet>((Map<String, dynamic> data) => Timesheet._(owner, data)).toList();
@@ -1100,7 +1102,7 @@ class ExpenseReports
   const ExpenseReports._(this._owner, this._data, this._view);
 
   factory ExpenseReports._fromRawData(Invoice owner, Map<String, dynamic> invoiceData) {
-    final List<dynamic> rawExpenseReports = invoiceData[Keys.expenseReports];
+    final List<dynamic> rawExpenseReports = invoiceData.putIfAbsent(Keys.expenseReports, () => []);
     final List<Map<String, dynamic>> expenseReports =
         rawExpenseReports.cast<Map<String, dynamic>>();
     final List<ExpenseReport> view = expenseReports
@@ -1697,7 +1699,7 @@ class Accomplishments
   const Accomplishments._(this._owner, this._data, this._view);
 
   factory Accomplishments._fromRawData(Invoice owner, Map<String, dynamic> invoiceData) {
-    final List<dynamic> rawAccomplishments = invoiceData[Keys.accomplishments];
+    final List<dynamic> rawAccomplishments = invoiceData.putIfAbsent(Keys.accomplishments, () => []);
     final List<Map<String, dynamic>> accomplishments =
         rawAccomplishments.cast<Map<String, dynamic>>();
     final List<Accomplishment> view = accomplishments
