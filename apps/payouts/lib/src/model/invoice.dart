@@ -533,7 +533,7 @@ class Invoice {
   ///
   /// When this is changed, [InvoiceListener.onSubmitted] listeners will
   /// be notified.
-  bool get isSubmitted => _checkDisposed(() => _data[Keys.submitted])!;
+  bool get isSubmitted => _checkDisposed(() => _data[Keys.submitted] ?? false);
 
   /// The billing period for the invoice.
   DateRange? _billingPeriod;
