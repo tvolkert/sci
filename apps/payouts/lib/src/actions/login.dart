@@ -13,7 +13,7 @@ import 'package:payouts/src/model/user.dart';
 
 typedef LoginCallback = void Function(String username, String password, bool setCookie);
 
-typedef ChangePasswordCallback = void Function(String password, bool setCookie);
+typedef ChangePasswordCallback = Future<void> Function(String password, bool setCookie);
 
 class LoginIntent extends Intent {
   const LoginIntent({this.context});
@@ -487,13 +487,18 @@ class _ResetPasswordPaneState extends State<_ResetPasswordPane> {
     }
   }
 
-  void _handleResetPassword() {
+  void _handleResetPassword() async {
     if (_passwordController.text.isEmpty) {
       errorText = 'Your new password cannot be blank.';
     } else if (_passwordController.text != _confirmPasswordController.text) {
       errorText = 'Your new password entries do not match.';
     } else {
-      widget.onAttemptChangePassword(_passwordController.text, widget.setCookie);
+      try {
+        await widget.onAttemptChangePassword(_passwordController.text, widget.setCookie);
+      } catch (error, stackTrace) {
+        errorText = 'Error: $error';
+        print('$error\n$stackTrace');
+      }
     }
   }
 

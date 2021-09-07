@@ -198,7 +198,7 @@ class User {
     final Uri url = Server.uri(Server.passwordUrl);
     final http.Response response =
         await authenticate().put(url, body: json.encode(password)).timeout(timeout);
-    if (response.statusCode == HttpStatus.ok) {
+    if (response.statusCode == HttpStatus.noContent) {
       final User newUser = User._(username, password, lastInvoiceId, false);
       UserBinding.instance!._user = newUser;
       if (!wasPostLogin && newUser.isPostLogin) {
