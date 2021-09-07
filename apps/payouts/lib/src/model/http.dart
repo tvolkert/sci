@@ -91,7 +91,16 @@ class _FakeHttpClient extends http.BaseClient {
 
   @override
   Future<http.StreamedResponse> send(http.BaseRequest request) async {
-    debugPrint('${request.method} ${request.url.path}');
+    StringBuffer debugMsg = StringBuffer()
+      ..write(request.method)
+      ..write(' ')
+      ..write(request.url.path);
+    if (request is http.Request) {
+      debugMsg
+        ..write(' <-- ')
+        ..write(request.body);
+    }
+    debugPrint(debugMsg.toString());
     if (!_urlToFakeContent.containsKey(request.method)) {
       return _notFound();
     }
